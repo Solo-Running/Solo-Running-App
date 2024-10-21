@@ -7,14 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E409890E2CC4DA2C0021B669 /* RunSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */; };
+		E43AEBE92CBCAC8400C7A322 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBE82CBCAC8400C7A322 /* Constants.swift */; };
+		E43AEBEB2CBCCD6100C7A322 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */; };
+		E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */; };
+		E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBEF2CBCE94500C7A322 /* UserModel.swift */; };
+		E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */; };
+		E43AEBF42CBDACB400C7A322 /* Koulen-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */; };
+		E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF62CBE1C4500C7A322 /* AppState.swift */; };
+		E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF82CBE268F00C7A322 /* MainView.swift */; };
+		E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA1E2CBE3B7800EE1210 /* RunView.swift */; };
+		E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA202CBE3B9E00EE1210 /* ProfileView.swift */; };
 		E491606F2CBC9341009294AA /* SoloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491606E2CBC9341009294AA /* SoloApp.swift */; };
-		E49160712CBC9341009294AA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160702CBC9341009294AA /* ContentView.swift */; };
-		E49160732CBC9341009294AA /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160722CBC9341009294AA /* Item.swift */; };
+		E49160712CBC9341009294AA /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160702CBC9341009294AA /* SplashScreenView.swift */; };
+		E49160732CBC9341009294AA /* RunModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160722CBC9341009294AA /* RunModel.swift */; };
 		E49160752CBC9346009294AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160742CBC9346009294AA /* Assets.xcassets */; };
 		E49160782CBC9346009294AA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160772CBC9346009294AA /* Preview Assets.xcassets */; };
 		E49160822CBC9347009294AA /* SoloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160812CBC9347009294AA /* SoloTests.swift */; };
 		E491608C2CBC9347009294AA /* SoloUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491608B2CBC9347009294AA /* SoloUITests.swift */; };
 		E491608E2CBC9347009294AA /* SoloUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491608D2CBC9347009294AA /* SoloUITestsLaunchTests.swift */; };
+		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
+		E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = E493F03D2CC07F0800D023AE /* BottomSheet */; };
+		E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */; };
+		E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B02CC372BD00B23CFE /* WidgetKit.framework */; };
+		E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B22CC372BD00B23CFE /* SwiftUI.framework */; };
+		E4C509152CC3762900B23CFE /* SoloLiveWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509142CC3762900B23CFE /* SoloLiveWidgetBundle.swift */; };
+		E4C509172CC3762900B23CFE /* SoloLiveWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509162CC3762900B23CFE /* SoloLiveWidgetLiveActivity.swift */; };
+		E4C509192CC3762900B23CFE /* SoloLiveWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509182CC3762900B23CFE /* SoloLiveWidget.swift */; };
+		E4C5091B2CC3762C00B23CFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E4C5091A2CC3762C00B23CFE /* Assets.xcassets */; };
+		E4C5091F2CC3762C00B23CFE /* SoloLiveWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,13 +54,48 @@
 			remoteGlobalIDString = E491606A2CBC9341009294AA;
 			remoteInfo = Solo;
 		};
+		E4C5091D2CC3762C00B23CFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E49160632CBC9341009294AA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E4C5090F2CC3762900B23CFE;
+			remoteInfo = SoloLiveWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		E4C508C62CC372C000B23CFE /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E4C5091F2CC3762C00B23CFE /* SoloLiveWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSummaryView.swift; sourceTree = "<group>"; };
+		E41733572CC23F5000A7E9B8 /* Solo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Solo.entitlements; sourceTree = "<group>"; };
+		E41733592CC2C78C00A7E9B8 /* gpxgenerator_path-3.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "gpxgenerator_path-3.gpx"; path = "../../../Downloads/gpxgenerator_path-3.gpx"; sourceTree = "<group>"; };
+		E43AEBE42CBC962B00C7A322 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E43AEBE82CBCAC8400C7A322 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchManager.swift; sourceTree = "<group>"; };
+		E43AEBEF2CBCE94500C7A322 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
+		E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvideCredentialsView.swift; sourceTree = "<group>"; };
+		E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Koulen-Regular.ttf"; sourceTree = "<group>"; };
+		E43AEBF62CBE1C4500C7A322 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		E43AEBF82CBE268F00C7A322 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		E480FA1E2CBE3B7800EE1210 /* RunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunView.swift; sourceTree = "<group>"; };
+		E480FA202CBE3B9E00EE1210 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		E491606B2CBC9341009294AA /* Solo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E491606E2CBC9341009294AA /* SoloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloApp.swift; sourceTree = "<group>"; };
-		E49160702CBC9341009294AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		E49160722CBC9341009294AA /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		E49160702CBC9341009294AA /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
+		E49160722CBC9341009294AA /* RunModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunModel.swift; sourceTree = "<group>"; };
 		E49160742CBC9346009294AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E49160772CBC9346009294AA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E491607D2CBC9347009294AA /* SoloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -46,6 +103,17 @@
 		E49160872CBC9347009294AA /* SoloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E491608B2CBC9347009294AA /* SoloUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloUITests.swift; sourceTree = "<group>"; };
 		E491608D2CBC9347009294AA /* SoloUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
+		E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLiveActivity.swift; sourceTree = "<group>"; };
+		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E4C508B22CC372BD00B23CFE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SoloLiveWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4C509142CC3762900B23CFE /* SoloLiveWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloLiveWidgetBundle.swift; sourceTree = "<group>"; };
+		E4C509162CC3762900B23CFE /* SoloLiveWidgetLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloLiveWidgetLiveActivity.swift; sourceTree = "<group>"; };
+		E4C509182CC3762900B23CFE /* SoloLiveWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloLiveWidget.swift; sourceTree = "<group>"; };
+		E4C5091A2CC3762C00B23CFE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E4C5091C2CC3762C00B23CFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +121,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,15 +139,70 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E4C5090D2CC3762900B23CFE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */,
+				E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E43AEBE32CBC959200C7A322 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		E43AEBE52CBCAB7F00C7A322 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
+				E480FA1E2CBE3B7800EE1210 /* RunView.swift */,
+				E480FA202CBE3B9E00EE1210 /* ProfileView.swift */,
+				E49160702CBC9341009294AA /* SplashScreenView.swift */,
+				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
+				E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */,
+				E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		E43AEBEC2CBCD5D500C7A322 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */,
+				E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */,
+				E493F03A2CBF950700D023AE /* LocationManager.swift */,
+				E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		E43AEBF52CBDBC4D00C7A322 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E43AEBEF2CBCE94500C7A322 /* UserModel.swift */,
+				E49160722CBC9341009294AA /* RunModel.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		E49160622CBC9341009294AA = {
 			isa = PBXGroup;
 			children = (
+				E4C509132CC3762900B23CFE /* SoloLiveWidget */,
+				E43AEBE82CBCAC8400C7A322 /* Constants.swift */,
+				E41733592CC2C78C00A7E9B8 /* gpxgenerator_path-3.gpx */,
 				E491606D2CBC9341009294AA /* Solo */,
 				E49160802CBC9347009294AA /* SoloTests */,
 				E491608A2CBC9347009294AA /* SoloUITests */,
+				E4C508AF2CC372BD00B23CFE /* Frameworks */,
 				E491606C2CBC9341009294AA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,6 +213,7 @@
 				E491606B2CBC9341009294AA /* Solo.app */,
 				E491607D2CBC9347009294AA /* SoloTests.xctest */,
 				E49160872CBC9347009294AA /* SoloUITests.xctest */,
+				E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -96,10 +221,15 @@
 		E491606D2CBC9341009294AA /* Solo */ = {
 			isa = PBXGroup;
 			children = (
-				E491606E2CBC9341009294AA /* SoloApp.swift */,
-				E49160702CBC9341009294AA /* ContentView.swift */,
-				E49160722CBC9341009294AA /* Item.swift */,
+				E41733572CC23F5000A7E9B8 /* Solo.entitlements */,
 				E49160742CBC9346009294AA /* Assets.xcassets */,
+				E43AEBE42CBC962B00C7A322 /* Info.plist */,
+				E491606E2CBC9341009294AA /* SoloApp.swift */,
+				E43AEBF62CBE1C4500C7A322 /* AppState.swift */,
+				E43AEBE52CBCAB7F00C7A322 /* Screens */,
+				E43AEBF52CBDBC4D00C7A322 /* Models */,
+				E43AEBEC2CBCD5D500C7A322 /* Utils */,
+				E43AEBE32CBC959200C7A322 /* Fonts */,
 				E49160762CBC9346009294AA /* Preview Content */,
 			);
 			path = Solo;
@@ -130,6 +260,27 @@
 			path = SoloUITests;
 			sourceTree = "<group>";
 		};
+		E4C508AF2CC372BD00B23CFE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E4C508B02CC372BD00B23CFE /* WidgetKit.framework */,
+				E4C508B22CC372BD00B23CFE /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E4C509132CC3762900B23CFE /* SoloLiveWidget */ = {
+			isa = PBXGroup;
+			children = (
+				E4C509142CC3762900B23CFE /* SoloLiveWidgetBundle.swift */,
+				E4C509162CC3762900B23CFE /* SoloLiveWidgetLiveActivity.swift */,
+				E4C509182CC3762900B23CFE /* SoloLiveWidget.swift */,
+				E4C5091A2CC3762C00B23CFE /* Assets.xcassets */,
+				E4C5091C2CC3762C00B23CFE /* Info.plist */,
+			);
+			path = SoloLiveWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -140,12 +291,17 @@
 				E49160672CBC9341009294AA /* Sources */,
 				E49160682CBC9341009294AA /* Frameworks */,
 				E49160692CBC9341009294AA /* Resources */,
+				E4C508C62CC372C000B23CFE /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E4C5091E2CC3762C00B23CFE /* PBXTargetDependency */,
 			);
 			name = Solo;
+			packageProductDependencies = (
+				E493F03D2CC07F0800D023AE /* BottomSheet */,
+			);
 			productName = Solo;
 			productReference = E491606B2CBC9341009294AA /* Solo.app */;
 			productType = "com.apple.product-type.application";
@@ -186,6 +342,23 @@
 			productReference = E49160872CBC9347009294AA /* SoloUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		E4C5090F2CC3762900B23CFE /* SoloLiveWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E4C509202CC3762C00B23CFE /* Build configuration list for PBXNativeTarget "SoloLiveWidgetExtension" */;
+			buildPhases = (
+				E4C5090C2CC3762900B23CFE /* Sources */,
+				E4C5090D2CC3762900B23CFE /* Frameworks */,
+				E4C5090E2CC3762900B23CFE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SoloLiveWidgetExtension;
+			productName = SoloLiveWidgetExtension;
+			productReference = E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -207,6 +380,9 @@
 						CreatedOnToolsVersion = 15.2;
 						TestTargetID = E491606A2CBC9341009294AA;
 					};
+					E4C5090F2CC3762900B23CFE = {
+						CreatedOnToolsVersion = 15.2;
+					};
 				};
 			};
 			buildConfigurationList = E49160662CBC9341009294AA /* Build configuration list for PBXProject "Solo" */;
@@ -218,6 +394,9 @@
 				Base,
 			);
 			mainGroup = E49160622CBC9341009294AA;
+			packageReferences = (
+				E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */,
+			);
 			productRefGroup = E491606C2CBC9341009294AA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -225,6 +404,7 @@
 				E491606A2CBC9341009294AA /* Solo */,
 				E491607C2CBC9347009294AA /* SoloTests */,
 				E49160862CBC9347009294AA /* SoloUITests */,
+				E4C5090F2CC3762900B23CFE /* SoloLiveWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -234,6 +414,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E43AEBF42CBDACB400C7A322 /* Koulen-Regular.ttf in Resources */,
 				E49160782CBC9346009294AA /* Preview Assets.xcassets in Resources */,
 				E49160752CBC9346009294AA /* Assets.xcassets in Resources */,
 			);
@@ -253,6 +434,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E4C5090E2CC3762900B23CFE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4C5091B2CC3762C00B23CFE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -260,9 +449,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E49160712CBC9341009294AA /* ContentView.swift in Sources */,
-				E49160732CBC9341009294AA /* Item.swift in Sources */,
+				E43AEBE92CBCAC8400C7A322 /* Constants.swift in Sources */,
+				E43AEBEB2CBCCD6100C7A322 /* DashboardView.swift in Sources */,
+				E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */,
+				E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */,
+				E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */,
+				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
+				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
+				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
+				E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */,
+				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
+				E49160712CBC9341009294AA /* SplashScreenView.swift in Sources */,
+				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
+				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
+				E409890E2CC4DA2C0021B669 /* RunSummaryView.swift in Sources */,
 				E491606F2CBC9341009294AA /* SoloApp.swift in Sources */,
+				E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,6 +485,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E4C5090C2CC3762900B23CFE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4C509172CC3762900B23CFE /* SoloLiveWidgetLiveActivity.swift in Sources */,
+				E4C509152CC3762900B23CFE /* SoloLiveWidgetBundle.swift in Sources */,
+				E4C509192CC3762900B23CFE /* SoloLiveWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -295,6 +507,11 @@
 			isa = PBXTargetDependency;
 			target = E491606A2CBC9341009294AA /* Solo */;
 			targetProxy = E49160882CBC9347009294AA /* PBXContainerItemProxy */;
+		};
+		E4C5091E2CC3762C00B23CFE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E4C5090F2CC3762900B23CFE /* SoloLiveWidgetExtension */;
+			targetProxy = E4C5091D2CC3762C00B23CFE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -421,25 +638,35 @@
 		E49160922CBC9347009294AA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Solo/Solo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Solo/Preview Content\"";
 				DEVELOPMENT_TEAM = QTPR4BFDT4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Solo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your step count.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.Solo;
+				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -450,25 +677,35 @@
 		E49160932CBC9347009294AA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Solo/Solo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Solo/Preview Content\"";
 				DEVELOPMENT_TEAM = QTPR4BFDT4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Solo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your step count.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.Solo;
+				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -552,6 +789,62 @@
 			};
 			name = Release;
 		};
+		E4C509212CC3762C00B23CFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTPR4BFDT4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SoloLiveWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SoloLiveWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app.SoloLiveWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E4C509222CC3762C00B23CFE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QTPR4BFDT4;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SoloLiveWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SoloLiveWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app.SoloLiveWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -591,7 +884,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		E4C509202CC3762C00B23CFE /* Build configuration list for PBXNativeTarget "SoloLiveWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E4C509212CC3762C00B23CFE /* Debug */,
+				E4C509222CC3762C00B23CFE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lucaszischka/BottomSheet";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E493F03D2CC07F0800D023AE /* BottomSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */;
+			productName = BottomSheet;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E49160632CBC9341009294AA /* Project object */;
 }
