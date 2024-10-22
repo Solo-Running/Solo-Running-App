@@ -1,1 +1,2 @@
 # Solo-Running-App
+Solo Running is a cloud-less iOS application that helps runners track and record their acitivity over time. With a simple and elegant UI, users can easily create new runs by interacting with a custom map interface built on top of MapKit. Essential information such as estimated durations, distance, and routes are provided to help you plan your exercise. When you're ready just simply confirm the route you like and the app will immediately start tracking your run data. 
