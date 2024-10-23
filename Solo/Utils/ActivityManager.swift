@@ -83,7 +83,7 @@ class ActivityManager:  ObservableObject {
     }
   
     
-    func reset() {
+    func clearData() {
         DispatchQueue.main.async {
             self.secondsElapsed = 0
             self.distanceTraveled = 0
@@ -97,24 +97,24 @@ class ActivityManager:  ObservableObject {
         return CMPedometer.isPedometerEventTrackingAvailable() &&
         CMPedometer.isDistanceAvailable() && CMPedometer.isStepCountingAvailable()
      }
-    
-    func getWeeklySteps() {
-        if isPedometerAvailable {
-            guard let startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date())
-            else {
-                return
-            }
-            
-            pedometer.queryPedometerData(from: startDate, to: Date()) { (data, error) in
-                guard let data = data, error == nil else {return}
-                
-                DispatchQueue.main.async {
-                    self.steps = data.numberOfSteps.intValue
-                    
-                }
-            }
-        }
-    }
+//    
+//    func getWeeklySteps() {
+//        if isPedometerAvailable {
+//            guard let startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date())
+//            else {
+//                return
+//            }
+//            
+//            pedometer.queryPedometerData(from: startDate, to: Date()) { (data, error) in
+//                guard let data = data, error == nil else {return}
+//                
+//                DispatchQueue.main.async {
+//                    self.steps = data.numberOfSteps.intValue
+//                    
+//                }
+//            }
+//        }
+//    }
     
     func startTracking() async {
         DispatchQueue.main.async {
@@ -152,14 +152,14 @@ class ActivityManager:  ObservableObject {
         await endActivity()
         
         pedometer.stopUpdates()
+
         
         if isPedometerAvailable && runStartTime != nil && runEndTime != nil {
             pedometer.queryPedometerData(from: runStartTime!, to: runEndTime!) { (data, error) in
                 DispatchQueue.main.async {
                     self.averagePace = data?.averageActivePace?.intValue ?? 0
-                    
-                    let distanceInMiles = (self.distanceTraveled / 1609.34)
-                    self.averageSpeed = distanceInMiles / Double((self.secondsElapsed / 3600))
+                    let distanceInMiles = Double(self.distanceTraveled) / 1609.34
+                    self.averageSpeed = distanceInMiles / (Double(self.secondsElapsed) / 3600)
                 }
             }
         }
