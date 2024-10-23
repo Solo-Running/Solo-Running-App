@@ -51,6 +51,8 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     func updateStartEndPlacemarks(start: CLPlacemark, end: CLPlacemark) {
         self.startPlacemark = start
         self.endPlacemark = end
+        
+        print("saved start and end placemarks")
     }
     
     func clearData() {
@@ -85,7 +87,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         
         for step in steps {
             let coordinate = step.polyline.coordinate
-//            print("coordinate for instruction: \(step.instructions) is \(coordinate)")
             stepCoordinates.append(coordinate)
         }
     }
