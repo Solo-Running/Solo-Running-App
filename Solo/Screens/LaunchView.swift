@@ -9,12 +9,19 @@ import SwiftUI
 import SwiftData
 
 
-struct SplashScreenView: View {
+struct SplashScreenView<Content: View>: View {
+        
+    var content: Content
+    var onAnimationEnd: ()->()
+    var color: String
+    var logo: String
+    init(color:String, logo:String, @ViewBuilder content: @escaping () -> Content, onAnimationEnd: @escaping () -> ()) {
+        self.color = color
+        self.onAnimationEnd = onAnimationEnd
+        self.logo = logo
+        self.content = content()
+    }
     
-    @Environment(\.modelContext) private var modelContext
-    @State var isLoading = false
-    
-    @Query private var runs: [Run]
     var body: some View {
         
         VStack{
@@ -31,9 +38,10 @@ struct SplashScreenView: View {
     }
 }
 
-#Preview {
+#Preview
+struct 
+{
         SplashScreenView()
-            .modelContainer(for: Run.self, inMemory: true)
 }
 
 

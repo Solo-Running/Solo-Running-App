@@ -37,18 +37,19 @@ class Location {
     var longitude: Double
     
     init(id: String = UUID().uuidString,
-         name: String? = nil,
-         thoroughfare: String? = nil,
-         subThoroughfare: String? = nil,
-         locality: String? = nil,
-         subLocality: String? = nil,
-         administrativeArea: String? = nil,
-         subAdministrativeArea: String? = nil,
-         postalCode: String? = nil,
-         country: String? = nil,
-         isoCountryCode: String? = nil,
+         name: String? = "",
+         thoroughfare: String? = "",
+         subThoroughfare: String? = "",
+         locality: String? = "",
+         subLocality: String? = "",
+         administrativeArea: String? = "",
+         subAdministrativeArea: String? = "",
+         postalCode: String? = "",
+         country: String? = "",
+         isoCountryCode: String? = "",
          longitude: Double,
-         latitude: Double) {
+         latitude: Double
+    ) {
          
         self.id = id
         self.name = name
