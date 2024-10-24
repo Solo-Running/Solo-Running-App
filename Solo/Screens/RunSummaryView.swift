@@ -9,6 +9,26 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+
+struct ParallaxHeader<Content: View> : View {
+    @ViewBuilder var content: () -> Content
+    
+    var body: some View {
+        
+        GeometryReader { geometry in
+            let offset = geometry.frame(in: .global).minY
+            let isScrolled = offset > 0
+            content()
+                .frame(
+                    width: geometry.size.width,
+                    height: geometry.size.height
+                )
+                .offset(y: -offset * 0.8)
+
+        }
+        .frame(height: 340)
+    }
+}
 struct RunSummaryView: View {
     
     @EnvironmentObject var locationManager: LocationManager
@@ -18,7 +38,7 @@ struct RunSummaryView: View {
 
     @Query private var runs: [Run]
     var savedRun: Run? {runs.last}
-    
+        
     func convertDateToString(date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
@@ -30,134 +50,214 @@ struct RunSummaryView: View {
     
     var body: some View {
         
-        NavigationStack {
-            // hide scrollbar
-            ScrollView(showsIndicators: false) {
+        
+        ScrollView(showsIndicators: false) {
+            
+            
+            if let imageData = savedRun?.routeImage, let uiImage = UIImage(data: imageData) {
+                ParallaxHeader {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
                     
-                    VStack {
-                        
-                        VStack(alignment: .leading) {
-                            if let imageData = savedRun?.routeImage, let uiImage = UIImage(data: imageData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            }
-                            
-                            HStack(alignment: .center) {
-                                ZStack {
-                                    Circle()
-                                        .background(.white)
-                                        .frame(width: 20, height: 20)
-                                    
-                                    Image(systemName: "mappin.circle.fill")
-                                        .font(.title)
-                                        .foregroundStyle(.red)
-                                }
-                                .padding([.top, .trailing], 4)
-                                
-                                Text(savedRun!.endLocation.name!)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                            }
-                        }
-                        .padding(.bottom, 16)
-                        
-                        
-                        HStack {
-                            Text("Distance")
-                                .font(.title3)
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            Text((String(format: "%.2f meters", savedRun!.distanceTraveled)))
-
-                        }
-                        .padding(.vertical, 8)
-                        
-                        
-                        HStack {
-                            Text("Duration")
-                                .font(.title3)
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            Text(
-                                Duration.seconds(savedRun!.elapsedTime).formatted(
-                                    .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                                ))
-                        }
-                        .padding(.vertical, 8)
-
-                        
-                        HStack {
-                            Text("Average Speed")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-
-                            Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
-                        }
-                        .padding(.vertical, 8)
-                        
-                        
-                        HStack {
-                            Text("Average Pace")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-
-                            Text("\(savedRun!.avgPace)")
-                        }
-                        .padding(.vertical, 8)
-                        
-                   
-                                        
-                    
-                        Button  {
-                            showRunView = false
-                        } label: {
-                            HStack {
-                                Text("Back to home").foregroundStyle(.white)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(.green)
-                            .cornerRadius(12)
-                            
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 8)
-                        
-                       
                     
                 }
-                .navigationBarBackButtonHidden(true)
-                .toolbar {
-                    
-                    ToolbarItem(placement: .topBarLeading) {
-                        VStack(alignment: .leading){
-                            Spacer().frame(height: 8)
-                            Text("Run Summary")
-                                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                            
-                            Text("Today \(convertDateToString(date: savedRun!.startTime)) - \(convertDateToString(date: savedRun!.endTime))")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                            
-                            Spacer().frame(height: 8)
-
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-                .frame(maxHeight: .infinity)
+                .frame(height: 340)
             }
-            .frame(maxHeight: .infinity)
+                
+                                
+            VStack(alignment: .leading){
+                
+                Text("Run Summary")
+                    .fontWeight(.bold)
+                    .font(.largeTitle)
+                    .padding(.bottom, 2)
+                
+                Text("Today \(convertDateToString(date: savedRun!.startTime)) - \(convertDateToString(date: savedRun!.endTime))")
+                    .foregroundStyle(TEXT_LIGHT_GREY)
+                    .font(.subheadline)
+                
+                Spacer().frame(height: 24)
+
+                
+                HStack {
+                    
+                    
+                }
+                .padding()
+                .frame(height: 96)
+                .frame(maxWidth: .infinity) // Fills the entire width
+                .background(LIGHT_GREY)
+                .cornerRadius(12) // Rounds the corners
+                
+
+                Spacer().frame(height: 24)
+                
+                // Swipable carousel of run statistics
+                TabView {
+                    
+                    VStack(alignment: .center) {
+                        Text(
+                            Duration.seconds(savedRun!.elapsedTime).formatted(
+                                .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+                            ))
+                        .foregroundStyle(NEON)
+                        .font(.system(size: 48)).fontWeight(.heavy)
+                        
+                        Text("Duration")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    
+                    VStack(alignment: .center) {
+                        Text((String(format: "%.2f", savedRun!.distanceTraveled)))
+                            .foregroundStyle(NEON)
+                            .font(.system(size: 48)).fontWeight(.heavy)
+                        
+                        Text("Distance (meters)")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    
+                    VStack(alignment: .center) {
+                        Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
+                            .foregroundStyle(NEON)
+                            .font(.system(size: 48)).fontWeight(.heavy)
+                        
+                        Text("Avg Speed")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    
+                    
+                    VStack(alignment: .center) {
+                        Text("\(savedRun!.avgPace)")
+                            .foregroundStyle(NEON)
+                            .font(.system(size: 48)).fontWeight(.heavy)
+                        
+                        Text("Avg Pace")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                    }
+                    
+                }
+                .tabViewStyle(PageTabViewStyle())
+                .frame(height: 200)
+                .frame(maxWidth: .infinity)
+                .background(LIGHT_GREY)
+                .cornerRadius(24) // Rounds the corners
+                
+                
+                Spacer().frame(height: 48)
+
+            
+                Button  {
+                    showRunView = false
+                } label: {
+                    HStack {
+                        Text("Home").foregroundStyle(TEXT_DARK_NEON)
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(NEON)
+                    .cornerRadius(12)
+                    
+                }
+                .foregroundStyle(.white)
+                .padding(.vertical, 8)
+                
+                Spacer()
+            }
+            .padding(.top)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+            .background(.black)
+            
+
         }
+        .navigationBarBackButtonHidden(true)
+        .toolbarBackground(Color.clear, for: .navigationBar) // Make navigation bar background transparent
+//        .ignoresSafeArea()
     }
+    
 }
+
+
+/*
+ 
+ 
+ HStack {
+     Text("Distance")
+         .font(.title3)
+         .foregroundStyle(.white)
+         .fontWeight(.semibold)
+     
+     Spacer()
+     
+     Text((String(format: "%.2f meters", savedRun!.distanceTraveled)))
+
+ }
+ .padding(.vertical, 8)
+ 
+
+
+HStack {
+    Text("Duration")
+        .font(.title3)
+        .foregroundStyle(.white)
+        .fontWeight(.semibold)
+    
+    Spacer()
+    
+    Text(
+        Duration.seconds(savedRun!.elapsedTime).formatted(
+            .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+        ))
+}
+.padding(.vertical, 8)
+
+
+HStack {
+    Text("Average Speed")
+        .font(.title3)
+        .fontWeight(.semibold)
+    
+    Spacer()
+
+    Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
+}
+.padding(.vertical, 8)
+
+
+HStack {
+    Text("Average Pace")
+        .font(.title3)
+        .fontWeight(.semibold)
+    
+    Spacer()
+
+    Text("\(savedRun!.avgPace)")
+}
+.padding(.vertical, 8)
+*/
+
+
+//                    HStack(alignment: .center) {
+//                        ZStack {
+//                            Circle()
+//                                .background(.white)
+//                                .frame(width: 20, height: 20)
+//
+//                            Image(systemName: "mappin.circle.fill")
+//                                .font(.title)
+//                                .foregroundStyle(.red)
+//                        }
+//                        .padding([.top, .trailing], 4)
+//
+//                        Text(savedRun!.endLocation.name!)
+//                            .foregroundStyle(TEXT_LIGHT_GREY)
+//                    }
