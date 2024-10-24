@@ -19,13 +19,13 @@
 		E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA1E2CBE3B7800EE1210 /* RunView.swift */; };
 		E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA202CBE3B9E00EE1210 /* ProfileView.swift */; };
 		E491606F2CBC9341009294AA /* SoloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491606E2CBC9341009294AA /* SoloApp.swift */; };
-		E49160712CBC9341009294AA /* SplashScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160702CBC9341009294AA /* SplashScreenView.swift */; };
 		E49160732CBC9341009294AA /* RunModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160722CBC9341009294AA /* RunModel.swift */; };
 		E49160752CBC9346009294AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160742CBC9346009294AA /* Assets.xcassets */; };
 		E49160782CBC9346009294AA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160772CBC9346009294AA /* Preview Assets.xcassets */; };
 		E49160822CBC9347009294AA /* SoloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160812CBC9347009294AA /* SoloTests.swift */; };
 		E491608C2CBC9347009294AA /* SoloUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491608B2CBC9347009294AA /* SoloUITests.swift */; };
 		E491608E2CBC9347009294AA /* SoloUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491608D2CBC9347009294AA /* SoloUITestsLaunchTests.swift */; };
+		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
 		E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = E493F03D2CC07F0800D023AE /* BottomSheet */; };
 		E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */; };
@@ -94,7 +94,6 @@
 		E480FA202CBE3B9E00EE1210 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		E491606B2CBC9341009294AA /* Solo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E491606E2CBC9341009294AA /* SoloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloApp.swift; sourceTree = "<group>"; };
-		E49160702CBC9341009294AA /* SplashScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashScreenView.swift; sourceTree = "<group>"; };
 		E49160722CBC9341009294AA /* RunModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunModel.swift; sourceTree = "<group>"; };
 		E49160742CBC9346009294AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E49160772CBC9346009294AA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -103,6 +102,7 @@
 		E49160872CBC9347009294AA /* SoloUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoloUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E491608B2CBC9347009294AA /* SoloUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloUITests.swift; sourceTree = "<group>"; };
 		E491608D2CBC9347009294AA /* SoloUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		E4922E672CC95D3B00C163EA /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
 		E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLiveActivity.swift; sourceTree = "<group>"; };
@@ -165,7 +165,7 @@
 				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
 				E480FA1E2CBE3B7800EE1210 /* RunView.swift */,
 				E480FA202CBE3B9E00EE1210 /* ProfileView.swift */,
-				E49160702CBC9341009294AA /* SplashScreenView.swift */,
+				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
 				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
 				E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */,
 				E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */,
@@ -454,12 +454,12 @@
 				E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */,
 				E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */,
 				E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */,
+				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
 				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
 				E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */,
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
-				E49160712CBC9341009294AA /* SplashScreenView.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
 				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
 				E409890E2CC4DA2C0021B669 /* RunSummaryView.swift in Sources */,

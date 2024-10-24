@@ -17,7 +17,7 @@ struct SoloApp: App {
     @State var launchManager = LaunchStateManager()
     @StateObject var locationManager = LocationManager()
     @StateObject var activityManager = ActivityManager()
-
+    
     // Initialize the model container for persistent storage operations
     var modelContainer: ModelContainer = {
         let schema = Schema([
@@ -44,21 +44,22 @@ struct SoloApp: App {
                 ZStack{
                     
                     // Show a splash screen on first app launch
-                    if launchManager.state != .finished {
-                        SplashScreenView()
-                    }
-                    
+                    LaunchView()
+                        .opacity(launchManager.state != .finished ? 1 : 0)
+                        .animation(.easeOut(duration: 0.4), value: launchManager.state) // Animate opacity when state changes
+
+                
                     // When splash screen animation finishes show the main view
-                    else {
-                        // MainView is a wrapper view that handles which screen to navigate to
-                        MainView()
-                            .environment(appState)
-                    }
+                    MainView()
+                        .environment(appState)
+                        .opacity(launchManager.state == .finished ? 1: 0)
+                        .animation(.easeOut(duration: 0.2), value: launchManager.state) // Animate opacity when state changes
+
                 }
                 .onAppear {
                     
                     // set a timer for splash screen duration
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         withAnimation {
                             launchManager.dismiss()
                         }
