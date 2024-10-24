@@ -205,6 +205,7 @@ struct RunView: View {
         snapshotOptions.size =  CGSize(width: 200, height: 200)
         snapshotOptions.scale = UIScreen.main.scale
         snapshotOptions.region = paddedRegion
+        snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: .dark) // dark mode map
 
         let snapshotter = MKMapSnapshotter(options: snapshotOptions)
 
