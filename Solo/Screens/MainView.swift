@@ -71,6 +71,7 @@ struct MainView: View {
                             .tag(Screen.Profile)
                         }
                         .toolbarColorScheme(.dark, for: .tabBar)
+                        .tint(NEON)
                     }
                     .onChange(of: appState.screen, initial: false) { old, new in
                         if appState.screen == .Run {
