@@ -211,47 +211,41 @@ struct RunView: View {
         // start request to create the snapshot image
         snapshotter.start { snapshot, error in
 
-
             if let error = error {
                 print("Error capturing snapshot: \(error.localizedDescription)")
                 completion(nil)
                 return
             }
 
-
             // draw initial map
             let image = snapshot!.image
             UIGraphicsBeginImageContextWithOptions(image.size, true, image.scale)
             image.draw(at: .zero)
 
-            let context = UIGraphicsGetCurrentContext()
-
+            let context = UIGraphicsGetCurrentContext()!
+            context.beginPath()
+            
             // Convert route's polyline to the snapshot coordinates
-//            context?.setLineWidth(6.0)
-//            context?.setStrokeColor(UIColor.blue.cgColor)
-//
-//            for i in 0..<route!.polyline.pointCount {
-//                let point = route!.polyline.points()[i]
-//                let coordinate = point.coordinate
-//                let pointInSnapshot = snapshot!.point(for: coordinate)
-//
-//                if i == 0 {
-//                    context?.move(to: pointInSnapshot)
-//                } else {
-//                    context?.addLine(to: pointInSnapshot)
-//                }
-//            }
-//
-//            // add the route polyline to the map
-//            context?.setStrokeColor(UIColor.blue.cgColor)
-//            context?.strokePath()
-//
-//            print("added mk route polyline")
+            for i in 0..<route!.polyline.pointCount {
+                let point = route!.polyline.points()[i]
+                let coordinate = point.coordinate
+                let pointInSnapshot = snapshot!.point(for: coordinate)
 
+                if i == 0 {
+                    context.move(to: pointInSnapshot)
+                } else {
+                    context.addLine(to: pointInSnapshot)
+                }
+            }
+
+            // draw the route polyline on the map
+            context.setLineWidth(2)
+            context.setStrokeColor(UIColor.systemBlue.cgColor)
+            context.strokePath()
+
+            print("added mk route polyline")
 
             // Draw sart and end placemark annotations on the snapshot image
-            snapshot!.image.draw(at: .zero)
-
             let startPoint = snapshot!.point(for: locationManager.startPlacemark!.location!.coordinate)
             let startAnnotationImage = UIImage(systemName: "figure.walk.circle.fill")
             startAnnotationImage?.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
@@ -388,9 +382,10 @@ struct RunView: View {
     
     var body: some View {
         
-        NavigationStack {
-            GeometryReader { proxy in
+        GeometryReader { proxy in
                 
+            NavigationStack {
+
                 ZStack(alignment: .top) {
                     
                     MapReader { proxy in
@@ -421,6 +416,7 @@ struct RunView: View {
                                 }
                             }
                         }
+                        
                         // Run asynchronous task to fetch route when user selects new destination
                         .task(id: selectedPlaceMark) {
                             
@@ -435,8 +431,6 @@ struct RunView: View {
                         .ignoresSafeArea(.keyboard)
                         .onMapCameraChange(frequency: .continuous) {
                             isPinActive = true
-                            
-                            
                         }
                         .onMapCameraChange(frequency: .onEnd) { mapCameraUpdateContext in
                             isPinActive = false
@@ -453,7 +447,6 @@ struct RunView: View {
                                 .ignoresSafeArea(.all)
                             }
                         }
-                        
                         .ignoresSafeArea(edges: [.leading, .trailing])
                         .mapStyle(.standard)
                         .mapControls {
@@ -463,7 +456,6 @@ struct RunView: View {
                         
                     }
                     
-                                    
                     // Overlay buttons on top of Map view
                     VStack {
                         // this forces the stack to stretch to fill screen width
@@ -516,377 +508,381 @@ struct RunView: View {
                     appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
                     appearance.backgroundColor = UIColor(Color.black.opacity(0.2))
                 }
+            }
+        }
+        
+        
+        // Bottom sheet to enable location search and select a destination
+        .bottomSheet(
+            bottomSheetPosition: self.$searchPlaceSheetPosition,
+            switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.80)]
+        ){
+            VStack {
                 
-                // Bottom sheet to enable location search and select a destination
-                .bottomSheet(
-                    bottomSheetPosition: self.$searchPlaceSheetPosition,
-                    switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.80)]
-                ){
-                    VStack {
-                        
-                        HStack {
-                            
-                            Text("Plan your run!")
+                HStack {
+                    
+                    Text("Plan your run!")
+                        .foregroundStyle(.white)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                    
+                    Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
+                        .tint(NEON)
+                        .toggleStyle(.button)
+                        .labelStyle(.iconOnly)
+                        .font(.title)
+                    
+                    if(usePin) {
+                        Button {
+                            // add pin location to route and show route info sheet
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .frame(width: 48, height: 48)
                                 .foregroundStyle(.white)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                            
-                            Spacer()
-                            
-                            Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
-                                .tint(NEON)
-                                .toggleStyle(.button)
-                                .labelStyle(.iconOnly)
-                                .font(.title)
-                            
-                            if(usePin) {
-                                Button {
-                                    // add pin location to route and show route info sheet
-                                } label: {
-                                    Image(systemName: "plus.circle.fill")
-                                        .frame(width: 48, height: 48)
-                                        .foregroundStyle(.white)
-                                }
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .leading).combined(with: .opacity),
-                                    removal: .move(edge: .leading).combined(with: .opacity))
-                                )
-                                .animation(.easeOut(duration: 0.2), value: usePin)
-                            }
-                            
                         }
-                        
-                        
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass")
-                                .padding(.leading, 8)
-                            
-                            TextField("", text: Binding(get: { locationManager.searchText }, set: { locationManager.searchText = $0 }), prompt: Text("Set your destination").foregroundColor(.white))
-                                .foregroundColor(.white)
-                                .autocapitalization(.none)
-                                .frame(height: 48)
-                                .cornerRadius(12)
-                                .padding(.trailing, 8)
-                                .onSubmit {
-                                    searchPlaceSheetPosition = .relative(0.50)
-                                }
-                                .focused($isTextFieldFocused)
-                            
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity))
                         )
-                        .onChange(of: isTextFieldFocused) { old, new in
-                            if isTextFieldFocused {
-                                if searchPlaceSheetPosition != .relative(0.70) {
-                                    searchPlaceSheetPosition = .relative(0.70)
-                                }
-                            }
-                            
-                        }
-                        
-                        // Show list of location search results
-                        if let places = locationManager.fetchedPlaces, !places.isEmpty {
-                            List {
-                                ForEach(places, id: \.self) { place in
-                                    
-                                    VStack(alignment: .leading) {
-                                        Text(place.name ?? "")
-                                            .font(.title3.bold())
-                                        
-                                        HStack(spacing: 3) {
-                                            
-                                            // Street
-                                            Text(place.thoroughfare ?? "")
-                                                .foregroundStyle(.gray)
-                                            
-                                            // City
-                                            Text(place.locality ?? "")
-                                                .foregroundStyle(.gray)
-                                            
-                                            // State
-                                            Text(place.administrativeArea != nil ? ", \(place.administrativeArea!)" : "")
-                                                .foregroundStyle(.gray)
-                                        }
-                                    }
-                                    // When user taps on a suggested place in the list view, the route details sheet should show up
-                                    .onTapGesture {
-                                        selectedPlaceMark = place
-                                        
-                                        // show the route for the selected destination
-                                        showRoute = true
-                                        usePin = false
-                                        isTextFieldFocused = false // hide the keyboard
-                                        
-                                        // animate camera movement to selected placemark
-                                        let coordinate = place.location!.coordinate
-                                        withAnimation {
-                                            cameraPosition = .region(MKCoordinateRegion(
-                                                center: coordinate,
-                                                span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                                            ))
-                                        }
-                                    }
-                                }
-                            }
-                            .listStyle(.plain)
-                        }
+                        .animation(.easeOut(duration: 0.2), value: usePin)
                     }
-                    .padding(.horizontal, 16)
-                }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                .transition(.move(edge: .bottom))
-                
-                // Route details sheet
-                .bottomSheet(
-                    bottomSheetPosition: self.$routeSheetPosition,
-                    switchablePositions: [.relative(0.25), .relative(0.70)],
-                    headerContent: {Text("Route details").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(NEON)}
-                ){
                     
-                    VStack {
-                        if routeDestination != nil {
-                            
-                            HStack{
-                                Text(routeDestination!.name ?? "").font(.title).fontWeight(.semibold)
-                                Spacer()
-                            }
-                            
-                            HStack(spacing: 3) {
-                                
-                                // Street
-                                Text(routeDestination!.placemark.thoroughfare ?? "")
-                                    .foregroundStyle(.gray)
-                                
-                                // City
-                                Text(routeDestination!.placemark.locality ?? "")
-                                    .foregroundStyle(.gray)
-                                
-                                // TODO: figure out how to load
-                                Text(routeDestination!.placemark.administrativeArea != nil ? ", \(routeDestination!.placemark.administrativeArea!)" : "")
-                                    .foregroundStyle(.gray)
-                                
-                                Spacer()
-                            }
-                            
-                            
-                            HStack {
-                                Image(systemName: "figure.walk.motion")
-                                    .frame(width: 32, height: 32)
-                                    .padding(.trailing, 4)
-                                
-                                Text(travelTimeString ?? "")
-                                
-                                Spacer()
-                                
-                                Button {
-                                    Task{
-                                        // LocationManager will save the start and end locations
-                                        if let userLocation = locationManager.userLocation {
-                                            lookUpLocation(location: userLocation) { startPlacemark in
-                                                if startPlacemark == nil {
-                                                    print("could not reverse geo code user's location")
-                                                    return
-                                                }
-                                                locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!.placemark)
-                                            }
-                                        }
-                                        // Begin the run and track user steps, distance, etc
-                                        await activityManager.startTracking()
-                                        runStatus = .startedRun
-                                        routeSheetPosition = .hidden
-                                        runSheetPosition = .relative(0.25)
-                                    }
-                                } label: {
-                                    Text("Start Run").foregroundStyle(.white)
-                                }
-                                .frame(height: 48)
-                                .buttonStyle(.borderedProminent)
-                                .tint(.green)
-                                .cornerRadius(12)
-                                .frame(maxWidth: .infinity)
-                            }
-                            
-                        }
-                        
-                    }
-                    .padding(.horizontal, 16)
-                    .onAppear {
-                        // prevents wierd behavior where tapping on a route destination marker fetches a different route
-                        disabledFetch = true
-                    }
-                }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                .showCloseButton(true)
-                .onDismiss {
-                    // when user closes route detail sheet, clear the route data
-                    removeRoute()
-                    disabledFetch = false
                 }
                 
                 
-                
-                // Run details sheet
-                .bottomSheet(
-                    bottomSheetPosition: self.$runSheetPosition,
-                    switchablePositions: [.relative(0.25), .relative(0.70)]
-                ) {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .padding(.leading, 8)
                     
-                    if routeDestination != nil {
-                        VStack(alignment: .leading) {
-                            
-                            // Header content
-                            HStack {
-                                Text(routeDestination!.name ?? "")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.white)
-                                
-                                Spacer()
-                                
-                                // Play and pause button for timer
-                                Toggle("", systemImage: !activityManager.isTimerPaused() ? "pause.fill" : "play.fill", isOn: $isPaused)
-                                    .tint(.white)
-                                    .toggleStyle(.button)
-                                    .labelStyle(.iconOnly)
-                                    .font(.title)
-                                    .onChange(of: isPaused) { old, new in
-                                        if new {
-                                            activityManager.pauseTimer()
-                                        } else {
-                                            activityManager.resumeTimer()
-                                        }
-                                    }
-                            }
-                            
-                            // Display timer and step count
-                            HStack {
-                                HStack{
-                                    Image(systemName: "timer")
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Text("\(activityManager.formattedDuration)")
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(LIGHT_GREY)
-                                .clipShape(Capsule())
-                                
-                                Text("\(activityManager.steps) steps")
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .background(LIGHT_GREY)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Capsule().fill(LIGHT_GREY))
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                            }
-                            
-                            Spacer().frame(height: 16)
-                            
-                            
-                            // Button to show route steps in a list view
-                            Button{
-                                stepsSheetPosition = .relative(0.75)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "map.fill")
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                        .padding(.trailing, 4)
-                                    Text("Route Details")
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Spacer()
-                                    
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity) // Fills the entire width
-                                .background(LIGHT_GREY)
-                                .cornerRadius(12) // Rounds the corners
-                            }
-                            
-                            Spacer().frame(height: 16)
-                            
-                            // End run button
-                            Button  {
-                                isShowingDeleteDialog = true
-                            } label: {
-                                HStack {
-                                    Text("Finish Run").foregroundStyle(.white)
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(.red)
-                                .cornerRadius(12)
-                            }
-                            .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
-                                Button("Yes", role: .destructive) {
-                                    Task {
-                                        await activityManager.stopTracking()
-                                        saveRunData { result in
-                                            
-                                            switch result {
-                                            case .success(_):
-                                                runStatus = .planningRoute 
-                                                locationManager.clearData()
-                                                activityManager.clearData()
-                                                
-                                                runSheetPosition = .hidden
-                                                routeSheetPosition = .hidden
-                                                
-                                                // Toggle flag to navigate to the run summary view
-                                                canShowSummary = true
-                                                
-                                            case .failure(let error):
-                                                print("Error saving run data: \(error.localizedDescription)")
-                                                canShowSummary = false
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                            }
+                    TextField("", text: Binding(get: { locationManager.searchText }, set: { locationManager.searchText = $0 }), prompt: Text("Set your destination").foregroundColor(.white))
+                        .foregroundColor(.white)
+                        .autocapitalization(.none)
+                        .frame(height: 48)
+                        .cornerRadius(12)
+                        .padding(.trailing, 8)
+                        .onSubmit {
+                            searchPlaceSheetPosition = .relative(0.50)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 16)
-                        
-                        Spacer()
-                    }
+                        .focused($isTextFieldFocused)
+                    
                 }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+                .background(
+                    RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                )
+                .onChange(of: isTextFieldFocused) { old, new in
+                    if isTextFieldFocused {
+                        if searchPlaceSheetPosition != .relative(0.70) {
+                            searchPlaceSheetPosition = .relative(0.70)
+                        }
+                    }
+                    
+                }
                 
-                
-                // Route steps sheet
-                .bottomSheet(
-                    bottomSheetPosition: self.$stepsSheetPosition,
-                    switchablePositions: [.relative(0.25), .relative(0.70)],
-                    headerContent: {Text("Route directions").font(.title2).fontWeight(.semibold).padding(.leading, 16)}
-                ) {
+                // Show list of location search results
+                if let places = locationManager.fetchedPlaces, !places.isEmpty {
                     List {
-                        ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
+                        ForEach(places, id: \.self) { place in
                             
                             VStack(alignment: .leading) {
-                                Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.white)
+                                Text(place.name ?? "")
+                                    .font(.title3.bold())
                                 
-                                Text("\(locationManager.routeSteps[idx].instructions)")
-                                    .font(.title3)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                HStack(spacing: 3) {
+                                    
+                                    // Street
+                                    Text(place.thoroughfare ?? "")
+                                        .foregroundStyle(.gray)
+                                    
+                                    // City
+                                    Text(place.locality ?? "")
+                                        .foregroundStyle(.gray)
+                                    
+                                    // State
+                                    Text(place.administrativeArea != nil ? ", \(place.administrativeArea!)" : "")
+                                        .foregroundStyle(.gray)
+                                }
+                            }
+                            // When user taps on a suggested place in the list view, the route details sheet should show up
+                            .onTapGesture {
+                                selectedPlaceMark = place
+                                
+                                // show the route for the selected destination
+                                showRoute = true
+                                usePin = false
+                                isTextFieldFocused = false // hide the keyboard
+                                
+                                // animate camera movement to selected placemark
+                                let coordinate = place.location!.coordinate
+                                withAnimation {
+                                    cameraPosition = .region(MKCoordinateRegion(
+                                        center: coordinate,
+                                        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                    ))
+                                }
                             }
                         }
                     }
                     .listStyle(.plain)
                 }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                .showCloseButton(true)
+            }
+            .padding(.horizontal, 16)
+        }
+        .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+        .transition(.move(edge: .bottom))
+        
+        // Route details sheet
+        .bottomSheet(
+            bottomSheetPosition: self.$routeSheetPosition,
+            switchablePositions: [.relative(0.25), .relative(0.70)],
+            headerContent: {Text("Route details").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(NEON)}
+        ){
+            
+            VStack {
+                if routeDestination != nil {
+                    
+                    HStack{
+                        Text(routeDestination!.name ?? "").font(.title).fontWeight(.semibold)
+                        Spacer()
+                    }
+                    
+                    HStack(spacing: 3) {
+                        
+                        // Street
+                        Text(routeDestination!.placemark.thoroughfare ?? "")
+                            .foregroundStyle(.gray)
+                        
+                        // City
+                        Text(routeDestination!.placemark.locality ?? "")
+                            .foregroundStyle(.gray)
+                        
+                        // TODO: figure out how to load
+                        Text(routeDestination!.placemark.administrativeArea != nil ? ", \(routeDestination!.placemark.administrativeArea!)" : "")
+                            .foregroundStyle(.gray)
+                        
+                        Spacer()
+                    }
+                    
+                    
+                    HStack {
+                        Image(systemName: "figure.walk.motion")
+                            .frame(width: 32, height: 32)
+                            .padding(.trailing, 4)
+                        
+                        Text(travelTimeString ?? "")
+                        
+                        Spacer()
+                        
+                        Button {
+                            Task{
+                                // LocationManager will save the start and end locations
+                                if let userLocation = locationManager.userLocation {
+                                    lookUpLocation(location: userLocation) { startPlacemark in
+                                        if startPlacemark == nil {
+                                            print("could not reverse geo code user's location")
+                                            return
+                                        }
+                                        locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!.placemark)
+                                    }
+                                }
+                                // Begin the run and track user steps, distance, etc
+                                await activityManager.startTracking()
+                                runStatus = .startedRun
+                                routeSheetPosition = .hidden
+                                runSheetPosition = .relative(0.25)
+                            }
+                        } label: {
+                            Text("Start Run").foregroundStyle(.white)
+                        }
+                        .frame(height: 48)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        .cornerRadius(12)
+                        .frame(maxWidth: .infinity)
+                    }
+                    
+                }
                 
             }
-            
+            .padding(.horizontal, 16)
+            .onAppear {
+                // prevents wierd behavior where tapping on a route destination marker fetches a different route
+                disabledFetch = true
+            }
         }
+        .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+        .showCloseButton(true)
+        .onDismiss {
+            // when user closes route detail sheet, clear the route data
+            removeRoute()
+            disabledFetch = false
+        }
+        
+        
+        
+        // Run details sheet
+        .bottomSheet(
+            bottomSheetPosition: self.$runSheetPosition,
+            switchablePositions: [.relative(0.25), .relative(0.70)]
+        ) {
+            
+            if routeDestination != nil {
+                VStack(alignment: .leading) {
+                    
+                    // Header content
+                    HStack {
+                        Text(routeDestination!.name ?? "")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                        
+                        Spacer()
+                        
+                        // Play and pause button for timer
+                        Toggle("", systemImage: !activityManager.isTimerPaused() ? "pause.fill" : "play.fill", isOn: $isPaused)
+                            .tint(.white)
+                            .toggleStyle(.button)
+                            .labelStyle(.iconOnly)
+                            .font(.title)
+                            .onChange(of: isPaused) { old, new in
+                                if new {
+                                    activityManager.pauseTimer()
+                                } else {
+                                    activityManager.resumeTimer()
+                                }
+                            }
+                    }
+                    
+                    // Display timer and step count
+                    HStack {
+                        HStack{
+                            Image(systemName: "timer")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                            
+                            Text("\(activityManager.formattedDuration)")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(LIGHT_GREY)
+                        .clipShape(Capsule())
+                        
+                        Text("\(activityManager.steps) steps")
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                            .background(LIGHT_GREY)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(LIGHT_GREY))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer().frame(height: 16)
+                    
+                    
+                    // Button to show route steps in a list view
+                    Button{
+                        stepsSheetPosition = .relative(0.75)
+                    } label: {
+                        HStack {
+                            Image(systemName: "map.fill")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .padding(.trailing, 4)
+                            Text("Route Details")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                            
+                            Spacer()
+                            
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity) // Fills the entire width
+                        .background(LIGHT_GREY)
+                        .cornerRadius(12) // Rounds the corners
+                    }
+                    
+                    Spacer().frame(height: 16)
+                    
+                    // End run button
+                    Button  {
+                        isShowingDeleteDialog = true
+                    } label: {
+                        HStack {
+                            Text("Finish Run").foregroundStyle(.white)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(.red)
+                        .cornerRadius(12)
+                    }
+                    .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
+                        Button("Yes", role: .destructive) {
+                            Task {
+                                await activityManager.stopTracking()
+                                saveRunData { result in
+                                    
+                                    switch result {
+                                    case .success(_):
+                                        
+                                        // hide all the sheets since they won't automatically
+                                        // disappear when navigating to summary view
+                                        runSheetPosition = .hidden
+                                        searchPlaceSheetPosition = .hidden
+                                        stepsSheetPosition = .hidden
+                                        routeSheetPosition = .hidden
+                                        
+                                        runStatus = .planningRoute
+                                        locationManager.clearData()
+                                        activityManager.clearData()
+              
+                                        // Toggle flag to navigate to the run summary view
+                                        canShowSummary = true
+                                        
+                                    case .failure(let error):
+                                        print("Error saving run data: \(error.localizedDescription)")
+                                        canShowSummary = false
+                                    }
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+                
+                Spacer()
+            }
+        }
+        .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+        
+        
+        // Route steps sheet
+        .bottomSheet(
+            bottomSheetPosition: self.$stepsSheetPosition,
+            switchablePositions: [.relative(0.25), .relative(0.70)],
+            headerContent: {Text("Route directions").font(.title2).fontWeight(.semibold).padding(.leading, 16)}
+        ) {
+            List {
+                ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
+                    
+                    VStack(alignment: .leading) {
+                        Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                        
+                        Text("\(locationManager.routeSteps[idx].instructions)")
+                            .font(.title3)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                    }
+                }
+            }
+            .listStyle(.plain)
+        }
+        .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+        .showCloseButton(true)
     }
 }
 
