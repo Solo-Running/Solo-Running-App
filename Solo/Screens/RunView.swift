@@ -193,7 +193,7 @@ struct RunView: View {
         let snapshotOptions = MKMapSnapshotter.Options()
         let region = MKCoordinateRegion(route!.polyline.boundingMapRect)
         
-        let paddingPercentage: CLLocationDegrees = 0.50 // Adjust percentage for padding
+        let paddingPercentage: CLLocationDegrees = 0.25 // Adjust percentage for padding
         let paddedRegion = MKCoordinateRegion(
             center: region.center,
             span: MKCoordinateSpan(
@@ -202,7 +202,7 @@ struct RunView: View {
             )
         )
 
-        snapshotOptions.size =  CGSize(width: 200, height: 200)
+        snapshotOptions.size =  CGSize(width: 500, height: 500)
         snapshotOptions.scale = UIScreen.main.scale
         snapshotOptions.region = paddedRegion
         snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: .dark) // dark mode map
@@ -240,7 +240,7 @@ struct RunView: View {
             }
 
             // draw the route polyline on the map
-            context.setLineWidth(3)
+            context.setLineWidth(6)
             context.setStrokeColor(UIColor.systemBlue.cgColor)
             context.strokePath()
 
@@ -634,34 +634,39 @@ struct RunView: View {
                                     
                                     Spacer()
                                     
-                                    Button {
-                                        Task{
-                                            // LocationManager will save the start and end locations
-                                            if let userLocation = locationManager.userLocation {
-                                                lookUpLocation(location: userLocation) { startPlacemark in
-                                                    if startPlacemark == nil {
-                                                        print("could not reverse geo code user's location")
-                                                        return
-                                                    }
-                                                    locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!.placemark)
-                                                }
-                                            }
-                                            // Begin the run and track user steps, distance, etc
-                                            await activityManager.startTracking()
-                                            runStatus = .startedRun
-                                            routeSheetPosition = .hidden
-                                            runSheetPosition = .relative(0.25)
-                                        }
-                                    } label: {
-                                        Text("Start Run").foregroundStyle(.white)
-                                    }
-                                    .frame(height: 48)
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.green)
-                                    .cornerRadius(12)
-                                    .frame(maxWidth: .infinity)
                                 }
                                 
+                                Button {
+                                    Task{
+                                        // LocationManager will save the start and end locations
+                                        if let userLocation = locationManager.userLocation {
+                                            lookUpLocation(location: userLocation) { startPlacemark in
+                                                if startPlacemark == nil {
+                                                    print("could not reverse geo code user's location")
+                                                    return
+                                                }
+                                                locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!.placemark)
+                                            }
+                                        }
+                                        // Begin the run and track user steps, distance, etc
+                                        await activityManager.startTracking()
+                                        runStatus = .startedRun
+                                        routeSheetPosition = .hidden
+                                        runSheetPosition = .relative(0.25)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text("Start Run")
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(TEXT_DARK_GREEN)
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(LIGHT_GREEN)
+                                    .cornerRadius(12)
+                               
+                                }
+                  
                             }
                             
                         }
@@ -769,7 +774,9 @@ struct RunView: View {
                                     isShowingDeleteDialog = true
                                 } label: {
                                     HStack {
-                                        Text("Finish Run").foregroundStyle(.white)
+                                        Text("Finish Run")
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(TEXT_LIGHT_RED)
                                     }
                                     .padding()
                                     .frame(maxWidth: .infinity)
