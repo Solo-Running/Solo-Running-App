@@ -29,6 +29,9 @@ struct ParallaxHeader<Content: View> : View {
         .frame(height: 340)
     }
 }
+
+
+
 struct RunSummaryView: View {
     
     @EnvironmentObject var locationManager: LocationManager
@@ -39,12 +42,53 @@ struct RunSummaryView: View {
     @Query private var runs: [Run]
     var savedRun: Run? {runs.last}
         
+    // Formats a Date to friendly format into 1:13am
     func convertDateToString(date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
 
         let timeString = formatter.string(from: date)
         return timeString
+    }
+    
+    
+    // Formats time difference between start and end times into 1hr 2min
+    func timeDifference(from startDate: Date, to endDate: Date) -> String {
+        let calendar = Calendar.current
+           
+           // Get the difference in hours, minutes, and seconds
+           let components = calendar.dateComponents([.hour, .minute, .second], from: startDate, to: endDate)
+           
+           // Extract the hours, minutes, and seconds
+           let hours = components.hour ?? 0
+           let minutes = components.minute ?? 0
+           let seconds = components.second ?? 0
+
+           // Create the formatted string
+           var result = ""
+           
+           if hours > 0 {
+               result += "\(hours)hr "
+           }
+           
+           if minutes > 0 {
+               result += "\(minutes)min "
+           }
+           
+           // If the difference is less than 60 seconds, display seconds
+           if hours == 0 && minutes == 0 && seconds > 0 {
+               result = "\(seconds)sec"
+           }
+
+           return result.isEmpty ? "0sec" : result
+    }
+    
+    
+    // Converts CMPedometer Pace Units to Minutes/Mile
+    func convertPace(secondsPerMeter: Double) -> Double {
+        let minutesPerMeter = secondsPerMeter / 60
+        let minutesPerMile = minutesPerMeter * 1609.34
+        return minutesPerMile
     }
     
     
@@ -59,100 +103,124 @@ struct RunSummaryView: View {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                    
-                    
                 }
                 .frame(height: 340)
             }
                 
                                 
-            VStack(alignment: .leading){
-                
-                Text("Run Summary")
-                    .fontWeight(.bold)
-                    .font(.largeTitle)
-                    .padding(.bottom, 2)
-                
+            VStack(alignment: .leading) {
+               
                 Text("Today \(convertDateToString(date: savedRun!.startTime)) - \(convertDateToString(date: savedRun!.endTime))")
                     .foregroundStyle(TEXT_LIGHT_GREY)
                     .font(.subheadline)
                 
+                Text("Run Summary")
+                    .fontWeight(.bold)
+                    .font(.largeTitle)
+    
+                Spacer().frame(height: 12)
+
+                CapsuleView(
+                    capsuleBackground: LIGHT_GREEN,
+                    iconName: "timer",
+                    iconColor: Color.white,
+                    text: timeDifference(from: savedRun!.startTime, to: savedRun!.endTime)
+                )
+                
                 Spacer().frame(height: 24)
 
                 
+                // Route start and end timeline
+                VStack(spacing: 16) {
+                    HStack {
+                        
+                        ZStack {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 20, height: 20)
+                            
+                            Circle()
+                                .fill(.black)
+                                .frame(width: 8, height: 8)
+                        }
+                        
+                        Text((savedRun?.startLocation.name)!)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                        
+                        Spacer()
+                    }
+                    .overlay(alignment: .topLeading){
+                        Rectangle()
+                            .frame(width: 1.5, height: 24)
+                            .offset(y: 16)
+                            .padding(.leading, 9)
+                    }
+                    
+                    HStack {
+                        
+                        ZStack {
+                            Circle()
+                              .fill(.white)
+                              .frame(width: 20, height: 20)
+                          
+                            Circle()
+                              .fill(.black)
+                              .frame(width: 8, height: 8)
+                        }
+                        
+                        Text((savedRun?.endLocation.name)!)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                        
+                        Spacer()
+                    }
+                }
+
+                Spacer().frame(height: 48)
+  
+                // Run statistics
                 HStack {
+                    Text("Distance (Meters)")
+                        .font(Font.custom("Koulen-Regular", size: 20))
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
                     
+                    Spacer()
                     
+                    Text((String(format: "%.2f", savedRun!.distanceTraveled)))
                 }
                 .padding()
-                .frame(height: 96)
-                .frame(maxWidth: .infinity) // Fills the entire width
                 .background(LIGHT_GREY)
-                .cornerRadius(12) // Rounds the corners
+                .cornerRadius(12)
                 
+                HStack {
+                    Text("Average Speed (MPH)")
+                        .font(Font.custom("Koulen-Regular", size: 20))
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
 
-                Spacer().frame(height: 24)
-                
-                // Swipable carousel of run statistics
-                TabView {
-                    
-                    VStack(alignment: .center) {
-                        Text(
-                            Duration.seconds(savedRun!.elapsedTime).formatted(
-                                .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                            ))
-                        .foregroundStyle(NEON)
-                        .font(.system(size: 48)).fontWeight(.heavy)
-                        
-                        Text("Duration")
-                            .foregroundStyle(.white)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    
-                    VStack(alignment: .center) {
-                        Text((String(format: "%.2f", savedRun!.distanceTraveled)))
-                            .foregroundStyle(NEON)
-                            .font(.system(size: 48)).fontWeight(.heavy)
-                        
-                        Text("Distance (meters)")
-                            .foregroundStyle(.white)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    
-                    VStack(alignment: .center) {
-                        Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
-                            .foregroundStyle(NEON)
-                            .font(.system(size: 48)).fontWeight(.heavy)
-                        
-                        Text("Avg Speed")
-                            .foregroundStyle(.white)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    
-                    
-                    VStack(alignment: .center) {
-                        Text("\(savedRun!.avgPace)")
-                            .foregroundStyle(NEON)
-                            .font(.system(size: 48)).fontWeight(.heavy)
-                        
-                        Text("Avg Pace")
-                            .foregroundStyle(.white)
-                            .fontWeight(.semibold)
-                    }
-                    
+                    Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
                 }
-                .tabViewStyle(PageTabViewStyle())
-                .frame(height: 200)
-                .frame(maxWidth: .infinity)
+                .padding()
                 .background(LIGHT_GREY)
-                .cornerRadius(24) // Rounds the corners
-                
+                .cornerRadius(12)
+
+                HStack {
+                    Text("Avg Pace (Min/Mile)")
+                        .font(Font.custom("Koulen-Regular", size: 20))
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+
+                    Text("\(savedRun!.avgPace)")
+                }
+                .padding()
+                .background(LIGHT_GREY)
+                .cornerRadius(12)
                 
                 Spacer().frame(height: 48)
-
             
                 Button  {
                     showRunView = false
@@ -261,3 +329,67 @@ HStack {
 //                        Text(savedRun!.endLocation.name!)
 //                            .foregroundStyle(TEXT_LIGHT_GREY)
 //                    }
+
+
+/*
+ 
+ 
+ 
+ // Swipable carousel of run statistics
+ TabView {
+     
+     VStack(alignment: .center) {
+         Text(
+             Duration.seconds(savedRun!.elapsedTime).formatted(
+                 .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+             ))
+         .foregroundStyle(NEON)
+         .font(.system(size: 48)).fontWeight(.heavy)
+         
+         Text("Duration")
+             .foregroundStyle(.white)
+             .fontWeight(.semibold)
+     }
+     
+     
+     VStack(alignment: .center) {
+         Text((String(format: "%.2f", savedRun!.distanceTraveled)))
+             .foregroundStyle(NEON)
+             .font(.system(size: 48)).fontWeight(.heavy)
+         
+         Text("Distance (meters)")
+             .foregroundStyle(.white)
+             .fontWeight(.semibold)
+     }
+     
+     
+     VStack(alignment: .center) {
+         Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
+             .foregroundStyle(NEON)
+             .font(.system(size: 48)).fontWeight(.heavy)
+         
+         Text("Avg Speed")
+             .foregroundStyle(.white)
+             .fontWeight(.semibold)
+     }
+     
+     
+     
+     VStack(alignment: .center) {
+         Text("\(savedRun!.avgPace)")
+             .foregroundStyle(NEON)
+             .font(.system(size: 48)).fontWeight(.heavy)
+         
+         Text("Avg Pace")
+             .foregroundStyle(.white)
+             .fontWeight(.semibold)
+     }
+     
+ }
+ .tabViewStyle(PageTabViewStyle())
+ .frame(height: 200)
+ .frame(maxWidth: .infinity)
+ .background(LIGHT_GREY)
+ .cornerRadius(24) // Rounds the corners
+ 
+ */
