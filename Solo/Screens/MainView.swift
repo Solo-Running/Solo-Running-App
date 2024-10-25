@@ -44,7 +44,6 @@ struct MainView: View {
                             DashboardView().tabItem {
                                 Image(systemName: "house.fill")
                                     .frame(width: 32, height: 32)
-                                    .foregroundColor(.white)
                                     .background(.black)
                                     .cornerRadius(26)
                             }
@@ -54,7 +53,6 @@ struct MainView: View {
                             VStack{}.background(.black)
                                 .tabItem {
                                     Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(NEON)
                                         .background(.black)
                                         .frame(width: 48, height: 48)
                                 }.tag(Screen.Run)
@@ -64,14 +62,13 @@ struct MainView: View {
                                 Image(systemName: "person.circle.fill")
                                     .resizable()
                                     .scaledToFit()
-                                    .foregroundColor(.white)
                                     .background(.black)
                                     .frame(width: 32, height: 32)
                             }
                             .tag(Screen.Profile)
                         }
                         .toolbarColorScheme(.dark, for: .tabBar)
-                        .tint(NEON)
+                        .toolbarBackground(.hidden, for: .tabBar)
                     }
                     .onChange(of: appState.screen, initial: false) { old, new in
                         if appState.screen == .Run {
@@ -114,3 +111,8 @@ struct MainView: View {
 //            .frame(width: 48, height: 48)
 //    }
 //    .tag(Screen.Run)
+
+//
+//    .toolbarColorScheme(.dark, for: .tabBar)
+//    .toolbarBackground(.white, for: .tabBar)
+//    .toolbarBackground(.visible, for: .tabBar)
