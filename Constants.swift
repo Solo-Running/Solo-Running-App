@@ -10,13 +10,18 @@ import SwiftUI
 
 let BLUE = Color(.blue)
 let NEON = Color(hex: 0xD4D412)
+
+let LIGHT_GREEN = Color(hex: 0x81D32A)
+let TEXT_DARK_GREEN = Color(hex: 0x4B7A09)
+
 let LIGHT_GREY = Color(hex: 0x1E1E1E)
 let DARK_GREY = Color(hex: 0x242424)
 
 let TEXT_LIGHT_GREY = Color(hex: 0x868686)
 let TEXT_DARK_NEON = Color(hex: 0xAC8A00)
-let RED = Color(hex: 0xED3023)
 
+let RED = Color(hex: 0xED3023)
+let TEXT_LIGHT_RED = Color(hex: 0xFAB2B2)
 
 
 extension Color {
