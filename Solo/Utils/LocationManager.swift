@@ -61,6 +61,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         self.fetchedPlaces?.removeAll()
         self.routeSteps.removeAll()
         self.remainingDistanceToStep = nil
+        self.searchText = ""
     }
     
     
