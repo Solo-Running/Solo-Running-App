@@ -339,6 +339,7 @@ struct RunView: View {
                     endTime: activityManager.runEndTime!,
                     elapsedTime: activityManager.secondsElapsed,
                     distanceTraveled: activityManager.distanceTraveled,
+                    steps: activityManager.steps,
                     startLocation: startLocation,
                     endLocation: endLocation,
                     avgSpeed: activityManager.averageSpeed,
