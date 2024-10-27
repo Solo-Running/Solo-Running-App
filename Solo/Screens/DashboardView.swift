@@ -123,144 +123,166 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             
-            VStack(alignment: .leading){
+            ScrollView {
                 
-                Spacer().frame(height: 16)
-                
-                VStack(alignment: .leading) {
+                // Container for holding run statistics
+                VStack(alignment: .leading){
                     
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading, spacing: -2) {
-                            Text("Steps last 7 days")
-                                .font(Font.custom("Koulen-Regular", size: 20))
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                            
-                            Text("You ran a total of \(totalStepsInWeek) steps this week")
-                                .font(.caption)
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                        }
-                        
-                        Spacer()
-                        
-                        Text("\(stepsPercentageChange)%")
-                            .foregroundStyle(LIGHT_GREEN)
-                            .fontWeight(.semibold)
-                        
-                    }
-                    .padding(.bottom, 8)
+                    Spacer().frame(height: 16)
                     
-                    if !self.stepsPerDay.isEmpty {
+                    VStack(alignment: .leading) {
                         
-                        Chart(days, id: \.self) { day in
-                        
-                        if self.stepsPerDay[day]! > 0 {
-                            BarMark (
-                                x: .value("Day", day),
-                                y: .value("Steps", self.stepsPerDay[day]!)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                            .foregroundStyle(NEON)
-                            .annotation {
-                                if day == days.last {
-                                    Text("\(self.stepsPerDay[day]!)")
-                                        .font(.caption)
-                                        .foregroundStyle(.white)
-                                }
-                            }
-                        } else {
-                            BarMark (
-                                x: .value("Day", day),
-                                y: .value("Steps", 10)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                            .foregroundStyle(DARK_GREY)
-                        }
-                        
-                    }
-                        .chartYAxis(.hidden)
-                        .chartXAxis {
-                            AxisMarks() {
-                                AxisValueLabel()
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading, spacing: -2) {
+                                Text("Steps last 7 days")
+                                    .font(Font.custom("Koulen-Regular", size: 20))
+                                    .foregroundStyle(.white)
+                                    .fontWeight(.semibold)
+                                
+                                Text("You ran a total of \(totalStepsInWeek) steps this week")
+                                    .font(.caption)
                                     .foregroundStyle(TEXT_LIGHT_GREY)
                             }
                             
+                            Spacer()
+                            
+                            Text("\(stepsPercentageChange)%")
+                                .foregroundStyle(LIGHT_GREEN)
+                                .fontWeight(.semibold)
+                            
                         }
-                    }
-                    /* remove chart grid lines
-                    .chartYAxis {
-                        AxisMarks() {
-                            AxisValueLabel()
-                                   .foregroundStyle(TEXT_LIGHT_GREY)
-                        }
-                    }
-                   
-                     */
-                }
-                .padding()
-                .background(LIGHT_GREY)
-                .cornerRadius(16)
-                .frame(height: 200)
-                
-                
-                
-                
-                HStack {
-                    
-                }
-                .padding(.bottom, 24)
-                
-                Spacer()
-
-    
-            }
-            .padding(.horizontal, 16)
-            .onAppear {
-                print("View Appeared. fetching new steps")
-                generateStepsPerDay()
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                
-                ToolbarItem(placement: .topBarLeading) {
-                    Text("Dashboard")
-                        .font(.title2)
-                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                        .foregroundColor(.white)
-                }
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    
-                    Group{
-                           // Safely unwrap the user's profile picture and check if it's not empty
-                           if let profileData = user?.profilePicture, !profileData.isEmpty, let profileImage = UIImage(data: profileData) {
-                               Image(uiImage: profileImage)
-                                   .resizable()
-                                   .aspectRatio(contentMode: .fill) // Ensure the image fills the frame
-                                   .clipped()
-                           } else {
-                               // If profile picture is empty, show a default person icon
-                               Image(systemName: "person.fill")
-                                   .resizable()
-                                   .scaledToFit()
-                                   .foregroundColor(.white)
-                                   .frame(width: 16, height: 16)
+                        .padding(.bottom, 8)
+                        
+                        if !self.stepsPerDay.isEmpty {
+                            
+                            Chart(days, id: \.self) { day in
                                 
-                           }
-                       }
+                                // Display the average steps as a horizontal dashed line
+                                RuleMark(y: .value("Average Steps", self.averageStepsInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
+                                    .annotation(position: .top, alignment: .leading) {
+                                        Text("Average: \(self.averageStepsInWeek)")
+                                            .font(.caption)
+                                            .foregroundStyle(.white)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 2).fill(LIGHT_GREY)
+                                            )
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 2)
+                                    }
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                
+                                // Show bars for steps per day if nonzero, otherwise display a default bar
+                                if self.stepsPerDay[day]! > 0 {
+                                    BarMark (
+                                        x: .value("Day", day),
+                                        y: .value("Steps", self.stepsPerDay[day]!)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    .foregroundStyle(NEON)
+                                    .annotation {
+                                        if day == days.last {
+                                            Text("\(self.stepsPerDay[day]!)")
+                                                .font(.caption)
+                                                .foregroundStyle(.white)
+                                        }
+                                    }
+                                } else {
+                                    BarMark (
+                                        x: .value("Day", day),
+                                        y: .value("Steps", 10)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                                    .foregroundStyle(DARK_GREY)
+                                }
+                                
+                            }
+                            .chartYAxis(.hidden)
+                            .chartXAxis {
+                                AxisMarks() {
+                                    AxisValueLabel()
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                }
+                                
+                            }
+                        }
+                        
+                    }
+                    .padding()
+                    .background(LIGHT_GREY)
+                    .cornerRadius(16)
+                    .frame(height: 200)
+                    
+                    
+                    
+                    
+                    HStack {
+                        
+                    }
+                    .padding(.bottom, 24)
+                    
+                    Spacer()
+                    
+                    
+                }
+                .padding(.horizontal, 16)
+                .onAppear {
+                    print("View Appeared. fetching new steps")
+                    generateStepsPerDay()
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    
+                    ToolbarItem(placement: .topBarLeading) {
+                        Text("Dashboard")
+                            .font(.title2)
+                            .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                            .foregroundColor(.white)
+                    }
+                    
+                    ToolbarItem(placement: .topBarTrailing) {
+                        
+                        Group{
+                            // Safely unwrap the user's profile picture and check if it's not empty
+                            if let profileData = user?.profilePicture, !profileData.isEmpty, let profileImage = UIImage(data: profileData) {
+                                Image(uiImage: profileImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill) // Ensure the image fills the frame
+                                    .clipped()
+                            } else {
+                                // If profile picture is empty, show a default person icon
+                                Image(systemName: "person.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundColor(.white)
+                                    .frame(width: 16, height: 16)
+                                
+                            }
+                        }
                         .frame(width: 32, height: 32)
                         .background(LIGHT_GREY)
                         .clipShape(Circle())
+                    }
+                    
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                
+                VStack(alignment: .leading) {
                 }
 
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.black)
-            
-        }
 
+        }
     }
 }
 
 
 
+
+
+struct RunCard: View {
+    var body: some View {
+        
+    }
+}
