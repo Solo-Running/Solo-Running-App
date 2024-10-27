@@ -73,7 +73,7 @@ final class Run {
     var postedDate: Date
     var startTime: Date
     var endTime: Date
-    var elapsedTime: Int
+    var elapsedTime: Int    // seconds
     var distanceTraveled: Double // distance in meters
     var steps: Int
     var startLocation: Location
