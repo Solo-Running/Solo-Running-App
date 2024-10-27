@@ -75,6 +75,7 @@ final class Run {
     var endTime: Date
     var elapsedTime: Int
     var distanceTraveled: Double // distance in meters
+    var steps: Int
     var startLocation: Location
     var endLocation: Location
     var avgSpeed: Double // miles per hour
@@ -82,12 +83,13 @@ final class Run {
     @Attribute(.externalStorage) var routeImage: Data
 
     
-    init(id: String = UUID().uuidString, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, startLocation: Location, endLocation: Location,  avgSpeed: Double, avgPace: Int, routeImage: Data) {
+    init(id: String = UUID().uuidString, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startLocation: Location, endLocation: Location,  avgSpeed: Double, avgPace: Int, routeImage: Data) {
         self.id = id
         self.postedDate = postedDate
         self.startTime = startTime
         self.endTime = endTime
         self.elapsedTime = elapsedTime
+        self.steps = steps
         self.distanceTraveled = distanceTraveled
         self.startLocation = startLocation
         self.endLocation = endLocation
