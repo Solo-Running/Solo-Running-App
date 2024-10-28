@@ -43,7 +43,7 @@ struct DashboardView: View {
     @State var timePercentageChange: Int = 0
     
     @State var bestPaceInWeek: Int = 0
-    @State var dailyStreak: Int = 0
+    
     
     // Run a query that fetches runs in the past seven days
     @Query(filter: #Predicate<Run> { run in
@@ -55,6 +55,20 @@ struct DashboardView: View {
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
    
+    
+    var gradientColor: LinearGradient {
+        LinearGradient(
+            gradient: Gradient(
+                colors: [
+                    Color.green.opacity(0.8),
+                    Color.green.opacity(0.01),
+                ]
+            ),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
     
     private static var weekAgoDate: Date {
         return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
@@ -98,6 +112,7 @@ struct DashboardView: View {
         var todayTime = 0
         var yesterdayTime = 0
         
+        var bestPace = 0
         
         for run in weeklyRuns {
             let dayAbbreviation = dateFormatter.string(from: run.postedDate)
@@ -110,23 +125,29 @@ struct DashboardView: View {
                 statsDictionary[dayAbbreviation] = stats
             }
             
+            // Find max pace
+            if run.avgPace > bestPace {
+                bestPace = run.avgPace
+            }
+            
             // Update the total time and steps
             totalTime += secondsToMinutes(seconds: run.elapsedTime)
             totalSteps += run.steps
             
             if calendar.isDateInToday(run.postedDate) {
-                print("today's steps: \(run.steps)")
+//                print("today's steps: \(run.steps)")
                 todaySteps += run.steps
                 todayTime += secondsToMinutes(seconds: run.elapsedTime)
             }
             if calendar.isDateInYesterday(run.postedDate) {
-                print("yesterday's steps: \(run.steps)")
+//                print("yesterday's steps: \(run.steps)")
                 yesterdaySteps += run.steps
                 yesterdayTime += secondsToMinutes(seconds: run.elapsedTime)
             }
         }
         
         self.statsPerDay = statsDictionary
+        self.bestPaceInWeek = bestPace
         
         // Update the total steps and time
         self.totalStepsInWeek = totalSteps
@@ -135,6 +156,27 @@ struct DashboardView: View {
         // Calculate the average steps for this week
         self.averageStepsInWeek = Int(ceil(Double(totalSteps) / 7))
         self.averageTimeInWeek = Int(ceil(Double(totalTime) / 7))
+        
+        // update the user's streaks if not already changed
+        if yesterdaySteps > 0 && todaySteps > 0{
+            if let lastDone = user?.streakLastDoneDate {
+                // As long as last done date is not today
+                if lastDone != Date() {
+                    user?.streakLastDoneDate = Date()
+                    user?.streak += 1
+                }
+            } else {
+                // otherwise, we update streak for the first time
+                user?.streakLastDoneDate = Date()
+                user?.streak += 1
+            }
+        }
+        
+        // reset the user's streak if they failed to add steps yesterday
+        else if yesterdaySteps == 0 {
+            user?.streakLastDoneDate = nil
+            user?.streak = 0
+        }
         
         // Calculate the percentage change from yesterday's data
         if yesterdaySteps > 0 && yesterdayTime > 0 && todaySteps > 0 && todayTime > 0{
@@ -369,10 +411,94 @@ struct DashboardView: View {
                     .frame(height: 200)
                     .background(.black)
                     
+                    
+                    Spacer().frame(height: 16)
+                    
+                    
+                    
+                    // Second row to hold Pace Line Chart and Daily Streak Information
+                    HStack(spacing: 16) {
+                        
+                        // Average Pace Chart
+                        VStack(alignment: .leading) {
+                            
+                            Text("Average Pace")
+                                .font(Font.custom("Koulen-Regular", size: 20))
+                                .foregroundStyle(.white)
+                                .fontWeight(.semibold)
+                            
+                            Spacer().frame(height: 8)
+                            
+                            if !statsPerDay.isEmpty {
+    
+                                Chart(days, id: \.self) { day in
+                                    
+                                    let stats = statsPerDay[day]!
+                                        LineMark(
+                                            x: .value("Day", day),
+                                            y: .value("Pace", stats.paceMinutesPerMile)
+                                        )
+                                        .interpolationMethod(.catmullRom)
+                                        .foregroundStyle(Color.green)
+                                        
+                                        AreaMark(
+                                            x: .value("Day", day),
+                                            y: .value("Pace", stats.paceMinutesPerMile)
+                                        )
+                                        .interpolationMethod(.catmullRom)
+                                        .foregroundStyle(gradientColor)
+                                    
+                                   
+                                }
+                                .frame(height: 80)
+                                .chartYAxis(.hidden)
+                                .chartXAxis(.hidden)
+                            }
+                            HStack {
+                                Text("Your best pace this week was \(bestPaceInWeek) min/mile")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .padding(.top, 8)
+                                Spacer()
+                            }
+                        }
+                        .padding()
+                        .background(LIGHT_GREY)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(maxWidth: .infinity)
+                                    
+                        
+                        // Daily Streak
+                        VStack(alignment: .leading) {
+                        
+                            HStack {
+                                Text("Daily Streak")
+                                    .font(Font.custom("Koulen-Regular", size: 20))
+                                    .foregroundStyle(.white)
+                                    .fontWeight(.semibold)
+                                Spacer()
+                            }
+                            
+                            Spacer()
+                            
+                            Text("\(user!.streak)")
+                                .font(.largeTitle)
+                                .foregroundStyle(.white)
+                                .fontWeight(.heavy)
+                            
+                            Spacer()
+                        }
+                        .padding()
+                        .background(LIGHT_GREY)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .frame(maxWidth: .infinity)
+
+                    }
+                    .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal, 16)
                 .onAppear {
-                    print("View Appeared. fetching new steps")
+//                    print("View Appeared. fetching new steps")
                     generateWeeklyData()
                 }
                 .onChange(of: weeklyRuns) { _, _ in
