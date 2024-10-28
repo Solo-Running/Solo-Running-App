@@ -14,13 +14,18 @@ import SwiftUI
 public class UserModel {
     @Attribute(.unique) public var id: String = UUID().uuidString
     var fullName: String
+    var streak: Int
+    var streakLastDoneDate: Date?
     @Attribute(.externalStorage) var profilePicture: Data?
 
     
-    init(id: String, fullName: String, profilePicture: Data?) {
+    init(id: String, fullName: String, streak: Int = 0, streakLastDoneDate: Date? = Date(), profilePicture: Data?) {
         self.id = id
         self.fullName = fullName
+        self.streak = streak
+        self.streakLastDoneDate = streakLastDoneDate
         self.profilePicture = profilePicture
+
     }
 }
 
