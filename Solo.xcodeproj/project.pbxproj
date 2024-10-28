@@ -16,6 +16,7 @@
 		E43AEBF42CBDACB400C7A322 /* Koulen-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */; };
 		E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF62CBE1C4500C7A322 /* AppState.swift */; };
 		E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF82CBE268F00C7A322 /* MainView.swift */; };
+		E47E67222CCE084A006941B1 /* Functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47E67212CCE084A006941B1 /* Functions.swift */; };
 		E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA1E2CBE3B7800EE1210 /* RunView.swift */; };
 		E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA202CBE3B9E00EE1210 /* ProfileView.swift */; };
 		E491606F2CBC9341009294AA /* SoloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491606E2CBC9341009294AA /* SoloApp.swift */; };
@@ -91,6 +92,7 @@
 		E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Koulen-Regular.ttf"; sourceTree = "<group>"; };
 		E43AEBF62CBE1C4500C7A322 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		E43AEBF82CBE268F00C7A322 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		E47E67212CCE084A006941B1 /* Functions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functions.swift; sourceTree = "<group>"; };
 		E480FA1E2CBE3B7800EE1210 /* RunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunView.swift; sourceTree = "<group>"; };
 		E480FA202CBE3B9E00EE1210 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		E491606B2CBC9341009294AA /* Solo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -164,13 +166,12 @@
 		E43AEBE52CBCAB7F00C7A322 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				E4BE5D632CCE27C50016D85A /* Run */,
 				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
-				E480FA1E2CBE3B7800EE1210 /* RunView.swift */,
 				E480FA202CBE3B9E00EE1210 /* ProfileView.swift */,
 				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
 				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
 				E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */,
-				E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -182,6 +183,7 @@
 				E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */,
 				E493F03A2CBF950700D023AE /* LocationManager.swift */,
 				E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */,
+				E47E67212CCE084A006941B1 /* Functions.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -269,6 +271,15 @@
 				E4922E6A2CCB10E200C163EA /* CapsuleView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		E4BE5D632CCE27C50016D85A /* Run */ = {
+			isa = PBXGroup;
+			children = (
+				E409890D2CC4DA2C0021B669 /* RunSummaryView.swift */,
+				E480FA1E2CBE3B7800EE1210 /* RunView.swift */,
+			);
+			path = Run;
 			sourceTree = "<group>";
 		};
 		E4C508AF2CC372BD00B23CFE /* Frameworks */ = {
@@ -471,6 +482,7 @@
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
 				E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */,
+				E47E67222CCE084A006941B1 /* Functions.swift in Sources */,
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
 				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
