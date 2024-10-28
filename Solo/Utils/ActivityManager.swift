@@ -157,9 +157,13 @@ class ActivityManager:  ObservableObject {
         if isPedometerAvailable && runStartTime != nil && runEndTime != nil {
             pedometer.queryPedometerData(from: runStartTime!, to: runEndTime!) { (data, error) in
                 DispatchQueue.main.async {
-                    self.averagePace = data?.averageActivePace?.intValue ?? 0
+//                    self.averagePace = data?.averageActivePace?.intValue ?? 0
                     let distanceInMiles = Double(self.distanceTraveled) / 1609.34
+                    // Averaege speed in miles per hour
                     self.averageSpeed = distanceInMiles / (Double(self.secondsElapsed) / 3600)
+                    
+                    // Average pace in minutes/mile
+                    self.averagePace = Int((1.0 / self.averageSpeed) * 60)
                 }
             }
         }
