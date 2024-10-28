@@ -83,7 +83,7 @@ struct ProvideCredentialsView: View {
                     showErrorDialog = true
                 } else {
                     showErrorDialog = false
-                    let user = UserModel(id: UUID().uuidString, fullName: fullname, profilePicture: selectedPhotoData)
+                    let user = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
                     modelContext.insert(user)
                     
                     print("inserted credentials into swift data")
