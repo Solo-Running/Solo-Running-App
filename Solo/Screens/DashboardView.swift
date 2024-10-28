@@ -153,7 +153,7 @@ struct DashboardView: View {
         return statsPerDay[day]!
     }
     
-    
+
     
     var body: some View {
         NavigationStack {
@@ -428,9 +428,15 @@ struct DashboardView: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                             .padding(.bottom, 8)
-                            .padding(.horizontal, 16)
                         
                         Spacer()
+                        
+                        NavigationLink(destination: RunHistoryView() ) {
+                            Text("view all")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .fontWeight(.semibold)
+                        }
+                        .padding(.horizontal, 16)
                         
                         
                     }
@@ -481,8 +487,6 @@ struct DashboardView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                         }
-
-
                     }
                 }
                 .padding(.vertical, 16)
@@ -494,6 +498,7 @@ struct DashboardView: View {
 
     }
 }
+
 
 
 
