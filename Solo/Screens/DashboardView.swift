@@ -427,7 +427,7 @@ struct DashboardView: View {
                                 .foregroundStyle(.white)
                                 .fontWeight(.semibold)
                             
-                            Spacer().frame(height: 8)
+                            Spacer()
                             
                             if !statsPerDay.isEmpty {
     
@@ -450,7 +450,7 @@ struct DashboardView: View {
                                     
                                    
                                 }
-                                .frame(height: 80)
+                                .frame(height: 64)
                                 .chartYAxis(.hidden)
                                 .chartXAxis(.hidden)
                             }
@@ -495,10 +495,10 @@ struct DashboardView: View {
 
                     }
                     .frame(maxWidth: .infinity)
+                    .frame(height: 200)
                 }
                 .padding(.horizontal, 16)
                 .onAppear {
-//                    print("View Appeared. fetching new steps")
                     generateWeeklyData()
                 }
                 .onChange(of: weeklyRuns) { _, _ in
@@ -510,7 +510,7 @@ struct DashboardView: View {
                     ToolbarItem(placement: .topBarLeading) {
                         Text("Dashboard")
                             .font(.title2)
-                            .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                            .fontWeight(.bold)
                             .foregroundColor(.white)
                     }
                     
