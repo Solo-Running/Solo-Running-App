@@ -933,6 +933,7 @@ struct DraggablePin: View {
 
 
 
+
 //                .toolbar(runStatus == .startedRun ? .hidden : .visible)
 //                .navigationBarTitleDisplayMode(.inline) // makes navigation bar narrow
 //                .navigationTitle("")

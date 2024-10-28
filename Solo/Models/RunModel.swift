@@ -68,18 +68,18 @@ class Location {
 }
 
 @Model
-final class Run {
+final class Run: Identifiable{
     @Attribute(.unique) public var id: String = UUID().uuidString
     var postedDate: Date
     var startTime: Date
     var endTime: Date
-    var elapsedTime: Int    // seconds
-    var distanceTraveled: Double // distance in meters
+    var elapsedTime: Int            // seconds
+    var distanceTraveled: Double    // distance in meters
     var steps: Int
     var startLocation: Location
     var endLocation: Location
-    var avgSpeed: Double // miles per hour
-    var avgPace: Int // seconds per meter
+    var avgSpeed: Double            // miles per hour
+    var avgPace: Int                // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data
 
     
