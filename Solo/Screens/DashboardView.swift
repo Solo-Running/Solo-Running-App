@@ -436,10 +436,9 @@ struct DashboardView: View {
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .fontWeight(.semibold)
                         }
-                        .padding(.horizontal, 16)
-                        
-                        
                     }
+                    .padding(.horizontal, 16)
+
                     
                     // Display past runs in a list
                     ForEach(weeklyRuns) { run in
