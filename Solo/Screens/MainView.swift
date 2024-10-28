@@ -31,16 +31,16 @@ struct MainView: View {
             }
             else {
                 
-                ZStack {
-            
+                ZStack(alignment: .bottom) {
+                   
+                   
                     TabView(selection: Binding(get: { appState.screen }, set: { newScreen in
                         appState.screen = newScreen
                         showRunView = newScreen == .Run
                         
                     })){
                         
-                        Group{
-                            
+                        Group {
                             DashboardView().tabItem {
                                 Image(systemName: "house.fill")
                                     .frame(width: 32, height: 32)
@@ -49,14 +49,14 @@ struct MainView: View {
                             }
                             .tag(Screen.Dashboard)
                             
-                        
+                            
                             VStack{}.background(.black)
                                 .tabItem {
                                     Image(systemName: "plus.circle.fill")
                                         .background(.black)
                                         .frame(width: 48, height: 48)
                                 }.tag(Screen.Run)
-                         
+                            
                             
                             ProfileView().tabItem {
                                 Image(systemName: "person.circle.fill")
@@ -67,9 +67,11 @@ struct MainView: View {
                             }
                             .tag(Screen.Profile)
                         }
+                        
                         .toolbarColorScheme(.dark, for: .tabBar)
-                        .toolbarBackground(.hidden, for: .tabBar)
+                        .toolbarBackground(.black, for: .tabBar) // remove default background
                     }
+                    .tint(.white)
                     .onChange(of: appState.screen, initial: false) { old, new in
                         if appState.screen == .Run {
                             appState.screen = old
@@ -84,6 +86,7 @@ struct MainView: View {
             }
         }
         .onAppear {
+    
             // check for user credentials
             if !userData.isEmpty {
                 print("user info is not empty: \(userData)")
