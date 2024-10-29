@@ -42,7 +42,7 @@ struct DashboardView: View {
     @State var stepsPercentageChange: Int = 0
     @State var timePercentageChange: Int = 0
     
-    @State var bestPaceInWeek: Int = 0
+    @State var bestPaceInWeek: Int? = nil
     
     
     // Run a query that fetches runs in the past seven days
@@ -112,7 +112,7 @@ struct DashboardView: View {
         var todayTime = 0
         var yesterdayTime = 0
         
-        var bestPace = 0
+        var bestPace: Int? = nil
         
         for run in weeklyRuns {
             let dayAbbreviation = dateFormatter.string(from: run.postedDate)
@@ -120,15 +120,17 @@ struct DashboardView: View {
             // Update the corresponding stats for current day in dictionary
             if var stats = statsDictionary[dayAbbreviation] {
                 stats.steps += run.steps
-                stats.paceMinutesPerMile += run.avgPace
+                stats.paceMinutesPerMile += run.avgPace // this needs to be fixed to take the correct average of average paces
                 stats.timeMinutes += secondsToMinutes(seconds: run.elapsedTime)
                 statsDictionary[dayAbbreviation] = stats
             }
             
-            // Find max pace
-            if run.avgPace > bestPace {
+            if let currentMin = bestPace, currentMin != 0 {
+                bestPace = min(run.avgPace, currentMin)
+            } else {
                 bestPace = run.avgPace
             }
+            
             
             // Update the total time and steps
             totalTime += secondsToMinutes(seconds: run.elapsedTime)
@@ -455,11 +457,13 @@ struct DashboardView: View {
                                 .chartXAxis(.hidden)
                             }
                             HStack {
-                                Text("Your best pace this week was \(bestPaceInWeek) min/mile")
-                                    .font(.caption)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .padding(.top, 8)
-                                Spacer()
+                                if let bestPaceInWeek {
+                                    Text("Best pace this week \(bestPaceInWeek) min/mile")
+                                        .font(.caption)
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .padding(.top, 8)
+                                    Spacer()
+                                }
                             }
                         }
                         .padding()
