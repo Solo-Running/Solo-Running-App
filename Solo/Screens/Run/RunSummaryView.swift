@@ -11,21 +11,58 @@ import SwiftData
 
 
 struct ParallaxHeader<Content: View> : View {
+    var run: Run!
     @ViewBuilder var content: () -> Content
     
     var body: some View {
         
         GeometryReader { geometry in
             let offset = geometry.frame(in: .global).minY
-            content()
-                .frame(
-                    width: geometry.size.width,
-                    height: geometry.size.height
-                )
-                .offset(y: -offset * 0.8)
-
+            let fadeOutOpacity = max(0, 1 - (((offset - 20) * 0.4) / 100))
+            
+            ZStack {
+                content()
+                    .frame(
+                        width: geometry.size.width,
+                        height: geometry.size.height
+                    )
+                    .offset(y: -offset * 0.8)
+                    
+    
+                HStack {
+                    VStack(alignment: .leading) {
+                        Spacer().frame(height: 160)
+                        
+                        Text("Today \(convertDateToString(date: run!.startTime)) - \(convertDateToString(date: run!.endTime))")
+                            .foregroundStyle(.white)
+                            .font(.subheadline)
+                        
+                        Text("Run Summary")
+                            .fontWeight(.bold)
+                            .font(.largeTitle)
+                        
+                        Spacer().frame(height: 12)
+                        
+                        CapsuleView(
+                            capsuleBackground: LIGHT_GREEN,
+                            iconName: "timer",
+                            iconColor: Color.white,
+                            text: timeDifference(from: run!.startTime, to: run!.endTime)
+                        )
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer()
+                }
+                .opacity(fadeOutOpacity)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+      
+            }
+            .frame(height: 300)
+            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
         }
-        .frame(height: 340)
     }
 }
 
@@ -49,37 +86,28 @@ struct RunSummaryView: View {
             
             
             if let imageData = savedRun?.routeImage, let uiImage = UIImage(data: imageData) {
-                ParallaxHeader {
+                ParallaxHeader(run: savedRun!) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
                 }
-                .frame(height: 340)
+                .frame(height: 300)
             }
                 
                                 
             VStack(alignment: .leading) {
-               
-                Text("Today \(convertDateToString(date: savedRun!.startTime)) - \(convertDateToString(date: savedRun!.endTime))")
-                    .foregroundStyle(TEXT_LIGHT_GREY)
-                    .font(.subheadline)
                 
-                Text("Run Summary")
-                    .fontWeight(.bold)
-                    .font(.largeTitle)
-    
-                Spacer().frame(height: 12)
-
-                CapsuleView(
-                    capsuleBackground: LIGHT_GREEN,
-                    iconName: "timer",
-                    iconColor: Color.white,
-                    text: timeDifference(from: savedRun!.startTime, to: savedRun!.endTime)
-                )
-                
-                Spacer().frame(height: 24)
-
-                
+                HStack {
+                    Text("Details")
+                        .foregroundStyle(.white)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .padding(.bottom, 8)
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 16)
+              
                 // Route start and end timeline
                 VStack(spacing: 16) {
                     HStack {
