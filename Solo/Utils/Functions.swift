@@ -62,7 +62,8 @@ func convertPace(secondsPerMeter: Double) -> Double {
 
 
 func secondsToMinutes(seconds: Int) -> Int {
-    return Int(ceil(Double(seconds) / 60))
+    
+    return Int(floor(Double(seconds) / 60))
 }
 
 
