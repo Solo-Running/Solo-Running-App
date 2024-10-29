@@ -163,7 +163,11 @@ class ActivityManager:  ObservableObject {
                     self.averageSpeed = distanceInMiles / (Double(self.secondsElapsed) / 3600)
                     
                     // Average pace in minutes/mile
-                    self.averagePace = Int((1.0 / self.averageSpeed) * 60)
+                    if self.averageSpeed > 0 {
+                        self.averagePace = Int((1.0 / self.averageSpeed) * 60)
+                    } else {
+                        self.averagePace = 0
+                    }
                 }
             }
         }
