@@ -27,19 +27,21 @@ struct ParallaxHeader<Content: View> : View {
                         height: geometry.size.height
                     )
                     .offset(y: -offset * 0.8)
+//                    .brightness(max(-0.5, min(0.3, offset * 0.01)))
                     
     
                 HStack {
                     VStack(alignment: .leading) {
                         Spacer().frame(height: 160)
                         
-                        Text("Today \(convertDateToString(date: run!.startTime)) - \(convertDateToString(date: run!.endTime))")
+                        Text("\(convertDateToString(date: run!.startTime)) - \(convertDateToString(date: run!.endTime))")
                             .foregroundStyle(.white)
                             .font(.subheadline)
                         
                         Text("Run Summary")
                             .fontWeight(.bold)
                             .font(.largeTitle)
+                            .foregroundStyle(.white)
                         
                         Spacer().frame(height: 12)
                         
@@ -83,7 +85,6 @@ struct RunSummaryView: View {
         
         
         ScrollView(showsIndicators: false) {
-            
             
             if let imageData = savedRun?.routeImage, let uiImage = UIImage(data: imageData) {
                 ParallaxHeader(run: savedRun!) {
@@ -129,9 +130,11 @@ struct RunSummaryView: View {
                     }
                     .overlay(alignment: .topLeading){
                         Rectangle()
+                            .fill(.white)
                             .frame(width: 1.5, height: 24)
                             .offset(y: 16)
                             .padding(.leading, 9)
+
                     }
                     
                     HStack {
@@ -158,13 +161,14 @@ struct RunSummaryView: View {
                 // Run statistics
                 HStack {
                     Text("Distance (Meters)")
-                        .font(Font.custom("Koulen-Regular", size: 20))
                         .foregroundStyle(.white)
                         .fontWeight(.semibold)
                     
                     Spacer()
                     
                     Text((String(format: "%.2f", savedRun!.distanceTraveled)))
+                        .foregroundStyle(.white)
+
                 }
                 .padding()
                 .background(LIGHT_GREY)
@@ -172,13 +176,14 @@ struct RunSummaryView: View {
                 
                 HStack {
                     Text("Average Speed (MPH)")
-                        .font(Font.custom("Koulen-Regular", size: 20))
                         .foregroundStyle(.white)
                         .fontWeight(.semibold)
                     
                     Spacer()
 
                     Text((String(format: "%.2f", savedRun?.avgSpeed ?? 0)))
+                        .foregroundStyle(.white)
+
                 }
                 .padding()
                 .background(LIGHT_GREY)
@@ -186,13 +191,14 @@ struct RunSummaryView: View {
 
                 HStack {
                     Text("Avg Pace (Min/Mile)")
-                        .font(Font.custom("Koulen-Regular", size: 20))
                         .foregroundStyle(.white)
                         .fontWeight(.semibold)
                     
                     Spacer()
 
                     Text("\(savedRun!.avgPace)")
+                        .foregroundStyle(.white)
+
                 }
                 .padding()
                 .background(LIGHT_GREY)
@@ -225,6 +231,7 @@ struct RunSummaryView: View {
             
 
         }
+        .background(.black)
         .navigationBarBackButtonHidden(true)
         .toolbarBackground(Color.clear, for: .navigationBar) // Make navigation bar background transparent
 //        .ignoresSafeArea()
