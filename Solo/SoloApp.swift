@@ -56,6 +56,10 @@ struct SoloApp: App {
                         .animation(.easeOut(duration: 0.2), value: launchManager.state) // Animate opacity when state changes
 
                 }
+                .environment(launchManager)
+                .environmentObject(locationManager)
+                .environmentObject(activityManager)
+                .modelContainer(for: [Run.self, UserModel.self], inMemory: false)
                 .onAppear {
                     
                     // set a timer for splash screen duration
@@ -69,10 +73,7 @@ struct SoloApp: App {
                 // Location denied view
             }
         }
-        .environment(launchManager)
-        .environmentObject(locationManager)
-        .environmentObject(activityManager)
-        .modelContainer(for: [Run.self, UserModel.self], inMemory: false)
+       
         
     }
 }
