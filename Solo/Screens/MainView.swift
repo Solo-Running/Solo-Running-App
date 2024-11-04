@@ -69,7 +69,7 @@ struct MainView: View {
                         }
                         
                         .toolbarColorScheme(.dark, for: .tabBar)
-                        .toolbarBackground(.black, for: .tabBar) // remove default background
+                        .toolbarBackground(.black, for: .tabBar) 
                     }
                     .tint(.white)
                     .onChange(of: appState.screen, initial: false) { old, new in
@@ -82,9 +82,11 @@ struct MainView: View {
                     }) {
                         RunView(showRunView: $showRunView)
                     }
+                    
                 }
             }
         }
+        
         .onAppear {
     
             // check for user credentials
@@ -97,8 +99,27 @@ struct MainView: View {
             if userData.isEmpty {
                 print("user data is empty")
             }
+            
+        
+//            let standardAppearance = UINavigationBarAppearance()
+//            standardAppearance.configureWithDefaultBackground()
+//            UINavigationBar.appearance().standardAppearance = standardAppearance
+//            UINavigationBar.appearance().backgroundColor = .black
+//
+            
+//            let scrollEdgeAppearance = UINavigationBarAppearance()
+//            scrollEdgeAppearance.configureWithTransparentBackground()
+//            UINavigationBar.appearance().scrollEdgeAppearance = scrollEdgeAppearance
+//            
+//            UITabBar.appearance().backgroundColor = UIColor.black
+//            UITabBar.appearance().barTintColor = UIColor.black
+//            
+//            UINavigationBar.appearance().backgroundColor = UIColor.black
+//            UINavigationBar.appearance().barTintColor = UIColor.black
+ 
+        
         }
-        .edgesIgnoringSafeArea([.top, .leading, .bottom, .trailing])
+        .edgesIgnoringSafeArea(.all)
     }
     
 }
