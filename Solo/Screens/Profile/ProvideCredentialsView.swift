@@ -20,18 +20,9 @@ struct ProvideCredentialsView: View {
     
     @State private var showErrorDialog: Bool = false
     
-    
-
     var body: some View {
         
         VStack(alignment: .center, spacing: 24) {
-
-            Text("Set Up Profile")
-                .font(Font.custom("Koulen-Regular", size: 24))
-                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                .foregroundColor(NEON)
-                        
-            Spacer()
             
             PhotosPicker(
                 selection: $selectedPhoto,
