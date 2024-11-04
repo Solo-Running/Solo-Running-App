@@ -37,6 +37,11 @@ struct RunView: View {
     @EnvironmentObject var activityManager: ActivityManager
     @Environment(\.modelContext) private var modelContext
     
+    // App storage configurations
+    @AppStorage("isDarkMode") var isDarkMode: Bool = true
+    @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
+
+    
     @State var startedRun: Bool = false
     @State var runStatus: RunStatus = .planningRoute
     @Binding var showRunView: Bool
@@ -175,13 +180,6 @@ struct RunView: View {
         withAnimation {
             cameraPosition = .userLocation(fallback: .automatic)
         }
-    }
-    
-    
-    // Starts the run and begins tracking user
-    func startRun() async {
-        runStatus = .startedRun
-        await activityManager.startTracking()
     }
     
     
@@ -454,7 +452,7 @@ struct RunView: View {
                         .mapStyle(.standard)
                         .mapControls {
                             MapUserLocationButton()
-                                .foregroundStyle(NEON)
+                                .tint(NEON)
                         }
                     }
                     
@@ -513,9 +511,10 @@ struct RunView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "magnifyingglass")
                                     .padding(.leading, 8)
+                                    .foregroundStyle(.white)
                                 
                                 TextField("", text: Binding(get: { locationManager.searchText }, set: { locationManager.searchText = $0 }), prompt: Text("Set your destination").foregroundColor(.white))
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(.white)
                                     .autocapitalization(.none)
                                     .frame(height: 48)
                                     .cornerRadius(12)
@@ -546,6 +545,7 @@ struct RunView: View {
                                         VStack(alignment: .leading) {
                                             Text(place.name ?? "")
                                                 .font(.title3.bold())
+                                                .foregroundStyle(.white)
                                             
                                             HStack(spacing: 3) {
                                                 
@@ -581,13 +581,16 @@ struct RunView: View {
                                             }
                                         }
                                     }
+                                    .listRowBackground(Color.clear)
+                                    .listStyle(.plain)
                                 }
-                                .listStyle(.plain)
+                                .scrollContentBackground(.hidden)
                             }
                         }
                         .padding(.horizontal, 16)
                     }
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+                    .dragIndicatorColor(.gray)
                     .transition(.move(edge: .bottom))
                     
                     
@@ -597,45 +600,44 @@ struct RunView: View {
                     .bottomSheet(
                         bottomSheetPosition: self.$routeSheetPosition,
                         switchablePositions: [.relative(0.25), .relative(0.70)],
-                        headerContent: {Text("Route details").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(NEON)}
+                        headerContent: {
+                            Text("Route Details").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(TEXT_LIGHT_GREY)
+                        }
                     ){
                         
-                        VStack {
+                        VStack(alignment: .leading){
+                            
                             if routeDestination != nil {
                                 
-                                HStack{
-                                    Text(routeDestination!.name ?? "").font(.title).fontWeight(.semibold)
-                                    Spacer()
-                                }
-                                
-                                HStack(spacing: 3) {
-                                    
-                                    // Street
-                                    Text(routeDestination!.placemark.thoroughfare ?? "")
-                                        .foregroundStyle(.gray)
-                                    
-                                    // City
-                                    Text(routeDestination!.placemark.locality ?? "")
-                                        .foregroundStyle(.gray)
-                                    
-                                    // TODO: figure out how to load
-                                    Text(routeDestination!.placemark.administrativeArea != nil ? ", \(routeDestination!.placemark.administrativeArea!)" : "")
-                                        .foregroundStyle(.gray)
-                                    
-                                    Spacer()
-                                }
+                                Text(routeDestination!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+
+//                                
+//                                HStack(spacing: 3) {
+//                                    
+//                                    // Street
+//                                    Text(selectedPlaceMark!.thoroughfare ?? "")
+//                                        .foregroundStyle(.gray)
+//                                    
+//                                    // City
+//                                    Text(selectedPlaceMark!.placemark.locality ?? "")
+//                                        .foregroundStyle(.gray)
+//                                    
+//                                    // TODO: figure out how to load
+//                                    Text(selectedPlaceMark!.placemark.administrativeArea != nil ? ", \(selectedPlaceMark.administrativeArea!)" : "")
+//                                        .foregroundStyle(.gray)
+//                                    
+//                                    Spacer()
+//                                }
                                 
                                 
                                 HStack {
-                                    Image(systemName: "figure.walk.motion")
-                                        .frame(width: 32, height: 32)
-                                        .padding(.trailing, 4)
-                                    
-                                    Text(travelTimeString ?? "")
-                                    
+                                    CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.walk.motion", iconColor: .white, text: travelTimeString ?? "")
+//                                    Image(systemName: "figure.walk.motion")
+//                                        .frame(width: 32, height: 32)
+//                                        .padding(.trailing, 4)
                                     Spacer()
-                                    
                                 }
+                                .padding(.vertical, 8)
                                 
                                 Button {
                                     Task{
@@ -650,7 +652,9 @@ struct RunView: View {
                                             }
                                         }
                                         // Begin the run and track user steps, distance, etc
-                                        await activityManager.startTracking()
+                                        // let system settings take over wakefulness of phone
+                                        UIApplication.shared.isIdleTimerDisabled = true
+                                        await activityManager.startTracking(isLiveActivityEnabled: isLiveActivityEnabled)
                                         runStatus = .startedRun
                                         routeSheetPosition = .hidden
                                         runSheetPosition = .relative(0.25)
@@ -659,7 +663,7 @@ struct RunView: View {
                                     HStack {
                                         Text("Start Run")
                                             .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_DARK_GREEN)
+                                            .foregroundStyle(TEXT_LIGHT_GREEN)
                                     }
                                     .padding()
                                     .frame(maxWidth: .infinity)
@@ -678,6 +682,7 @@ struct RunView: View {
                         }
                     }
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+                    .dragIndicatorColor(.gray)
                     .showCloseButton(true)
                     .onDismiss {
                         // when user closes route detail sheet, clear the route data
@@ -787,7 +792,10 @@ struct RunView: View {
                                 .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
                                     Button("Yes", role: .destructive) {
                                         Task {
-                                            await activityManager.stopTracking()
+                                            // let system settings take over wakefulness of phone
+                                            UIApplication.shared.isIdleTimerDisabled = false
+                                            
+                                            await activityManager.stopTracking(isLiveActivityEnabled: isLiveActivityEnabled)
                                             saveRunData { result in
                                                 
                                                 switch result {
@@ -823,6 +831,7 @@ struct RunView: View {
                             Spacer()
                         }
                     }
+                    .dragIndicatorColor(.gray)
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
                     
                     
@@ -850,6 +859,7 @@ struct RunView: View {
                         .listStyle(.plain)
                     }
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+                    .dragIndicatorColor(.gray)
                     .showCloseButton(true)
                     
                     
@@ -864,8 +874,8 @@ struct RunView: View {
                                     Circle()
                                         .frame(width: 32, height: 32)
                                         .foregroundStyle(.white)
-                                    Image(systemName: "arrow.backward")
-                                        .foregroundColor(.black)
+                                    Image(systemName: "chevron.backward")
+                                        .foregroundStyle(.black)
                                         .frame(width: 16, height: 16)
                                 }
                             }
@@ -874,7 +884,7 @@ struct RunView: View {
                             
                             Text("Add a run")
                                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                .foregroundColor(.white)
+                                .foregroundColor(isDarkMode ? .white : .black)
                             
                             Spacer()
                             
@@ -886,7 +896,7 @@ struct RunView: View {
                     
                 }
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .toolbar(.hidden)
             .animation(.spring, value: startedRun)
