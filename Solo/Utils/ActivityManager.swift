@@ -14,6 +14,7 @@ struct SoloLiveWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
         var secondsElapsed: Int
+        var steps: Int
     }
 
     // Fixed non-changing properties about your activity go here!
@@ -116,12 +117,16 @@ class ActivityManager:  ObservableObject {
 //        }
 //    }
     
-    func startTracking() async {
+    func startTracking(isLiveActivityEnabled: Bool) async {
+    
         DispatchQueue.main.async {
             self.runStartTime = Date.now
         }
         startTimer()
-        await startActivity()
+        
+        if isLiveActivityEnabled {
+            await startActivity()
+        }
                 
         if runStartTime != nil {
             pedometer.startUpdates(from: self.runStartTime!) { (data, error) in
@@ -143,13 +148,16 @@ class ActivityManager:  ObservableObject {
     }
     
     
-    func stopTracking() async {
+    func stopTracking(isLiveActivityEnabled: Bool) async {
+    
         DispatchQueue.main.async {
             self.runEndTime = Date.now
         }
         stopTimer()
         
-        await endActivity()
+        if isLiveActivityEnabled {
+            await endActivity()
+        }
         
         pedometer.stopUpdates()
 
@@ -176,13 +184,14 @@ class ActivityManager:  ObservableObject {
 
     
     func startActivity() async {
+        
         if ActivityAuthorizationInfo().areActivitiesEnabled {
             let attributes = SoloLiveWidgetAttributes(timerName: "time elapsed")
-            let initialState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0)
+            let initialState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0)
             
             activity = try? Activity.request(
                 attributes: attributes,
-                content: .init(state: initialState, staleDate: nil)
+                content: .init(state: initialState, staleDate: Date().addingTimeInterval(28800))
             )
             
             guard let activity = activity else {
@@ -201,28 +210,27 @@ class ActivityManager:  ObservableObject {
                   let runningActivity = Activity<SoloLiveWidgetAttributes>.activities.first(where: { $0.id == activityID }) else {
                 return
             }
-                let newRandomContentState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: secondsElapsed)
-                try await runningActivity.update(using: newRandomContentState)
+            let newRandomContentState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: secondsElapsed, steps: steps)
+            try await runningActivity.update(using: newRandomContentState)
         }
     }
         
         
     func endActivity() async {
-           guard let activityID = await activityID,
-                 let runningActivity = Activity<SoloLiveWidgetAttributes>.activities.first(where: { $0.id == activityID }) else {
-               return
-           }
-           let initialContentState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0)
+        guard let activityID = await activityID,
+            let runningActivity = Activity<SoloLiveWidgetAttributes>.activities.first(where: { $0.id == activityID }) else {
+            return
+        }
+        let initialContentState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0)
 
-           await runningActivity.end(
-               ActivityContent(state: initialContentState, staleDate: Date.distantFuture),
-               dismissalPolicy: .immediate
-           )
-           
-           await MainActor.run {
-               self.activityID = nil
-           }
+        await runningActivity.end(
+            ActivityContent(state: initialContentState, staleDate: Date.distantFuture),
+            dismissalPolicy: .immediate
+        )
+       
+        await MainActor.run {
+            self.activityID = nil
+        }
     }
-    
     
 }
