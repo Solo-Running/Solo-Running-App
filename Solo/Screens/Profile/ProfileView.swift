@@ -25,7 +25,7 @@ struct ProfileView: View {
 
             ScrollView(showsIndicators: false) {
                 
-                Spacer().frame(height: 96)
+                Spacer().frame(height: 48)
 
                 // User profile image
                 Group{
@@ -66,18 +66,16 @@ struct ProfileView: View {
                 }
                 
                 
-                NavigationLink(destination: Text("Edit view")) {
-                    Button{} label: {
-                        Text("Edit profile")
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .foregroundStyle(.white)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .buttonBorderShape(.capsule)
-                    .controlSize(.small)
-                    .tint(DARK_GREY)
+                NavigationLink(destination:  EditProfileView()) {
+                    Text("Edit Profile")
+                        .foregroundStyle(.white)
+                        .padding(8)
                 }
+                .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .controlSize(.small)
+                .tint(DARK_GREY)
+                
                 
 
                 Spacer().frame(height: 48)
@@ -165,6 +163,15 @@ struct ProfileView: View {
                 
                 Spacer()
             }
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Profile")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.black)
