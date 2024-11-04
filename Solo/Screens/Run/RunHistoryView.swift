@@ -8,120 +8,146 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import Algorithms
 
 struct RunHistoryView: View {
     
-    @Environment(\.modelContext) var modelContext
-    @State var runListData : [Run] = []
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Run.postedDate, order: .reverse) var runs: [Run]
     
-    @State private var hasMoreData = true
-    @State private var pageNumber: Int = 0
-    let pageSize: Int = 5
+    var sectionedRuns: [(String, [Run])] {
+        chunkRuns(runsToChunk: runs)
+    }
     
-  
-    func fetchNewRuns() {
-        
-        guard hasMoreData else {return}
-        
-        var fetchDescriptor = FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate, order: .reverse)])
-        fetchDescriptor.fetchLimit = 5
-        fetchDescriptor.fetchOffset = pageNumber * pageSize
-        
-        print("fetching")
-        
-        do {
-            let newRuns = try modelContext.fetch(fetchDescriptor)
-            runListData.append(contentsOf: newRuns)
-            
-            if newRuns.count < pageSize {
-                hasMoreData = false
-            } else {
-                pageNumber += 1 // Only increment if there are more items to fetch
-            }
-        } catch {
-            print("Fetch error \(error)")
+    
+    let sectionDateFormatter = DateFormatter()
+   
+    @State private var isExpanded: Set<String> = []
+      
+    
+    init() {
+        sectionDateFormatter.dateFormat = "MMM yyyy"
+//        _isExpanded = State(initialValue: Set(sectionedRuns.map { $0.0 }))  this causes error .modelContext in view's environment to use Query
+    }
+    
+    func chunkRuns(runsToChunk: [Run]) -> [(String, [Run])] {
+        let chunks = runsToChunk.chunked(on: {
+            Calendar.current.dateComponents([.year, .month], from: $0.postedDate)
+        })
+        return chunks.map {
+            let chunkDate = Calendar.current.date(from: $0.0)
+            return (sectionDateFormatter.string(from: chunkDate!), Array($0.1))
         }
-        
-        
+    }
+    
+    func deleteRuns(at offsets: IndexSet) {
+        for offset in offsets {
+            let run = runs[offset]
+
+            // delete the run from the context
+            modelContext.delete(run)
+        }
     }
 
     var body: some View {
-    
-        VStack {
-            if !runListData.isEmpty {
-                // List View
-                ScrollView(showsIndicators: false) {
-                    LazyVStack {
-                        ForEach(runListData) { run in
-                            NavigationLink(destination: Text("test")) {
-                                
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(run.startTime.formatted(
-                                            .dateTime
-                                                .day()
-                                                .month(.abbreviated)
-                                        ))
-                                        .font(Font.custom("Koulen-Regular", size: 20))
-                                        .foregroundStyle(.white)
-                                        .fontWeight(.semibold)
+        
+        NavigationStack {
+            
+            Spacer().frame(height: 16)
+
+            VStack {
+                if !runs.isEmpty {
+                    // List View
+                    List {
+                        ForEach(sectionedRuns, id: \.self.0) { title, runs in
+                            Section(
+                                title,
+                                isExpanded: Binding<Bool> (
+                                   get: {
+                                       return isExpanded.contains(title)
+                                   },
+                                   set: { isExpanding in
+                                       if isExpanding {
+                                           isExpanded.insert(title)
+                                       } else {
+                                           isExpanded.remove(title)
+                                       }
+                                   })
+                            
+                            ) {
+                                ForEach(runs) { run in
+                            
+                                    ZStack(alignment: .topLeading) {
+                                        // ovleray an empty view to hide the default navigation arrow icon
+                                        NavigationLink(destination: RunDetailView(runData: run)) {EmptyView()}.opacity(0)
                                         
-                                        
-                                        Text("\(convertDateToString(date: run.startTime)) - \(convertDateToString(date: run.endTime))")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .font(.subheadline)
-                                        
-                                        HStack(alignment: .center) {
-                                            CustomPin(background: Color.white, foregroundStyle: DARK_GREY)
-                                            Text((run.endLocation.name)!)
-                                                .foregroundStyle(.white)
-                                                .padding(.leading, 4)
-                                                .padding(.bottom, 4)
-                                                .font(.system(size: 14))
+                                        // Run preview content
+                                        HStack {
+                                            VStack(alignment: .leading) {
+                                                Text(String(getDayAndTimeRange(startDate: run.startTime, endDate: run.endTime)))
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
+                                                
+                                                HStack(alignment: .center) {
+                                                    if let uiImage = UIImage(data: run.routeImage) {
+                                                        VStack {
+                                                            Image(uiImage: uiImage)
+                                                                .resizable()
+                                                                .scaledToFill()
+                                                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                        }
+                                                        .frame(width: 24, height: 24 )
+                                                        .padding(.trailing, 4)
+                                                    }
+                                                    
+                                                    Text("\(run.endLocation.name!)")
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    
+                                                    Spacer()
+
+                                                }
+                                            }
+                                            
+                                            Spacer()
+
+//                                            CapsuleView(capsuleBackground: DARK_GREY, iconName: "", iconColor: "", text: String("\(run.steps!)"))
+                                            
                                         }
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    if let uiImage = UIImage(data: run.routeImage) {
-                                        VStack {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        }
-                                        .frame(width: 80, height: 80 )
-                                    }
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .onAppear {
-                                    if run == runListData.last {
-                                        fetchNewRuns()
-                                    }
-                                }
+                                .onDelete(perform: deleteRuns)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+
                             }
                         }
-                        
                     }
-                    .listStyle(PlainListStyle())
+                    .listStyle(.sidebar)
+                    .scrollContentBackground(.hidden)
+
+                }
+                else {
+                    ContentUnavailableView(
+                        "No runs were found",
+                        systemImage: "figure.run.square.stack.fill",
+                        description: Text("Start a new run by clicking on the + symbol")
+                    )
                 }
             }
-        }
-        .onAppear {
-            fetchNewRuns()
-        }
-        .toolbar {
             
-            ToolbarItem(placement: .principal) {
-                Text("Run History")
-                    .font(.title2)
-                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                    .foregroundColor(.white)
+            .toolbar {
+                
+                ToolbarItem(placement: .principal) {
+                    Text("Run History")
+                        .font(.title2)
+                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                        .foregroundColor(.white)
+                }
             }
+            .background(.black)
+            .toolbarBackground(.black, for: .navigationBar)
+            .preferredColorScheme(.dark)
+            
         }
-        .background(.black)
-        .toolbarBackground(.black, for: .navigationBar)
-        
     }
 }
