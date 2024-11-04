@@ -22,9 +22,11 @@ struct CapsuleView: View {
                     .fill(capsuleBackground)
                     .frame(width: 20, height: 20)
                 
-                Image(systemName: iconName)
-                    .foregroundStyle(iconColor)
-                    .font(.system(size: 12))
+                if !iconName.isEmpty {
+                    Image(systemName: iconName)
+                        .foregroundStyle(iconColor)
+                        .font(.system(size: 12))
+                }
             }
             
             Text(text)
