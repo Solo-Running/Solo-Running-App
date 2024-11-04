@@ -18,6 +18,21 @@ func convertDateToString(date: Date) -> String {
 }
 
 
+func getDayAndTimeRange(startDate: Date, endDate: Date) -> String {
+    let dayFormatter = DateFormatter()
+    dayFormatter.dateFormat = "E d"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
+    
+    let timeFormatter = DateFormatter()
+    timeFormatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
+    
+    let dayString = dayFormatter.string(from: startDate)
+    let startTimeString = timeFormatter.string(from: startDate)
+    let endTimeString = timeFormatter.string(from: endDate)
+    
+    return  "\(dayString), \(startTimeString)-\(endTimeString)"
+
+}
+
 
 // Formats time difference between start and end times into 1hr 2min
 func timeDifference(from startDate: Date, to endDate: Date) -> String {
