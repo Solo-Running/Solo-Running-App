@@ -44,6 +44,10 @@ struct DashboardView: View {
     
     @State var bestPaceInWeek: Int? = nil
         
+    private static var weekAgoDate: Date {
+        return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
+    }
+    
     @Query(filter: #Predicate<Run> { run in
         return run.postedDate >= weekAgoDate
     }, sort: \Run.postedDate, order: .reverse) var weeklyRuns: [Run]
@@ -67,10 +71,6 @@ struct DashboardView: View {
         )
     }
     
-    
-    private static var weekAgoDate: Date {
-        return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
-    }
     
     // Creates an array of dates spanning the past week up until today
     let days: [String] = {
