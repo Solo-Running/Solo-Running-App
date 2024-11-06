@@ -20,6 +20,56 @@ class RunData {
 }
 
 
+
+@Model
+class CustomPinLocation: Identifiable {
+    
+    @Attribute(.unique) var id: String = UUID().uuidString
+    var name: String?
+    var thoroughfare: String?
+    var subThoroughfare: String?
+    var locality: String?
+    var subLocality: String?
+    var administrativeArea: String?
+    var subAdministrativeArea: String?
+    var postalCode: String?
+    var country: String?
+    var isoCountryCode: String?
+    var latitude: Double
+    var longitude: Double
+    
+    init(id: String = UUID().uuidString,
+         name: String? = "",
+         thoroughfare: String? = "",
+         subThoroughfare: String? = "",
+         locality: String? = "",
+         subLocality: String? = "",
+         administrativeArea: String? = "",
+         subAdministrativeArea: String? = "",
+         postalCode: String? = "",
+         country: String? = "",
+         isoCountryCode: String? = "",
+         longitude: Double,
+         latitude: Double
+    ) {
+         
+        self.id = id
+        self.name = name
+        self.thoroughfare = thoroughfare
+        self.subThoroughfare = subThoroughfare
+        self.locality = locality
+        self.subLocality = subLocality
+        self.administrativeArea = administrativeArea
+        self.subAdministrativeArea = subAdministrativeArea
+        self.postalCode = postalCode
+        self.country = country
+        self.isoCountryCode = isoCountryCode
+        self.longitude = longitude
+        self.latitude = latitude
+    }
+}
+
+
 @Model
 class Location {
     @Attribute(.unique) var id: String = UUID().uuidString
