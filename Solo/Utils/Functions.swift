@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import MapKit
 
 // Formats a Date to friendly format into 1:13am
 func convertDateToString(date: Date) -> String {
@@ -64,6 +64,25 @@ func timeDifference(from startDate: Date, to endDate: Date) -> String {
 
        return result.isEmpty ? "0sec" : result
 }
+
+// Helper function to format route step distances to user friendly format
+func convertMetersToString(distance: CLLocationDistance) -> String {
+    // Constants for conversion
+    let metersInMile = 1609.34
+    let metersInFoot = 0.3048
+    
+    // If distance is at least 1000ft
+    if distance.magnitude >= 304.8 {
+        // Convert meters to miles
+        let miles = distance.magnitude / metersInMile
+        return String(format: "%.1f mi", miles)
+    } else {
+        // Convert meters to feet
+        let feet = distance.magnitude / metersInFoot
+        return String(format: "%.0f ft", feet)
+    }
+}
+
 
 
 
