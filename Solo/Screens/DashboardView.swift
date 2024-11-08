@@ -586,7 +586,7 @@ struct DashboardView: View {
                         ContentUnavailableView(
                             "No runs were found",
                             systemImage: "figure.run.square.stack.fill",
-                            description: Text("Start a new run by clicking on the + symbol")
+                            description: Text("Start a new run by tapping on the + symbol")
                         )
                     }
                     else {
