@@ -18,14 +18,14 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     @Published var isAuthorized = false
     
     @Published var searchText: String = ""
-    @Published var fetchedPlaces: [CLPlacemark]?
+    @Published var fetchedPlaces: [MTPlacemark]?
     
     @Published var routeSteps: [MKRoute.Step] = []
     @Published var stepCoordinates: [CLLocationCoordinate2D] = []
     @Published var remainingDistanceToStep: CLLocationDistance? // distance in meters
     
-    @Published var startPlacemark: CLPlacemark?
-    @Published var endPlacemark: CLPlacemark?
+    @Published var startPlacemark: MTPlacemark?
+    @Published var endPlacemark: MTPlacemark?
 
     
     var cancellable: AnyCancellable?
@@ -48,7 +48,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     }
     
     
-    func updateStartEndPlacemarks(start: CLPlacemark, end: CLPlacemark) {
+    func updateStartEndPlacemarks(start: MTPlacemark, end: MTPlacemark) {
         self.startPlacemark = start
         self.endPlacemark = end
         
@@ -61,6 +61,11 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         self.fetchedPlaces?.removeAll()
         self.routeSteps.removeAll()
         self.remainingDistanceToStep = nil
+        self.searchText = ""
+    }
+    
+    
+    func clearSearchField() {
         self.searchText = ""
     }
     
@@ -103,7 +108,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
             let nextStepLocation = CLLocation(latitude: nextStepCoordinate!.latitude, longitude: nextStepCoordinate!.longitude)
             
             remainingDistanceToStep = userLocation!.distance(from: nextStepLocation)
-//            print("distance to instruction: \(routeSteps.first?.instructions) is \(remainingDistanceToStep)")
             
             // get next step if within 10 meters of current step
             if remainingDistanceToStep! < 10 {
@@ -169,8 +173,23 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
                 
                 let response =  try await MKLocalSearch(request: request).start()
                 await MainActor.run(body: {
-                    self.fetchedPlaces = response.mapItems.compactMap({item -> CLPlacemark? in
-                        return item.placemark
+                    self.fetchedPlaces = response.mapItems.compactMap({item -> MTPlacemark? in
+                        let placemark = item.placemark
+                        return MTPlacemark(
+                            name: placemark.name,
+                                    thoroughfare: placemark.thoroughfare,
+                                    subThoroughfare: placemark.subThoroughfare,
+                                    locality: placemark.locality,
+                                    subLocality: placemark.subLocality,
+                                    administrativeArea: placemark.administrativeArea,
+                                    subAdministrativeArea: placemark.subAdministrativeArea,
+                                    postalCode: placemark.postalCode,
+                                    country: placemark.country,
+                                    isoCountryCode: placemark.isoCountryCode,
+                                    longitude: placemark.location!.coordinate.longitude,
+                                    latitude: placemark.location!.coordinate.latitude,
+                                    isCustomLocation: false
+                                )
                     })
                 })
             } catch {
@@ -179,6 +198,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         }
     }
     
+
     
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
