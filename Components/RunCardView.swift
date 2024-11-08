@@ -45,8 +45,8 @@ struct RunCardView: View {
                         .font(.subheadline)
                     
                     HStack(alignment: .center) {
-                        CustomPin(background: Color.white, foregroundStyle: DARK_GREY)
-                        Text((run.endLocation.name)!)
+                        CustomPin(background: Color.white, foregroundStyle: run.endPlacemark.isCustomLocation ? NEON : DARK_GREY)
+                        Text((run.endPlacemark.name)!)
                             .foregroundStyle(.white)
                             .padding(.leading, 4)
                             .padding(.bottom, 4)
@@ -74,7 +74,7 @@ struct CustomPin: View {
             ZStack {
                 Circle()
                     .fill(background)
-                    .frame(width: 16, height: 16)
+                    .frame(width: 18, height: 18)
                 
                 Image(systemName: "mappin.circle.fill")
                     .font(.title)
