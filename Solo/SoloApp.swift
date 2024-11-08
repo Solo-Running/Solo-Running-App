@@ -22,6 +22,7 @@ struct SoloApp: App {
     var modelContainer: ModelContainer = {
         let schema = Schema([
             UserModel.self,
+            MTPlacemark.self,
             Run.self
         ])
         
@@ -59,7 +60,7 @@ struct SoloApp: App {
                 .environment(launchManager)
                 .environmentObject(locationManager)
                 .environmentObject(activityManager)
-                .modelContainer(for: [Run.self, UserModel.self], inMemory: false)
+                .modelContainer(modelContainer)
                 .onAppear {
                     
                     // set a timer for splash screen duration
