@@ -29,6 +29,8 @@ import Foundation
 import SwiftUI
 import MapKit
 import BottomSheet
+import SwiftData
+
 
 struct RunView: View {
     
@@ -36,12 +38,11 @@ struct RunView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var activityManager: ActivityManager
     @Environment(\.modelContext) private var modelContext
-    
+
     // App storage configurations
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
 
-    
     @State var startedRun: Bool = false
     @State var runStatus: RunStatus = .planningRoute
     @Binding var showRunView: Bool
@@ -51,6 +52,7 @@ struct RunView: View {
     @State var routeSheetPosition: BottomSheetPosition  = .hidden
     @State var runSheetPosition: BottomSheetPosition  = .hidden
     @State var stepsSheetPosition: BottomSheetPosition  = .hidden
+    @State var customPinSheetPosition: BottomSheetPosition = .hidden
     
     // Search text field focus state
     @FocusState private var isTextFieldFocused: Bool
@@ -60,11 +62,14 @@ struct RunView: View {
     @State var interactionModes: MapInteractionModes = [.zoom, .pan, .pitch, .rotate] // gestures for map view
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     
-    // coordinates for
-    @State var pinAddress: CLPlacemark?
-    @State var selectedPlaceMark: CLPlacemark? // the destination that the user selected
+    // Track which placemark the user selected on the map
+    @State var selectedPlaceMark: MTPlacemark? // the destination that the user selected
     
-    // Custom pin variables to track custom pin activity
+    // Custom pin variables to track custom pin state
+    @Query(filter: #Predicate<MTPlacemark> { place in
+        return place.isCustomLocation == true
+    },sort: \MTPlacemark.name) var allCustomPinLocations: [MTPlacemark]
+    
     @State var isPinActive: Bool = false
     @State var pinCoordinates: CLLocationCoordinate2D?
     @State var usePin: Bool = false
@@ -73,7 +78,7 @@ struct RunView: View {
     @State private var showRoute = false
     @State private var routeDisplaying = false
     @State private var route: MKRoute?
-    @State private var routeDestination: MKMapItem?  // the route map item representing the destination
+    @State private var routeDestination: MTPlacemark?
     @State private var transportType = MKDirectionsTransportType.walking
     
     // The elapsed time in seconds
@@ -99,26 +104,9 @@ struct RunView: View {
     // Subsequent route fetches are disabled when viewing current route details
     @State private var disabledFetch: Bool = false
     
-    
     // If user has finished saving a run, navigate to run summary view
     @State private var canShowSummary: Bool = false
-    
-    
-    
-    var remainingDistanceToStep: String? {
-        // Use 'guard let' to safely unwrap the optional
-        guard let remainingDistance = locationManager.remainingDistanceToStep else { return nil }
         
-        // Create a distance formatter
-        let formatter = MKDistanceFormatter()
-        formatter.units = .imperial // units in feet
-        
-        // Format the remaining distance and return it as a string
-        return formatter.string(fromDistance: remainingDistance)
-    }
-    
-    
-    
     // Code source: https://www.youtube.com/watch?v=yVMvOXGMd_Q&t=698s
     func fetchRoute() async  {
         print("fetching route")
@@ -134,19 +122,21 @@ struct RunView: View {
             let sourcePlacemark = MKPlacemark(coordinate: userLocation.coordinate)
             let routeSource = MKMapItem(placemark: sourcePlacemark)
             
-            let destinationPlacemark = MKPlacemark(coordinate: selectedPlaceMark.location!.coordinate)
-            
-            routeDestination = MKMapItem(placemark: destinationPlacemark)
-            routeDestination?.name = selectedPlaceMark.name
+            let destinationPlacemark = MKPlacemark(coordinate: selectedPlaceMark.getLocation())
+//
+//            routeDestination = MKMapItem(placemark: destinationPlacemark)
+//            routeDestination?.name = selectedPlaceMark.name
+//            
             
             request.source = routeSource
-            request.destination = routeDestination
+            request.destination = MKMapItem(placemark: destinationPlacemark)
             request.transportType = transportType
             
             let directions = MKDirections(request: request)
             let result = try? await directions.calculate()
             
             route = result?.routes.first
+            routeDestination = selectedPlaceMark
             
             if let route {
                 locationManager.updateStepCoordinates(steps: route.steps)
@@ -162,6 +152,17 @@ struct RunView: View {
                 
             }
         }
+    }
+    
+    var remainingDistanceToStep: String? {
+        guard let remainingDistance = locationManager.remainingDistanceToStep else { return nil }
+        
+        // Create a distance formatter
+        let formatter = MKDistanceFormatter()
+        formatter.units = .imperial // units in feet
+        
+        // Format the remaining distance and return it as a string
+        return formatter.string(fromDistance: remainingDistance)
     }
     
     
@@ -181,9 +182,7 @@ struct RunView: View {
             cameraPosition = .userLocation(fallback: .automatic)
         }
     }
-    
-    
-    
+        
     // Creates a map snapshot image of the user's initial route
     func captureMapSnapshot(completion: @escaping (UIImage?) -> Void) {
         print("setting up map snapshot configs")
@@ -245,11 +244,11 @@ struct RunView: View {
             print("added mk route polyline")
 
             // Draw sart and end placemark annotations on the snapshot image
-            let startPoint = snapshot!.point(for: locationManager.startPlacemark!.location!.coordinate)
+            let startPoint = snapshot!.point(for: locationManager.startPlacemark!.getLocation())
             let startAnnotationImage = UIImage(systemName: "figure.walk.circle.fill")
             startAnnotationImage?.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
 
-            let endPoint = snapshot!.point(for: locationManager.endPlacemark!.location!.coordinate)
+            let endPoint = snapshot!.point(for: locationManager.endPlacemark!.getLocation())
             let endAnnotationImage = UIImage(systemName: "mappin.circle.fill")?.withRenderingMode(.alwaysTemplate)
             let annotationTintColor = UIColor.red
             annotationTintColor.set()
@@ -265,25 +264,97 @@ struct RunView: View {
     }
     
     
-    
-    // Helper function to format route step distances to user friendly format
-    func convertMetersToString(distance: CLLocationDistance) -> String {
-        // Constants for conversion
-        let metersInMile = 1609.34
-        let metersInFoot = 0.3048
+    func lookUpLocation(location: CLLocation, completionHandler: @escaping (MTPlacemark?) -> Void ) {
+        // Use the last reported location.
+        let geocoder = CLGeocoder()
         
-        // If distance is at least 1000ft
-        if distance.magnitude >= 304.8 {
-            // Convert meters to miles
-            let miles = distance.magnitude / metersInMile
-            return String(format: "%.1f mi", miles)
-        } else {
-            // Convert meters to feet
-            let feet = distance.magnitude / metersInFoot
-            return String(format: "%.0f ft", feet)
-        }
+        // Look up the location and pass it to the completion handler
+        geocoder.reverseGeocodeLocation(
+        CLLocation(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude),
+            completionHandler: { (placemarks, error) in
+                if error == nil {
+                    
+                    if let firstLocation = placemarks?[0] {
+                        let placemark = MTPlacemark(
+                            name: firstLocation.name,
+                            thoroughfare: firstLocation.thoroughfare,
+                            subThoroughfare: firstLocation.subThoroughfare,
+                            locality: firstLocation.locality,
+                            subLocality: firstLocation.subLocality,
+                            administrativeArea: firstLocation.administrativeArea,
+                            subAdministrativeArea: firstLocation.subAdministrativeArea,
+                            postalCode: firstLocation.postalCode,
+                            country: firstLocation.country,
+                            isoCountryCode: firstLocation.isoCountryCode,
+                            longitude: firstLocation.location!.coordinate.longitude,
+                            latitude: firstLocation.location!.coordinate.latitude,
+                            isCustomLocation: false
+                        )
+                        completionHandler(placemark)
+                    }
+                }
+                else {
+                    completionHandler(nil)
+                }
+            }
+        )
     }
     
+    func fetchCustomPinLocation(completionHandler: @escaping (CLPlacemark?) -> Void){
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: pinCoordinates!.latitude, longitude: pinCoordinates!.longitude)
+        
+        geocoder.reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
+            if error != nil {
+                print("Failed to retrieve address")
+                completionHandler(nil)
+            }
+            if let placemarks = placemarks, let placemark = placemarks.first {
+                print("Retrieved address")
+               completionHandler(placemark)
+            }
+            else{
+                print("No Matching Address Found")
+                completionHandler(nil)
+            }
+        })
+    }
+    
+    
+    func addCustomLocation() {
+        fetchCustomPinLocation() { customPlacemark in
+            if let customPlacemark {
+
+                let placemark = MTPlacemark(
+                    name: customPlacemark.name,
+                    thoroughfare: customPlacemark.thoroughfare,
+                    subThoroughfare: customPlacemark.subThoroughfare,
+                    locality: customPlacemark.locality,
+                    subLocality: customPlacemark.subLocality,
+                    administrativeArea: customPlacemark.administrativeArea,
+                    subAdministrativeArea: customPlacemark.subAdministrativeArea,
+                    postalCode: customPlacemark.postalCode,
+                    country: customPlacemark.country,
+                    isoCountryCode: customPlacemark.isoCountryCode,
+                    longitude: customPlacemark.location!.coordinate.longitude,
+                    latitude: customPlacemark.location!.coordinate.latitude,
+                    isCustomLocation: true
+                )
+                
+                modelContext.insert(placemark)
+                do {
+                    try modelContext.save()
+                    print("saved custom location")
+                } catch {
+                    print(error)
+                }
+                customPinSheetPosition = .relative(0.25)
+                usePin = false
+            }
+        }
+    }
     
     
     // Saves the run data to swift data
@@ -300,37 +371,6 @@ struct RunView: View {
                     completion(.failure(error))
                 }
 
-                let startLocation = Location(
-                    name: locationManager.startPlacemark!.name,
-                    thoroughfare: locationManager.startPlacemark!.thoroughfare,
-                    subThoroughfare: locationManager.startPlacemark!.subThoroughfare,
-                    locality: locationManager.startPlacemark!.locality,
-                    subLocality: locationManager.startPlacemark!.subLocality,
-                    administrativeArea: locationManager.startPlacemark!.administrativeArea,
-                    subAdministrativeArea: locationManager.startPlacemark!.subAdministrativeArea,
-                    postalCode: locationManager.startPlacemark!.postalCode,
-                    country: locationManager.startPlacemark!.country,
-                    isoCountryCode: locationManager.startPlacemark!.isoCountryCode,
-                    longitude: locationManager.startPlacemark!.location!.coordinate.longitude,
-                    latitude: locationManager.startPlacemark!.location!.coordinate.latitude
-                )
-
-                let endLocation = Location(
-                    name: locationManager.endPlacemark!.name,
-                    thoroughfare: locationManager.endPlacemark!.thoroughfare,
-                    subThoroughfare: locationManager.endPlacemark!.subThoroughfare,
-                    locality: locationManager.endPlacemark!.locality,
-                    subLocality: locationManager.endPlacemark!.subLocality,
-                    administrativeArea: locationManager.endPlacemark!.administrativeArea,
-                    subAdministrativeArea: locationManager.endPlacemark!.subAdministrativeArea,
-                    postalCode: locationManager.endPlacemark!.postalCode,
-                    country: locationManager.endPlacemark!.country,
-                    isoCountryCode: locationManager.endPlacemark!.isoCountryCode,
-                    longitude: locationManager.endPlacemark!.location!.coordinate.longitude,
-                    latitude: locationManager.endPlacemark!.location!.coordinate.latitude
-                )
-
-
                 let newRun = Run(
                     postedDate: Date.now,
                     startTime: activityManager.runStartTime!,
@@ -338,8 +378,8 @@ struct RunView: View {
                     elapsedTime: activityManager.secondsElapsed,
                     distanceTraveled: activityManager.distanceTraveled,
                     steps: activityManager.steps,
-                    startLocation: startLocation,
-                    endLocation: endLocation,
+                    startPlacemark: locationManager.startPlacemark!,
+                    endPlacemark: locationManager.endPlacemark!,
                     avgSpeed: activityManager.averageSpeed,
                     avgPace: activityManager.averagePace,
                     routeImage: data!
@@ -360,75 +400,68 @@ struct RunView: View {
             }
         }
     }
+   
     
-    func lookUpLocation(location: CLLocation, completionHandler: @escaping (CLPlacemark?) -> Void ) {
-        // Use the last reported location.
-        let geocoder = CLGeocoder()
-        
-        // Look up the location and pass it to the completion handler
-        geocoder.reverseGeocodeLocation( CLLocation(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude),
-                                         completionHandler: { (placemarks, error) in
-            if error == nil {
-                let firstLocation = placemarks?[0]
-                
-                completionHandler(firstLocation)
-            }
-            else {
-                // An error occurred during geocoding.
-                completionHandler(nil)
-            }
-        })
-    }
+    
     
     var body: some View {
         
         GeometryReader { proxy in
-                
             NavigationStack {
 
                 ZStack(alignment: .top) {
                     
                     MapReader { proxy in
                         
-                        
                         // The selection parameter enables swift to emphasize any landmarks the user taps on the map
                         Map(position: $cameraPosition, interactionModes:  interactionModes, selection: $selectedPlaceMark) {
+                            
                             UserAnnotation()
                             
-                            
-                            if let places = locationManager.fetchedPlaces, !places.isEmpty {
-                                
-                                ForEach(places, id: \.self) { place in
-                                    // Show search results on map if user hasn't selected a destination yet
-                                    if !showRoute {
-                                        if let location = place.location?.coordinate {
-                                            Marker(place.name ?? "Unknown", coordinate: location)
-                                        }
-                                    } else {
-                                        // Otherwise the user has selected a destination
-                                        if let routeDestination {
-                                            Marker(item: routeDestination).tint(.green)
-                                        }
-                                    }
+                            // Show custom locations by default
+                            ForEach(allCustomPinLocations, id: \.self) { pin in
+                                if !routeDisplaying {
+                                    Marker(pin.name ?? "Custom Pin", coordinate: pin.getLocation())
+                                        .tint(.yellow)
+                                        .tag(pin)
                                 }
-                                
-                                // Render the route on the map
-                                if let route, routeDisplaying {
-                                    MapPolyline(route.polyline).stroke(.blue, lineWidth: 6)
+                            }
+                        
+                            // Render the route on the map
+                            if let route, routeDisplaying {
+                                MapPolyline(route.polyline).stroke(.blue, lineWidth: 6)
+                            }
+                            
+                            // This is used to persist the marker even when the user taps elsewhere on the screen
+                            if let routeDestination {
+                                Marker("route destination", coordinate: routeDestination.getLocation())
+                                    .tint(routeDestination.isCustomLocation ? .yellow : .red)
+                                    .tag(routeDestination)
+                            }
+                            
+                            // Show all search results if user hasn't selected a place yet
+                            if let places = locationManager.fetchedPlaces, !places.isEmpty {
+                                ForEach(places, id: \.self) { place in
+                                    Group {
+                                        // Show search results on map if user hasn't selected a destination yet
+                                        if !routeDisplaying {
+                                            Marker(place.name ?? "Unknown", coordinate: place.getLocation())
+                                                .tint(.red)
+                                        }
+                                    }.tag(place)
                                 }
                             }
                         }
                         
                         // Run asynchronous task to fetch route when user selects new destination
                         .task(id: selectedPlaceMark) {
-                            
                             if selectedPlaceMark != nil  {
+                                usePin = false
                                 await fetchRoute()
                                 isTextFieldFocused = false
                                 searchPlaceSheetPosition = .relative(0.25) // minimize search sheet
                                 routeSheetPosition = .relative(0.25) // show the route detail sheet
                             }
-                            
                         }
                         .ignoresSafeArea(.keyboard)
                         .onMapCameraChange(frequency: .continuous) {
@@ -451,29 +484,23 @@ struct RunView: View {
                         .ignoresSafeArea(edges: [.leading, .trailing])
                         .mapStyle(.standard)
                         .mapControls {
+                            MapCompass()
                             MapUserLocationButton()
-                                .tint(NEON)
                         }
                     }
                     
-                    // Overlay buttons on top of Map view
-                    VStack {
-                        // this forces the stack to stretch to fill screen width
-                        Spacer().frame(maxWidth: .infinity)
-                        Spacer()
-                    }
-                    .frame(maxHeight: proxy.size.height * 0.90)
+                    VStack {}
                     .navigationDestination(isPresented: $canShowSummary) {
                         RunSummaryView(showRunView: $showRunView).environmentObject(locationManager).environmentObject(activityManager).zIndex(100)
                     }
-
+                    
                     
                     // Bottom sheet to enable location search and select a destination
                     .bottomSheet(
                         bottomSheetPosition: self.$searchPlaceSheetPosition,
                         switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.80)]
                     ){
-                        VStack {
+                        VStack(alignment: .leading) {
                             
                             HStack {
                                 
@@ -493,6 +520,8 @@ struct RunView: View {
                                 if(usePin) {
                                     Button {
                                         // add pin location to route and show route info sheet
+                                        addCustomLocation()
+                                        
                                     } label: {
                                         Image(systemName: "plus.circle.fill")
                                             .frame(width: 48, height: 48)
@@ -568,23 +597,23 @@ struct RunView: View {
                                             
                                             // show the route for the selected destination
                                             showRoute = true
-                                            usePin = false
                                             isTextFieldFocused = false // hide the keyboard
                                             
                                             // animate camera movement to selected placemark
-                                            let coordinate = place.location!.coordinate
                                             withAnimation {
                                                 cameraPosition = .region(MKCoordinateRegion(
-                                                    center: coordinate,
+                                                    center: place.getLocation(),
                                                     span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
                                                 ))
                                             }
                                         }
                                     }
+                                    .listRowInsets(EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
                                 }
                                 .scrollContentBackground(.hidden)
+                                .padding(0)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -595,102 +624,103 @@ struct RunView: View {
                     
                     
                     
-                    
                     // Route details sheet
                     .bottomSheet(
                         bottomSheetPosition: self.$routeSheetPosition,
-                        switchablePositions: [.relative(0.25), .relative(0.70)],
-                        headerContent: {
-                            Text("Route Details").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(TEXT_LIGHT_GREY)
-                        }
+                        switchablePositions: [.relative(0.25), .relative(0.70)]
                     ){
-                        
-                        VStack(alignment: .leading){
-                            
-                            if routeDestination != nil {
-                                
-                                Text(routeDestination!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-
-//                                
-//                                HStack(spacing: 3) {
-//                                    
-//                                    // Street
-//                                    Text(selectedPlaceMark!.thoroughfare ?? "")
-//                                        .foregroundStyle(.gray)
-//                                    
-//                                    // City
-//                                    Text(selectedPlaceMark!.placemark.locality ?? "")
-//                                        .foregroundStyle(.gray)
-//                                    
-//                                    // TODO: figure out how to load
-//                                    Text(selectedPlaceMark!.placemark.administrativeArea != nil ? ", \(selectedPlaceMark.administrativeArea!)" : "")
-//                                        .foregroundStyle(.gray)
-//                                    
-//                                    Spacer()
+                                                
+                        ZStack {
+//                            
+//                            if let routeDestination, routeDestination.isCustomLocation {
+//                                Button {
+//                                    // delete pin and hide sheet
+//                                    self.routeSheetPosition = .hidden
+//                                    removeRoute()
+//                                    disabledFetch = false
+//                                } label: {
+//                                    HStack {
+//                                        Text("Delete custom pin")
+//                                            .foregroundStyle(.black)
+//                                    }
+//                                    .background(RoundedRectangle(cornerRadius: 12.0).fill(.white))
 //                                }
-                                
+//                                .offset(y: -140)
+//                                .zIndex(99)
+//                            }
+                            
+                            VStack(alignment: .leading) {
                                 
                                 HStack {
-                                    CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.walk.motion", iconColor: .white, text: travelTimeString ?? "")
-//                                    Image(systemName: "figure.walk.motion")
-//                                        .frame(width: 32, height: 32)
-//                                        .padding(.trailing, 4)
+                                    Text("Route Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
                                     Spacer()
+                                    
+                                    // Custom dismiss button
+                                    Button {
+                                        self.routeSheetPosition = .hidden
+                                        removeRoute()
+                                        disabledFetch = false
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.gray)
+                                            .font(.title)
+                                    }
                                 }
-                                .padding(.vertical, 8)
                                 
-                                Button {
-                                    Task{
-                                        // LocationManager will save the start and end locations
-                                        if let userLocation = locationManager.userLocation {
-                                            lookUpLocation(location: userLocation) { startPlacemark in
-                                                if startPlacemark == nil {
-                                                    print("could not reverse geo code user's location")
-                                                    return
-                                                }
-                                                locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!.placemark)
-                                            }
-                                        }
-                                        // Begin the run and track user steps, distance, etc
-                                        // let system settings take over wakefulness of phone
-                                        UIApplication.shared.isIdleTimerDisabled = true
-                                        await activityManager.startTracking(isLiveActivityEnabled: isLiveActivityEnabled)
-                                        runStatus = .startedRun
-                                        routeSheetPosition = .hidden
-                                        runSheetPosition = .relative(0.25)
-                                    }
-                                } label: {
+                                
+                                if routeDestination != nil {
+                                    
+                                    Text(routeDestination!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                    
                                     HStack {
-                                        Text("Start Run")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_LIGHT_GREEN)
+                                        CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.walk.motion", iconColor: .white, text: travelTimeString ?? "")
+                                        Spacer()
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(LIGHT_GREEN)
-                                    .cornerRadius(12)
-                               
+                                    .padding(.vertical, 8)
+                                    
+                                    Button {
+                                        Task{
+                                            // LocationManager will save the start and end locations
+                                            if let userLocation = locationManager.userLocation {
+                                                lookUpLocation(location: userLocation) { startPlacemark in
+                                                    if startPlacemark == nil {
+                                                        print("could not reverse geo code user's location")
+                                                        return
+                                                    }
+                                                    locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!)
+                                                }
+                                            }
+                                            
+                                            // Let system settings take over wakefulness of phone
+                                            UIApplication.shared.isIdleTimerDisabled = true
+                                            await activityManager.startTracking(isLiveActivityEnabled: isLiveActivityEnabled)
+                                            runStatus = .startedRun
+                                            routeSheetPosition = .hidden
+                                            runSheetPosition = .relative(0.25)
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text("Start Run")
+                                                .fontWeight(.semibold)
+                                                .foregroundStyle(TEXT_LIGHT_GREEN)
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(LIGHT_GREEN)
+                                        .cornerRadius(12)
+                                    }
                                 }
-                  
                             }
-                            
-                        }
-                        .padding(.horizontal, 16)
-                        .onAppear {
-                            // prevents wierd behavior where tapping on a route destination marker fetches a different route
-                            disabledFetch = true
+                            .padding(.horizontal, 16)
+                            .onAppear {
+                                // prevents weird behavior where tapping on a different route destination marker fetches a different route
+                                disabledFetch = true
+                            }
                         }
                     }
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
                     .dragIndicatorColor(.gray)
-                    .showCloseButton(true)
-                    .onDismiss {
-                        // when user closes route detail sheet, clear the route data
-                        removeRoute()
-                        disabledFetch = false
-                    }
-                    
-                    
+                   
                     
                     // Run details sheet
                     .bottomSheet(
@@ -855,8 +885,12 @@ struct RunView: View {
                                         .foregroundStyle(TEXT_LIGHT_GREY)
                                 }
                             }
+                            .listRowInsets(EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
+                            .listRowBackground(Color.clear)
+                            .listStyle(.plain)
                         }
-                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+
                     }
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
                     .dragIndicatorColor(.gray)
@@ -877,6 +911,7 @@ struct RunView: View {
                                     Image(systemName: "chevron.backward")
                                         .foregroundStyle(.black)
                                         .frame(width: 16, height: 16)
+                                        .fontWeight(.semibold)
                                 }
                             }
                             
@@ -904,6 +939,8 @@ struct RunView: View {
                 let appearance = UINavigationBarAppearance()
                 appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
                 appearance.backgroundColor = UIColor(Color.black.opacity(0.2))
+                
+                print(allCustomPinLocations)
             }
         }
 
@@ -919,7 +956,7 @@ struct DraggablePin: View {
         VStack {
             ZStack {
                 Circle()
-                    .background(.black)
+                    .fill(.black)
                     .frame(width: 20, height: 20)
                 
                 Image(systemName: "mappin.circle.fill")
@@ -975,10 +1012,66 @@ struct DraggablePin: View {
 //                        print(pinCoordinates ?? "n/a")
 
 //                        lookUpCurrentLocation() { address in
-//                            if pinAddress != nil  {
-//                                pinAddress = address
-//                                addressInput = pinAddress!.name!
+//                            if selectedPin != nil  {
+//                                selectedPin = address
+//                                addressInput = selectedPin!.name!
 //                            } else {
 //                                addressInput = ""
 //                            }
 //                        }
+
+
+
+// custom pin sheet
+//                    .bottomSheet(
+//                        bottomSheetPosition: self.$customPinSheetPosition,
+//                        switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.70)],
+//                        headerContent: {
+//                            Text("Custom Location").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(TEXT_LIGHT_GREY)
+//                        }
+//                    ) {
+//                        VStack(alignment: .leading){
+////
+//                            Text(selectedPin.name ?? "")
+//                                .font(.title3.bold())
+//                                .foregroundStyle(.white)
+//
+//                            HStack(spacing: 3) {
+//
+//                                // Street
+//                                Text(selectedPin!.thoroughfare ?? "")
+//                                    .foregroundStyle(.gray)
+//
+//                                // City
+//                                Text(selectedPin!.locality ?? "")
+//                                    .foregroundStyle(.gray)
+//
+//                                // State
+//                                Text(selectedPin!.administrativeArea != nil ? ", \(selectedPin!.administrativeArea!)" : "")
+//                                    .foregroundStyle(.gray)
+//                            }
+////
+//                            Button  {
+////                                modelContext.delete(selectedPin!)
+////                                selectedPin = nil
+//                            } label: {
+//                                HStack {
+//                                    Text("Add custom location")
+//                                        .fontWeight(.semibold)
+//                                        .foregroundStyle(.white)
+//                                }
+//                                .padding()
+//                                .frame(maxWidth: .infinity)
+//                                .background(DARK_GREY)
+//                                .cornerRadius(12)
+//                            }
+//
+//                        }
+//                    }
+//                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+//                    .showCloseButton(true)
+//                    .onDismiss {
+//                        // when user closes route detail sheet, clear the route data
+//                        selectedPin = nil
+//                    }
+//
