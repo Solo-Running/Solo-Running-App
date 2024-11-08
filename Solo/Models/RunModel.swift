@@ -20,103 +20,6 @@ class RunData {
 }
 
 
-
-@Model
-class CustomPinLocation: Identifiable {
-    
-    @Attribute(.unique) var id: String = UUID().uuidString
-    var name: String?
-    var thoroughfare: String?
-    var subThoroughfare: String?
-    var locality: String?
-    var subLocality: String?
-    var administrativeArea: String?
-    var subAdministrativeArea: String?
-    var postalCode: String?
-    var country: String?
-    var isoCountryCode: String?
-    var latitude: Double
-    var longitude: Double
-    
-    init(id: String = UUID().uuidString,
-         name: String? = "",
-         thoroughfare: String? = "",
-         subThoroughfare: String? = "",
-         locality: String? = "",
-         subLocality: String? = "",
-         administrativeArea: String? = "",
-         subAdministrativeArea: String? = "",
-         postalCode: String? = "",
-         country: String? = "",
-         isoCountryCode: String? = "",
-         longitude: Double,
-         latitude: Double
-    ) {
-         
-        self.id = id
-        self.name = name
-        self.thoroughfare = thoroughfare
-        self.subThoroughfare = subThoroughfare
-        self.locality = locality
-        self.subLocality = subLocality
-        self.administrativeArea = administrativeArea
-        self.subAdministrativeArea = subAdministrativeArea
-        self.postalCode = postalCode
-        self.country = country
-        self.isoCountryCode = isoCountryCode
-        self.longitude = longitude
-        self.latitude = latitude
-    }
-}
-
-
-@Model
-class Location {
-    @Attribute(.unique) var id: String = UUID().uuidString
-    var name: String?
-    var thoroughfare: String?
-    var subThoroughfare: String?
-    var locality: String?
-    var subLocality: String?
-    var administrativeArea: String?
-    var subAdministrativeArea: String?
-    var postalCode: String?
-    var country: String?
-    var isoCountryCode: String?
-    var latitude: Double
-    var longitude: Double
-    
-    init(id: String = UUID().uuidString,
-         name: String? = "",
-         thoroughfare: String? = "",
-         subThoroughfare: String? = "",
-         locality: String? = "",
-         subLocality: String? = "",
-         administrativeArea: String? = "",
-         subAdministrativeArea: String? = "",
-         postalCode: String? = "",
-         country: String? = "",
-         isoCountryCode: String? = "",
-         longitude: Double,
-         latitude: Double
-    ) {
-         
-        self.id = id
-        self.name = name
-        self.thoroughfare = thoroughfare
-        self.subThoroughfare = subThoroughfare
-        self.locality = locality
-        self.subLocality = subLocality
-        self.administrativeArea = administrativeArea
-        self.subAdministrativeArea = subAdministrativeArea
-        self.postalCode = postalCode
-        self.country = country
-        self.isoCountryCode = isoCountryCode
-        self.longitude = longitude
-        self.latitude = latitude
-    }
-}
-
 @Model
 final class Run: Identifiable{
     @Attribute(.unique) public var id: String = UUID().uuidString
@@ -126,14 +29,14 @@ final class Run: Identifiable{
     var elapsedTime: Int            // seconds
     var distanceTraveled: Double    // distance in meters
     var steps: Int
-    var startLocation: Location
-    var endLocation: Location
+    var startPlacemark: MTPlacemark
+    var endPlacemark: MTPlacemark
     var avgSpeed: Double            // miles per hour
     var avgPace: Int                // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data
 
     
-    init(id: String = UUID().uuidString, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startLocation: Location, endLocation: Location,  avgSpeed: Double, avgPace: Int, routeImage: Data) {
+    init(id: String = UUID().uuidString, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startPlacemark: MTPlacemark, endPlacemark: MTPlacemark,  avgSpeed: Double, avgPace: Int, routeImage: Data) {
         self.id = id
         self.postedDate = postedDate
         self.startTime = startTime
@@ -141,8 +44,8 @@ final class Run: Identifiable{
         self.elapsedTime = elapsedTime
         self.steps = steps
         self.distanceTraveled = distanceTraveled
-        self.startLocation = startLocation
-        self.endLocation = endLocation
+        self.startPlacemark = startPlacemark
+        self.endPlacemark = endPlacemark
         self.avgSpeed = avgSpeed
         self.avgPace = avgPace
         self.routeImage = routeImage
