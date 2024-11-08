@@ -42,28 +42,17 @@ struct MainView: View {
                         
                         Group {
                             DashboardView().tabItem {
-                                Image(systemName: "house.fill")
-                                    .frame(width: 32, height: 32)
-                                    .background(.black)
-                                    .cornerRadius(26)
+                                Label("Home",systemImage: "house.fill")
                             }
                             .tag(Screen.Dashboard)
                             
-                            
                             VStack{}.background(.black)
                                 .tabItem {
-                                    Image(systemName: "plus.circle.fill")
-                                        .background(.black)
-                                        .frame(width: 48, height: 48)
+                                    Label("Add Run",systemImage: "plus.circle.fill")
                                 }.tag(Screen.Run)
                             
-                            
                             ProfileView().tabItem {
-                                Image(systemName: "person.circle.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .background(.black)
-                                    .frame(width: 32, height: 32)
+                                Label("Profile",systemImage: "person.circle.fill")
                             }
                             .tag(Screen.Profile)
                         }
