@@ -111,19 +111,15 @@ struct RunSummaryView: View {
               
                 // Route start and end timeline
                 VStack(spacing: 16) {
+                    
                     HStack {
                         
-                        ZStack {
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 20, height: 20)
-                            
-                            Circle()
-                                .fill(.black)
-                                .frame(width: 8, height: 8)
-                        }
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 12, height: 12)
                         
-                        Text((savedRun?.startLocation.name)!)
+                        
+                        Text((savedRun?.startPlacemark.name)!)
                             .foregroundStyle(TEXT_LIGHT_GREY)
                         
                         Spacer()
@@ -131,29 +127,23 @@ struct RunSummaryView: View {
                     .overlay(alignment: .topLeading){
                         Rectangle()
                             .fill(.white)
-                            .frame(width: 1.5, height: 24)
+                            .frame(width: 1.5, height: 32)
                             .offset(y: 16)
-                            .padding(.leading, 9)
-
+                            .padding(.leading, 5.5)
                     }
                     
                     HStack {
+                    
+                        Circle()
+                          .fill(.white)
+                          .frame(width: 12, height: 12)
                         
-                        ZStack {
-                            Circle()
-                              .fill(.white)
-                              .frame(width: 20, height: 20)
-                          
-                            Circle()
-                              .fill(.black)
-                              .frame(width: 8, height: 8)
-                        }
-                        
-                        Text((savedRun?.endLocation.name)!)
+                        Text((savedRun?.endPlacemark.name)!)
                             .foregroundStyle(TEXT_LIGHT_GREY)
                         
                         Spacer()
                     }
+                    
                 }
 
                 Spacer().frame(height: 48)

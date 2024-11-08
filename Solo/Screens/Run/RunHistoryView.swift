@@ -100,7 +100,7 @@ struct RunHistoryView: View {
                                                         .padding(.trailing, 4)
                                                     }
                                                     
-                                                    Text("\(run.endLocation.name!)")
+                                                    Text("\(run.endPlacemark.name!)")
                                                         .foregroundStyle(TEXT_LIGHT_GREY)
                                                     
                                                     Spacer()
@@ -130,7 +130,7 @@ struct RunHistoryView: View {
                     ContentUnavailableView(
                         "No runs were found",
                         systemImage: "figure.run.square.stack.fill",
-                        description: Text("Start a new run by clicking on the + symbol")
+                        description: Text("Start a new run by tapping on the + symbol")
                     )
                 }
             }

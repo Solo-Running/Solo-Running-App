@@ -46,7 +46,7 @@ struct RunDetailView: View {
                             .frame(width: 12, height: 12)
                         
                         
-                        Text((runData?.startLocation.name)!)
+                        Text((runData?.startPlacemark.name)!)
                             .foregroundStyle(TEXT_LIGHT_GREY)
                         
                         Spacer()
@@ -65,7 +65,7 @@ struct RunDetailView: View {
                           .fill(.white)
                           .frame(width: 12, height: 12)
                         
-                        Text((runData?.endLocation.name)!)
+                        Text((runData?.endPlacemark.name)!)
                             .foregroundStyle(TEXT_LIGHT_GREY)
                         
                         Spacer()
