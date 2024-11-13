@@ -41,8 +41,25 @@ struct RunHistoryView: View {
     }
     
     func deleteRuns(at offsets: IndexSet) {
+        
+        // delete any other run that uses the same route destination or endPlacemark
         for offset in offsets {
             let run = runs[offset]
+            
+            
+            let routeId = run.endPlacemark.id
+            let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
+                $0.endPlacemark.id == routeId
+            })
+            
+            do {
+                let runs = try modelContext.fetch(fetchDescriptor)
+                for run in runs {
+                    modelContext.delete(run)
+                }
+            } catch {
+                print("could not fetch runs with custom pin")
+            }
 
             // delete the run from the context
             modelContext.delete(run)
