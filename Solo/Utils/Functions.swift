@@ -8,6 +8,10 @@
 import Foundation
 import MapKit
 
+
+
+
+
 // Formats a Date to friendly format into 1:13am
 func convertDateToString(date: Date) -> String {
     let formatter = DateFormatter()
