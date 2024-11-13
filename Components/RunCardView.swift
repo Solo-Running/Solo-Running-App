@@ -44,13 +44,16 @@ struct RunCardView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                         .font(.subheadline)
                     
-                    HStack(alignment: .center) {
+                    HStack  {
+                        
                         CustomPin(background: Color.white, foregroundStyle: run.endPlacemark.isCustomLocation ? NEON : DARK_GREY)
                         Text((run.endPlacemark.name)!)
                             .foregroundStyle(.white)
-                            .padding(.leading, 4)
                             .padding(.bottom, 4)
                             .font(.system(size: 14))
+                    
+                        
+                        Spacer()
                     }
                 }
                 
