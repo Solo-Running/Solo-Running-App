@@ -134,7 +134,7 @@ struct RunDetailView: View {
         .defaultScrollAnchor(.bottom)
         .background(.black)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .bottomBar)
+        .toolbarBackground(.hidden, for: .tabBar)
         .onAppear {
             let appearance = UINavigationBarAppearance()
             appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
