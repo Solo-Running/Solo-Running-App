@@ -31,6 +31,7 @@ class MTPlacemark: Identifiable {
     var longitude: Double
     var latitude: Double
     var isCustomLocation: Bool
+    var timestamp: Date // when this model instance was generated
     
     init(id: String = UUID().uuidString,
          name: String? = "",
@@ -45,7 +46,8 @@ class MTPlacemark: Identifiable {
          isoCountryCode: String? = "",
          longitude: Double = 0.0,
          latitude: Double = 0.0,
-         isCustomLocation: Bool = false
+         isCustomLocation: Bool = false,
+         timestamp: Date = Date()
     ) {
          
         self.id = id
@@ -62,6 +64,7 @@ class MTPlacemark: Identifiable {
         self.longitude = longitude
         self.latitude = latitude
         self.isCustomLocation = isCustomLocation
+        self.timestamp = timestamp
     }
     
     // Method to get CLLocationCoordinate2D for start placemark
