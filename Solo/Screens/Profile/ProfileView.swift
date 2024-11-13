@@ -18,7 +18,8 @@ struct ProfileView: View {
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
 
-    
+    @State private var showEditCustomPinsView: Bool = false  // Control visibility of RunView
+
     var body: some View {
         NavigationStack {
 
@@ -82,8 +83,10 @@ struct ProfileView: View {
 
                 
                 VStack(alignment: .leading, spacing: 16) {
-                    
-                    NavigationLink(destination: Text("test")){
+                
+                    Button {
+                        showEditCustomPinsView = true
+                    } label: {
                         HStack {
                             VStack(alignment: .leading){
                                 Text("Pinned Location")
@@ -96,16 +99,14 @@ struct ProfileView: View {
                             }
                             
                             Spacer()
- 
+                            
                             Image(systemName: "chevron.right")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .frame(width: 24, height: 24)
                         }
-                        
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                    
                     HStack(alignment: .center) {
                         VStack(alignment: .leading){
                             Text("Map Theme")
@@ -162,6 +163,9 @@ struct ProfileView: View {
                 .padding()
                 
                 Spacer()
+            }
+            .fullScreenCover(isPresented: $showEditCustomPinsView) {
+                EditCustomPinsView(showView: $showEditCustomPinsView)
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
