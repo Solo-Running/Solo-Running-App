@@ -49,8 +49,13 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
     
     func updateStartEndPlacemarks(start: MTPlacemark, end: MTPlacemark) {
+        
         self.startPlacemark = start
         self.endPlacemark = end
+        
+        endPlacemark!.name =  endPlacemark!.name!.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "").trimmingCharacters(in: .whitespaces)
+        startPlacemark!.name =  startPlacemark!.name!.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "").trimmingCharacters(in: .whitespaces)
+
         
         print("saved start and end placemarks")
     }
@@ -188,7 +193,8 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
                                     isoCountryCode: placemark.isoCountryCode,
                                     longitude: placemark.location!.coordinate.longitude,
                                     latitude: placemark.location!.coordinate.latitude,
-                                    isCustomLocation: false
+                                    isCustomLocation: false,
+                                    timestamp: Date()
                                 )
                     })
                 })
