@@ -18,6 +18,8 @@
 		E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF82CBE268F00C7A322 /* MainView.swift */; };
 		E453FFB22CCF5D22008CE2F6 /* RunHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E453FFB12CCF5D22008CE2F6 /* RunHistoryView.swift */; };
 		E457B8102CD8595500FD6D90 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E457B80F2CD8595400FD6D90 /* EditProfileView.swift */; };
+		E461C9662CDF214800E3D69B /* EditCustomPinsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E461C9652CDF214800E3D69B /* EditCustomPinsView.swift */; };
+		E461C9682CDF355A00E3D69B /* DraggablePin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E461C9672CDF355A00E3D69B /* DraggablePin.swift */; };
 		E47E67222CCE084A006941B1 /* Functions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47E67212CCE084A006941B1 /* Functions.swift */; };
 		E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA1E2CBE3B7800EE1210 /* RunView.swift */; };
 		E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA202CBE3B9E00EE1210 /* ProfileView.swift */; };
@@ -33,7 +35,6 @@
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
 		E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = E493F03D2CC07F0800D023AE /* BottomSheet */; };
 		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
-		E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */; };
 		E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B02CC372BD00B23CFE /* WidgetKit.framework */; };
 		E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B22CC372BD00B23CFE /* SwiftUI.framework */; };
 		E4C509152CC3762900B23CFE /* SoloLiveWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509142CC3762900B23CFE /* SoloLiveWidgetBundle.swift */; };
@@ -101,6 +102,8 @@
 		E43AEBF82CBE268F00C7A322 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		E453FFB12CCF5D22008CE2F6 /* RunHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHistoryView.swift; sourceTree = "<group>"; };
 		E457B80F2CD8595400FD6D90 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		E461C9652CDF214800E3D69B /* EditCustomPinsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCustomPinsView.swift; sourceTree = "<group>"; };
+		E461C9672CDF355A00E3D69B /* DraggablePin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggablePin.swift; sourceTree = "<group>"; };
 		E47E67212CCE084A006941B1 /* Functions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functions.swift; sourceTree = "<group>"; };
 		E480FA1E2CBE3B7800EE1210 /* RunView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunView.swift; sourceTree = "<group>"; };
 		E480FA202CBE3B9E00EE1210 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -119,7 +122,6 @@
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		E4BB6EB62CDCA96000932C4C /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
-		E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunLiveActivity.swift; sourceTree = "<group>"; };
 		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E4C508B22CC372BD00B23CFE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SoloLiveWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -195,7 +197,6 @@
 				E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */,
 				E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */,
 				E493F03A2CBF950700D023AE /* LocationManager.swift */,
-				E4C508A82CC366AC00B23CFE /* RunLiveActivity.swift */,
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
 			);
@@ -218,6 +219,7 @@
 				E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */,
 				E480FA202CBE3B9E00EE1210 /* ProfileView.swift */,
 				E457B80F2CD8595400FD6D90 /* EditProfileView.swift */,
+				E461C9652CDF214800E3D69B /* EditCustomPinsView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -295,6 +297,7 @@
 			children = (
 				E4922E6A2CCB10E200C163EA /* CapsuleView.swift */,
 				E4D740082CD0C52E001461B7 /* RunCardView.swift */,
+				E461C9672CDF355A00E3D69B /* DraggablePin.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -508,17 +511,18 @@
 				E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */,
 				E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */,
 				E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */,
+				E461C9682CDF355A00E3D69B /* DraggablePin.swift in Sources */,
 				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
 				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
-				E4C508A92CC366AC00B23CFE /* RunLiveActivity.swift in Sources */,
 				E47E67222CCE084A006941B1 /* Functions.swift in Sources */,
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
 				E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
+				E461C9662CDF214800E3D69B /* EditCustomPinsView.swift in Sources */,
 				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
 				E457B8102CD8595500FD6D90 /* EditProfileView.swift in Sources */,
 				E409890E2CC4DA2C0021B669 /* RunSummaryView.swift in Sources */,
