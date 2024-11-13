@@ -30,7 +30,7 @@ final class Run: Identifiable{
     var distanceTraveled: Double    // distance in meters
     var steps: Int
     var startPlacemark: MTPlacemark
-    var endPlacemark: MTPlacemark
+    @Relationship(deleteRule: .cascade)  var endPlacemark: MTPlacemark // delete any runs that reference a deleted location
     var avgSpeed: Double            // miles per hour
     var avgPace: Int                // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data
