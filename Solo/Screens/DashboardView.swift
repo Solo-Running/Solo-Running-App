@@ -42,7 +42,7 @@ struct DashboardView: View {
     @State var stepsPercentageChange: Int = 0
     @State var timePercentageChange: Int = 0
     
-    @State var bestPaceInWeek: Int? = nil
+    @State var bestPaceInWeek: Int = 0
         
     private static var weekAgoDate: Date {
         return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
@@ -110,7 +110,7 @@ struct DashboardView: View {
         var todayTime = 0
         var yesterdayTime = 0
         
-        var bestPace: Int? = nil
+        var bestPace = 0
         
         for run in weeklyRuns {
             let dayAbbreviation = dateFormatter.string(from: run.postedDate)
@@ -123,12 +123,11 @@ struct DashboardView: View {
                 statsDictionary[dayAbbreviation] = stats
             }
             
-            if let currentMin = bestPace, run.avgPace != 0 {
-                bestPace = min(run.avgPace, currentMin)
-            } else {
-                bestPace = run.avgPace
+            if run.avgPace > 0 {
+                if bestPace == 0 || run.avgPace < bestPace {
+                    bestPace = run.avgPace
+                }
             }
-            
             
             // Update the total time and steps
             totalTime += run.elapsedTime
@@ -155,7 +154,7 @@ struct DashboardView: View {
         self.averageStepsInWeek = Double(totalSteps) / 7
         self.averageTimeInWeek = Double(secondsToMinutes(seconds: totalTime)) / 7
         
-        // update the user's streaks if not already changed
+        // update the user's streaks
         if yesterdaySteps > 0 && todaySteps > 0{
             if let lastDone = user?.streakLastDoneDate {
                 // As long as last done date is not today
@@ -464,7 +463,7 @@ struct DashboardView: View {
                                 .chartXAxis(.hidden)
                             }
                             HStack {
-                                if let bestPaceInWeek {
+                                if bestPaceInWeek > 0 {
                                     Text("Best pace \(bestPaceInWeek) min/mile")
                                         .font(.caption)
                                         .foregroundStyle(TEXT_LIGHT_GREY)
@@ -488,11 +487,30 @@ struct DashboardView: View {
                                 .foregroundStyle(.white)
                                 .fontWeight(.bold)
                             
-                            Text("You're on fire!")
-                                .font(.caption)
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                            
-                            
+                            switch user!.streak {
+                            case 0:
+                                Text("Start logging runs!")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                            case 1..<10:
+                                Text("Keep it up!")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                            case 11..<20:
+                                Text("You're on fire!")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                            case 21..<50:
+                                Text("You can do it!")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                            default:
+                                Text("Amazing job")
+                                    .font(.caption)
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                
+                            }
+                      
                             Spacer()
                             
                             HStack {
