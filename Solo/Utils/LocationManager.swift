@@ -22,6 +22,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
     @Published var routeSteps: [MKRoute.Step] = []
     @Published var stepCoordinates: [CLLocationCoordinate2D] = []
+    
     @Published var remainingDistanceToStep: CLLocationDistance? // distance in meters
     
     @Published var startPlacemark: MTPlacemark?
@@ -52,11 +53,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         
         self.startPlacemark = start
         self.endPlacemark = end
-        
-        endPlacemark!.name =  endPlacemark!.name!.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "").trimmingCharacters(in: .whitespaces)
-        startPlacemark!.name =  startPlacemark!.name!.replacingOccurrences(of: "\n", with: "").replacingOccurrences(of: "\r", with: "").trimmingCharacters(in: .whitespaces)
-
-        
         print("saved start and end placemarks")
     }
     
