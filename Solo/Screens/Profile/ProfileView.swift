@@ -113,7 +113,7 @@ struct ProfileView: View {
                                 .foregroundStyle(.white)
                                 .font(.title3)
                                 .fontWeight(.semibold)
-                            Text("Toggle your map theme to dark or light mode")
+                            Text("Toggle your map theme to light or dark mode")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .font(.subheadline)
 
