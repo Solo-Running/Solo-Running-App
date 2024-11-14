@@ -66,6 +66,7 @@ struct RunView: View {
     @State private var route: MKRoute?
     @State private var routeDestination: MTPlacemark?
     @State private var transportType = MKDirectionsTransportType.walking
+    @State private var routeDistance: Double = 0.0
     
     // The elapsed time in seconds
     @State private var travelInterval: TimeInterval?
@@ -121,11 +122,12 @@ struct RunView: View {
             
             if let route {
                 locationManager.updateStepCoordinates(steps: route.steps)
-            }
-            
-            travelInterval = route?.expectedTravelTime
-            
-            if route != nil {
+                travelInterval = route.expectedTravelTime
+                
+                let destinationLocation = CLLocation(latitude: routeDestination!.latitude, longitude: routeDestination!.longitude)
+                let distance = locationManager.userLocation!.distance(from: destinationLocation)
+                routeDistance = distance / 1609.34
+
                 print("routeDisplaying set to true")
                 routeDisplaying = true
                 searchPlaceSheetPosition = .relative(0.25)
@@ -679,7 +681,7 @@ struct RunView: View {
                                             }
                                         }
                                         CapsuleView(capsuleBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
-                                        CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: "2mi")
+                                        CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
                                         
                                         Spacer()
                                     }
@@ -716,6 +718,16 @@ struct RunView: View {
                                         .background(LIGHT_GREEN)
                                         .cornerRadius(12)
                                     }
+                                    
+                                    
+                                    VStack(alignment: .center) {
+                                        Image(systemName: "lightbulb.max")
+                                            .padding(.vertical, 8)
+                                        Text("To track your stats, keep your phone awake while running.").foregroundStyle(TEXT_LIGHT_GREY)
+                                            .multilineTextAlignment(.center)
+
+                                    }
+                                    .padding(.top, 48)
                                 }
                             }
                             .padding(.horizontal, 16)
