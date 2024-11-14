@@ -51,7 +51,7 @@ struct RunCardView: View {
                             .foregroundStyle(.white)
                             .padding(.bottom, 4)
                             .font(.system(size: 14))
-                    
+                            .multilineTextAlignment(.leading)
                         
                         Spacer()
                     }
