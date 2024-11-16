@@ -20,7 +20,10 @@ enum RunStatus: String {
 
 struct RunView: View {
     
-    // Environment objects to handle location and activity monitoring
+    // Environment objects to handle music, location, and activity monitoring
+//    @EnvironmentObject var spotifyManager: SpotifyManager
+    @StateObject private var spotifyManager = SpotifyManager()
+    
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var activityManager: ActivityManager
     @Environment(\.modelContext) private var modelContext
@@ -876,6 +879,63 @@ struct RunView: View {
                                     }
                                     
                                 }
+                                
+                                Spacer()
+                                
+                                
+                                if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                    VStack(alignment: .leading) {
+                                        HStack {
+                                            Button {
+                                                spotifyManager.goBack()
+                                            } label: {
+                                                Image(systemName: "backward.fill")
+                                                    .frame(width: 48, height: 48)
+                                                    .foregroundStyle(.white)
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            Button {
+                                                spotifyManager.togglePlayer()
+                                            } label: {
+                                                Image(systemName: spotifyManager.isPlayerPaused() ?  "play.fill" : "pause.fill")
+                                                    .frame(width: 48, height: 48)
+                                                    .foregroundStyle(.white)
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            Button {
+                                                spotifyManager.skipNext()
+                                            } label: {
+                                                Image(systemName: "forward.fill")
+                                                    .frame(width: 48, height: 48)
+                                                    .foregroundStyle(.white)
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                                
+                                else {
+                                    VStack(alignment: .center) {
+                                        Image(systemName: "music.note")
+                                            .padding(.vertical, 8)
+                                        
+                                        Button {
+                                            spotifyManager.connect()
+                                        } label: {
+                                            Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.top, 48)
+                                   
+                                }
+                                
+                                Spacer().frame(height: 48)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 16)
@@ -885,6 +945,12 @@ struct RunView: View {
                     }
                     .dragIndicatorColor(.gray)
                     .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
+                    .onAppear {
+                        if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                            print("Reconnecting")
+                            spotifyManager.reconnect()
+                        }
+                    }
                     
                     
                     // Route steps sheet
@@ -968,6 +1034,11 @@ struct RunView: View {
                     }
                     
                 }
+            }
+            .onOpenURL { url in
+                // When finished authenticating, save the access token
+                print("saving response code")
+                spotifyManager.saveResponseCode(from: url)
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
