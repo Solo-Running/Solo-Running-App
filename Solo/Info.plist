@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>SPOTIFY_CLIENT_ID</key>
+	<string>$(SPOTIFY_CLIENT_ID)</string>
+	<key>SPOTIFY_CLIENT_SECRET_KEY</key>
+	<string>$(SPOTIFY_CLIENT_SECRET_KEY)</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -13,8 +17,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>Lice</key>
-	<string></string>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array>
 		<string>MKDirectionsModeBike</string>
@@ -28,6 +30,26 @@
 	<array>
 		<string>fetch</string>
 		<string>processing</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIImageName</key>
+		<string></string>
+	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>spotify</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.spotify.iOS-SDK-Quick-Start</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>spotify-ios-quick-start</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>
