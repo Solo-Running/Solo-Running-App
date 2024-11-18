@@ -9,7 +9,63 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-
+struct ParallaxHeader<Content: View> : View {
+    var run: Run!
+    @ViewBuilder var content: () -> Content
+    
+    var body: some View {
+        
+        GeometryReader { geometry in
+            let offset = geometry.frame(in: .global).minY
+            let fadeOutOpacity = max(0, 1 - (((offset - 20) * 0.4) / 100))
+            
+            ZStack {
+                content()
+                    .frame(
+                        width: geometry.size.width,
+                        height: geometry.size.height
+                    )
+                    .offset(y: -offset * 0.8)
+//                    .brightness(max(-0.5, min(0.3, offset * 0.01)))
+                    
+    
+                HStack {
+                    VStack(alignment: .leading) {
+                        Spacer().frame(height: 160)
+                        
+                        Text("\(convertDateToString(date: run!.startTime)) - \(convertDateToString(date: run!.endTime))")
+                            .foregroundStyle(.white)
+                            .font(.subheadline)
+                        
+                        Text("Run Summary")
+                            .fontWeight(.bold)
+                            .font(.largeTitle)
+                            .foregroundStyle(.white)
+                        
+                        Spacer().frame(height: 12)
+                        
+                        CapsuleView(
+                            iconBackground: nil,
+                            iconName: "timer",
+                            iconColor: TEXT_LIGHT_GREEN,
+                            text: timeDifference(from: run!.startTime, to: run!.endTime)
+                        )
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer()
+                }
+                .opacity(fadeOutOpacity)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+      
+            }
+            .frame(height: 300)
+            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
+        }
+    }
+}
 struct RunDetailView: View {
     
     var runData: Run!
@@ -133,8 +189,9 @@ struct RunDetailView: View {
         }
         .defaultScrollAnchor(.bottom)
         .background(.black)
+        .toolbarColorScheme(.dark, for: .tabBar)
+        .toolbarBackground(.black, for: .tabBar)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarBackground(.hidden, for: .tabBar)
         .onAppear {
             let appearance = UINavigationBarAppearance()
             appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
