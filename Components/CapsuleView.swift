@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct CapsuleView: View {
-    var capsuleBackground: Color
+    var iconBackground: Color?
     var iconName: String
     var iconColor: Color
     var text: String
@@ -19,7 +19,7 @@ struct CapsuleView: View {
         HStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(capsuleBackground)
+                    .fill(iconBackground ?? .clear)
                     .frame(width: 20, height: 20)
                 
                 if !iconName.isEmpty {
