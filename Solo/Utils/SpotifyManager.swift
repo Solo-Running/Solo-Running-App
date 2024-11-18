@@ -27,6 +27,8 @@ final class SpotifyManager: NSObject, ObservableObject {
     @Published var currentTrackImage: UIImage?
     @Published var playBackPosition: Int?
     @Published var lastPlayerState: SPTAppRemotePlayerState?
+    
+    @Published var isLoading: Bool = false
 
     private var connectCancellable: AnyCancellable?
     private var disconnectCancellable: AnyCancellable?
@@ -121,6 +123,7 @@ final class SpotifyManager: NSObject, ObservableObject {
     
     func connect() {
         print("starting session")
+        isLoading = true
         guard let sessionManager = sessionManager else { return }
         sessionManager.initiateSession(with: scopes, options: .clientOnly, campaign: nil)
     }
@@ -187,16 +190,21 @@ extension SpotifyManager: SPTAppRemoteDelegate {
         })
         
         fetchPlayerState()
+        isLoading = false
+
     }
     
     func appRemote(_ appRemote: SPTAppRemote, didDisconnectWithError error: Error?) {
         print("Disconnect error: \(String(describing: error))")
         self.lastPlayerState = nil
+        isLoading = false
+
     }
 
     func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) {
         print("Connection attempt error: \(String(describing: error))")
         lastPlayerState = nil
+        isLoading = false
     }
   
 }
@@ -216,6 +224,7 @@ extension SpotifyManager: SPTSessionManagerDelegate {
         } else {
             print("Authorization failed \(error.localizedDescription)")
         }
+        isLoading = false
     }
 
     func sessionManager(manager: SPTSessionManager, didRenew session: SPTSession) {
@@ -234,6 +243,7 @@ extension SpotifyManager: SPTSessionManagerDelegate {
         appRemote.connect()
         
         print("called appRemote.connect()")
+        isLoading = false
 
     }
 }
@@ -312,7 +322,7 @@ extension SpotifyManager {
                "grant_type": "authorization_code",
                "code": responseCode!,
                "redirect_uri": redirectURL.absoluteString,
-               "code_verifier": codeVerifier!
+               "code_verifier": codeVerifier
             ]
 
             // Convert parameters to x-www-form-urlencoded format
