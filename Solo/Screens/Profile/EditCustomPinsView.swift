@@ -16,7 +16,6 @@ struct EditCustomPinsView: View {
     
     @Environment(\.modelContext) private var modelContext
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
-
     @Binding var showView: Bool
 
     @Query(filter: #Predicate<MTPlacemark> { place in

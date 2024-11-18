@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>REDIRECT_URL</key>
+	<string>$(REDIRECT_URL)</string>
+	<key>SPOTIFY_CLIENT_SECRET_KEY</key>
+	<string>$(SPOTIFY_CLIENT_SECRET_KEY)</string>
+	<key>SPOTIFY_CLIENT_ID</key>
+	<string>$(SPOTIFY_CLIENT_ID)</string>
+	<key>SPOTIFY_URL</key>
+	<string>$(SPOTIFY_URL)</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>
