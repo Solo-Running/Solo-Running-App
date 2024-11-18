@@ -89,43 +89,9 @@ struct MainView: View {
                 print("user data is empty")
             }
             
-        
-//            let standardAppearance = UINavigationBarAppearance()
-//            standardAppearance.configureWithDefaultBackground()
-//            UINavigationBar.appearance().standardAppearance = standardAppearance
-//            UINavigationBar.appearance().backgroundColor = .black
-//
-            
-//            let scrollEdgeAppearance = UINavigationBarAppearance()
-//            scrollEdgeAppearance.configureWithTransparentBackground()
-//            UINavigationBar.appearance().scrollEdgeAppearance = scrollEdgeAppearance
-//            
-//            UITabBar.appearance().backgroundColor = UIColor.black
-//            UITabBar.appearance().barTintColor = UIColor.black
-//            
-//            UINavigationBar.appearance().backgroundColor = UIColor.black
-//            UINavigationBar.appearance().barTintColor = UIColor.black
- 
-        
         }
         .edgesIgnoringSafeArea(.all)
     }
     
 }
 
-//
-//RunView(showRunView: $showRunView)
-//    .transition(.move(edge: .bottom))  // Slide from bottom
-//    .animation(.easeInOut(duration: 0.4), value: showRunView)
-//    .tabItem {
-//        Image(systemName: "plus.circle.fill")
-//            .foregroundColor(NEON)
-//            .background(.black)
-//            .frame(width: 48, height: 48)
-//    }
-//    .tag(Screen.Run)
-
-//
-//    .toolbarColorScheme(.dark, for: .tabBar)
-//    .toolbarBackground(.white, for: .tabBar)
-//    .toolbarBackground(.visible, for: .tabBar)
