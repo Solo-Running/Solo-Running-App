@@ -17,8 +17,10 @@ struct ProfileView: View {
 
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
-
+    @AppStorage("isSpotifyEnabled") var isSpotifyEnabled = false
+    
     @State private var showEditCustomPinsView: Bool = false  // Control visibility of RunView
+//    @EnvironmentObject var spotifyManager: SpotifyManager
 
     var body: some View {
         NavigationStack {
@@ -116,7 +118,6 @@ struct ProfileView: View {
                             Text("Toggle your map theme to light or dark mode")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .font(.subheadline)
-
                         }
 
                         Spacer()
@@ -143,10 +144,38 @@ struct ProfileView: View {
                         Toggle("", isOn: $isLiveActivityEnabled)
                             .toggleStyle(SwitchToggleStyle(tint: TEXT_LIGHT_GREY))
                             .frame(maxWidth: 48)
-
                     }
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    
+                    /*
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading){
+                            Text("Spotify")
+                                .foregroundStyle(.white)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            Text("Use the spotify player while running")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .font(.subheadline)
+                        }
+                        Spacer()
+
+                        Toggle("", isOn: $isSpotifyEnabled)
+                            .toggleStyle(SwitchToggleStyle(tint: .green))
+                            .frame(maxWidth: 48)
+                            .onChange(of: isSpotifyEnabled) { old, new in
+                                if new {
+                                    if !spotifyManager.appRemote.isConnected {
+                                        spotifyManager.connect()
+                                    }
+                                }
+                            }
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    */
+                    
                 }
                 
                 Spacer().frame(height: 48)
@@ -163,6 +192,10 @@ struct ProfileView: View {
                 .padding()
                 
                 Spacer()
+            }
+            .onOpenURL { url in
+                // When finished authenticating, save the access token
+//                spotifyManager.setAccessToken(from: url)
             }
             .fullScreenCover(isPresented: $showEditCustomPinsView) {
                 EditCustomPinsView(showView: $showEditCustomPinsView)
