@@ -36,13 +36,23 @@ struct RunView: View {
     @State var runStatus: RunStatus = .planningRoute
     @Binding var showRunView: Bool
     
-    // Bottom Sheet position states
-    @State var searchPlaceSheetPosition: BottomSheetPosition  = .relative(0.20)
-    @State var routeSheetPosition: BottomSheetPosition  = .hidden
-    @State var runSheetPosition: BottomSheetPosition  = .hidden
-    @State var stepsSheetPosition: BottomSheetPosition  = .hidden
-    @State var customPinSheetPosition: BottomSheetPosition = .hidden
+    // Loading States
+    @State var isStartRunLoading: Bool = false
+    @State var isFinishRunLoading: Bool = false
     
+    
+    // Bottom sheet visibility states
+    @State var searchPlaceSheetVisible: Bool = true
+    @State var routeSheetVisible: Bool = false
+    @State var runSheetVisible: Bool = false
+    @State var stepsSheetVisible: Bool = false
+    @State var customPinSheetVisible: Bool = false
+
+    @State private var searchPlaceSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
+    @State private var routeSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
+    @State private var runSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
+    @State private var stepsSheetDetents: Set<PresentationDetent> = [.medium, .large] // Default detents
+
     // Search text field focus state
     @FocusState private var isTextFieldFocused: Bool
     @State var addressInput: String = ""
@@ -133,9 +143,7 @@ struct RunView: View {
 
                 print("routeDisplaying set to true")
                 routeDisplaying = true
-                searchPlaceSheetPosition = .relative(0.25)
-                routeSheetPosition = .relative(0.25) // show the route detail sheet
-                
+                routeSheetVisible = true
             }
         }
     }
@@ -334,8 +342,9 @@ struct RunView: View {
             modelContext.delete(routeDestination)
             
             // reset the route state
-            routeSheetPosition = .hidden
-            searchPlaceSheetPosition = .relative(0.25)
+            routeSheetVisible = false
+            searchPlaceSheetVisible = true
+            
             removeRoute()
         }
     }
@@ -368,7 +377,6 @@ struct RunView: View {
                 } catch {
                     print(error)
                 }
-                customPinSheetPosition = .relative(0.25)
                 usePin = false
             }
         }
@@ -421,7 +429,6 @@ struct RunView: View {
    
     
     
-    
     var body: some View {
         
         GeometryReader { proxy in
@@ -429,7 +436,7 @@ struct RunView: View {
             NavigationStack {
 
                 ZStack(alignment: .top) {
-                    
+            
                     MapReader { proxy in
                         
                         // The selection parameter enables swift to emphasize any landmarks the user taps on the map
@@ -478,8 +485,10 @@ struct RunView: View {
                                 usePin = false
                                 await fetchRoute()
                                 isTextFieldFocused = false
-                                searchPlaceSheetPosition = .hidden // minimize search sheet
-                                routeSheetPosition = .relative(0.25) // show the route detail sheet
+
+                                searchPlaceSheetVisible = false
+                                routeSheetVisible = true
+//
                             }
                         }
                         .ignoresSafeArea(.keyboard)
@@ -507,22 +516,14 @@ struct RunView: View {
                             MapUserLocationButton()
                         }
                     }
-                    
-                    VStack {}
-                    .navigationDestination(isPresented: $canShowSummary) {
-                        RunSummaryView(showRunView: $showRunView).environmentObject(locationManager).environmentObject(activityManager).zIndex(100)
-                    }
+                   
                     
                     
                     // Bottom sheet to enable location search and select a destination
-                    .bottomSheet(
-                        bottomSheetPosition: $searchPlaceSheetPosition,
-                        switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.80)]
-                    ){
+                    .sheet(isPresented: $searchPlaceSheetVisible) {
                         VStack(alignment: .leading) {
                             
                             HStack {
-                                
                                 Text("Plan your run!")
                                     .foregroundStyle(.white)
                                     .font(.title2)
@@ -567,23 +568,13 @@ struct RunView: View {
                                     .frame(height: 48)
                                     .cornerRadius(12)
                                     .padding(.trailing, 8)
-                                    .onSubmit {
-                                        searchPlaceSheetPosition = .relative(0.50)
-                                    }
                                     .focused($isTextFieldFocused)
                                 
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
                             )
-                            .onChange(of: isTextFieldFocused) { old, new in
-                                if isTextFieldFocused {
-                                    if searchPlaceSheetPosition != .relative(0.70) {
-                                        searchPlaceSheetPosition = .relative(0.70)
-                                    }
-                                }
-                                
-                            }
+ 
                             
                             // Show list of location search results
                             if let places = locationManager.fetchedPlaces, !places.isEmpty {
@@ -627,7 +618,6 @@ struct RunView: View {
                                             }
                                         }
                                     }
-                                    //.listRowInsets(EdgeInsets(top: place == places.first ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
                                 }
@@ -635,19 +625,26 @@ struct RunView: View {
                             }
                         }
                         .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .presentationDetents(searchPlaceSheetDetents)
+                        .presentationBackground(.black)
+                        .interactiveDismissDisabled()
+                        .presentationBackgroundInteraction(
+                            .enabled(upThrough: .large)
+                        )
                     }
-                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                    .dragIndicatorColor(.gray)
+                  
                     
                     
                     // Route details sheet
-                    .bottomSheet(
-                        bottomSheetPosition: $routeSheetPosition,
-                        switchablePositions: [.relative(0.25), .relative(0.70)]
-                    ){
-                                                
-                        ZStack {
-                            
+                    .sheet(isPresented: $routeSheetVisible, onDismiss: {
+                        searchPlaceSheetVisible = true
+                        removeRoute()
+                        disabledFetch = false
+                    }) {
+                                          
+                        ScrollView(showsIndicators: false) {
                             VStack(alignment: .leading) {
                                 
                                 HStack {
@@ -656,8 +653,8 @@ struct RunView: View {
                                     
                                     // Custom dismiss button
                                     Button {
-                                        routeSheetPosition = .hidden
-                                        searchPlaceSheetPosition = .relative(0.25)
+                                        routeSheetVisible = false
+                                        searchPlaceSheetVisible = true
                                         removeRoute()
                                         disabledFetch = false
                                     } label: {
@@ -683,8 +680,8 @@ struct RunView: View {
                                                     .rotationEffect(Angle(degrees: 90))
                                             }
                                         }
-                                        CapsuleView(capsuleBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
-                                        CapsuleView(capsuleBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
+                                        CapsuleView(iconBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
+                                        CapsuleView(iconBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
                                         
                                         Spacer()
                                     }
@@ -692,6 +689,7 @@ struct RunView: View {
                                     
                                     Button {
                                         Task{
+                                            isStartRunLoading = true
                                             // LocationManager will save the start and end locations
                                             if let userLocation = locationManager.userLocation {
                                                 lookUpLocation(location: userLocation) { startPlacemark in
@@ -707,14 +705,22 @@ struct RunView: View {
                                             UIApplication.shared.isIdleTimerDisabled = true
                                             await activityManager.startTracking(isLiveActivityEnabled: isLiveActivityEnabled)
                                             runStatus = .startedRun
-                                            routeSheetPosition = .hidden
-                                            runSheetPosition = .relative(0.25)
+                                            isStartRunLoading = false
+                                            routeSheetVisible = false
+                                            runSheetVisible = true
+                                            
                                         }
                                     } label: {
                                         HStack {
-                                            Text("Start Run")
-                                                .fontWeight(.semibold)
-                                                .foregroundStyle(TEXT_LIGHT_GREEN)
+                                            if isStartRunLoading {
+                                                ProgressView()
+                                                    .tint(TEXT_LIGHT_GREEN)
+                                                
+                                            } else {
+                                                Text("Start Run")
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(TEXT_LIGHT_GREEN)
+                                            }
                                         }
                                         .padding()
                                         .frame(maxWidth: .infinity)
@@ -728,278 +734,332 @@ struct RunView: View {
                                             .padding(.vertical, 8)
                                         Text("To track your stats, keep your phone awake while running.").foregroundStyle(TEXT_LIGHT_GREY)
                                             .multilineTextAlignment(.center)
-
+                                        
                                     }
                                     .padding(.top, 48)
                                 }
                             }
-                            .padding(.horizontal, 16)
                             .onAppear {
                                 // prevents behavior where tapping on a different route destination marker fetches a different route
                                 disabledFetch = true
                             }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .presentationDetents(routeSheetDetents)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                            .interactiveDismissDisabled(true)
+                            .presentationBackgroundInteraction(
+                                .enabled(upThrough: .large)
+                            )
+                            .transition(.move(edge: .bottom)) // Slide up transition
                         }
                     }
-                    .onDismiss {
-                        searchPlaceSheetPosition = .relative(0.25)
-                    }
-                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                    .dragIndicatorColor(.gray)
-                   
+
                     
-                    // Run details sheet
-                    .bottomSheet(
-                        bottomSheetPosition: $runSheetPosition,
-                        switchablePositions: [.relative(0.25), .relative(0.70)]
-                    ) {
-                        
-                        if routeDestination != nil {
-                            VStack(alignment: .leading) {
-                                
-                                // Header content
-                                HStack {
-                                    Text(routeDestination!.name ?? "")
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.white)
+                    // Run sheet
+                    .sheet(isPresented: $runSheetVisible) {
+                        ScrollView(showsIndicators: false) {
+                            
+                            if routeDestination != nil {
+                                VStack(alignment: .leading) {
                                     
-                                    Spacer()
-                                    
-                                    // Play and pause button for timer
-                                    Toggle("", systemImage: !activityManager.isTimerPaused() ? "pause.fill" : "play.fill", isOn: $isPaused)
-                                        .tint(.white)
-                                        .toggleStyle(.button)
-                                        .labelStyle(.iconOnly)
-                                        .font(.title)
-                                        .onChange(of: isPaused) { old, new in
-                                            if new {
-                                                activityManager.pauseTimer()
-                                            } else {
-                                                activityManager.resumeTimer()
-                                            }
-                                        }
-                                }
-                                
-                                // Display timer and step count
-                                HStack {
-                                    HStack{
-                                        Image(systemName: "timer")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                    // Header content
+                                    HStack {
+                                        Text(routeDestination!.name ?? "")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.white)
                                         
-                                        Text("\(activityManager.formattedDuration)")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                        Spacer()
+                                        
+                                        // Play and pause button for timer
+                                        Toggle("", systemImage: !activityManager.isTimerPaused() ? "pause.fill" : "play.fill", isOn: $isPaused)
+                                            .transaction { transaction in
+                                                transaction.animation = nil
+                                            }
+                                            .tint(.white)
+                                            .toggleStyle(.button)
+                                            .labelStyle(.iconOnly)
+                                            .font(.title)
+                                            .onChange(of: isPaused) { old, new in
+                                                if new {
+                                                    activityManager.pauseTimer()
+                                                } else {
+                                                    activityManager.resumeTimer()
+                                                }
+                                            }
+                                        
                                     }
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(LIGHT_GREY)
-                                    .clipShape(Capsule())
                                     
-                                    Text("\(activityManager.steps) steps")
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                        .background(LIGHT_GREY)
+                                    // Display timer and step count
+                                    HStack {
+                                        HStack{
+                                            Image(systemName: "timer")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Text("\(activityManager.formattedDuration)")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                .transaction { transaction in
+                                                    transaction.animation = nil
+                                                }
+                                        }
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
-                                        .background(Capsule().fill(LIGHT_GREY))
-                                        .foregroundColor(.white)
+                                        .background(LIGHT_GREY)
+                                        .clipShape(Capsule())
+                                        
+                                        Text("\(activityManager.steps) steps")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .background(LIGHT_GREY)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Capsule().fill(LIGHT_GREY))
+                                            .foregroundColor(.white)
+                                        
+                                        Spacer()
+                                    }
                                     
-                                    Spacer()
-                                }
-                                
-                                Spacer().frame(height: 16)
-                                
-                                
-                                // Button to show route steps in a list view
-                                Button{
-                                    stepsSheetPosition = .relative(0.75)
-                                } label: {
+                                    Spacer().frame(height: 16)
+                                    
+                                    
+                                    // Button to show route steps in a list view
+                                    Button{
+                                        stepsSheetVisible = true
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "map.fill")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                .padding(.trailing, 4)
+                                            Text("Route Details")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Spacer()
+                                            
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity) // Fills the entire width
+                                        .background(LIGHT_GREY)
+                                        .cornerRadius(12) // Rounds the corners
+                                    }
+                                    
+                                    Spacer().frame(height: 16)
+                                    
+                                    // End run button
+                                    EndRunButton(
+                                        isFinishRunLoading: $isFinishRunLoading,
+                                        isShowingDeleteDialog: $isShowingDeleteDialog,
+                                        searchPlaceSheetVisible: $searchPlaceSheetVisible,
+                                        stepsSheetVisible: $stepsSheetVisible,
+                                        routeSheetVisible: $routeSheetVisible,
+                                        runSheetVisible: $runSheetVisible,
+                                        showRunView: $showRunView,
+                                        isLiveActivityEnabled: $isLiveActivityEnabled,
+                                        locationManager: locationManager,
+                                        activityManager: activityManager,
+                                        saveRunData: saveRunData
+                                    )
+                                   
+                                    
+                                    Spacer().frame(height: 24)
+                                    
+                                    
                                     HStack {
-                                        Image(systemName: "map.fill")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .padding(.trailing, 4)
-                                        Text("Route Details")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                        
+                                        Button {
+                                            if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                                spotifyManager.disconnect()
+                                            }
+                                            else {
+                                                spotifyManager.connect()
+                                            }
+                                        } label: {
+                                            HStack(spacing: 8){
+                                                
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(DARK_GREY)
+                                                        .frame(width: 32, height: 32)
+                                                    Image(systemName: "music.note")
+                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                }
+                                                
+                                                if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                                    Text("End spotify session").foregroundStyle(TEXT_LIGHT_GREY)
+                                                }
+                                                else {
+                                                    Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
+                                                }
+                                            }
+                                        }
                                         
                                         Spacer()
                                         
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity) // Fills the entire width
-                                    .background(LIGHT_GREY)
-                                    .cornerRadius(12) // Rounds the corners
-                                }
-                                
-                                Spacer().frame(height: 16)
-                                
-                                // End run button
-                                Button  {
-                                    isShowingDeleteDialog = true
-                                } label: {
-                                    HStack {
-                                        Text("Finish Run")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_LIGHT_RED)
+                                    
+                                    
+                                    if spotifyManager.isLoading {
+                                        VStack(alignment: .center) {
+                                            Spacer()
+                                            ProgressView()
+                                                .padding()
+                                            Spacer()
+                                        }
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(.red)
-                                    .cornerRadius(12)
-                                }
-                                .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
-                                    Button("Yes", role: .destructive) {
-                                        Task {
-                                            // let system settings take over wakefulness of phone
-                                            UIApplication.shared.isIdleTimerDisabled = false
+                                    
+                                    Spacer().frame(height: 48)
+
+                                    
+                                    if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                        VStack(alignment: .center) {
                                             
-                                            await activityManager.stopTracking(isLiveActivityEnabled: isLiveActivityEnabled)
-                                            saveRunData { result in
-                                                
-                                                switch result {
-                                                case .success(_):
-                                                    
-                                                    // hide all the sheets since they won't automatically
-                                                    // disappear when navigating to summary view
-                                                    runSheetPosition = .hidden
-                                                    searchPlaceSheetPosition = .hidden
-                                                    stepsSheetPosition = .hidden
-                                                    routeSheetPosition = .hidden
-                                                    
-                                                    runStatus = .planningRoute
-                                                    locationManager.clearData()
-                                                    activityManager.clearData()
-                          
-                                                    // Toggle flag to navigate to the run summary view
-                                                    canShowSummary = true
-                                                    
-                                                case .failure(let error):
-                                                    print("Error saving run data: \(error.localizedDescription)")
-                                                    canShowSummary = false
+                                            if let image = spotifyManager.currentTrackImage {
+                                                VStack {
+                                                    Image(uiImage: image)
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .clipShape(RoundedRectangle(cornerRadius: 12))
                                                 }
-                                            }
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                Spacer()
-                                
-                                
-                                if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
-                                    VStack(alignment: .leading) {
-                                        HStack {
-                                            Button {
-                                                spotifyManager.goBack()
-                                            } label: {
-                                                Image(systemName: "backward.fill")
-                                                    .frame(width: 48, height: 48)
-                                                    .foregroundStyle(.white)
+                                                .frame(width: 180, height: 180 )
                                             }
                                             
-                                            Spacer()
-                                            
-                                            Button {
-                                                spotifyManager.togglePlayer()
-                                            } label: {
-                                                Image(systemName: spotifyManager.isPlayerPaused() ?  "play.fill" : "pause.fill")
-                                                    .frame(width: 48, height: 48)
-                                                    .foregroundStyle(.white)
-                                            }
-                                            
-                                            Spacer()
-                                            
-                                            Button {
-                                                spotifyManager.skipNext()
-                                            } label: {
-                                                Image(systemName: "forward.fill")
-                                                    .frame(width: 48, height: 48)
-                                                    .foregroundStyle(.white)
-                                            }
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                else {
-                                    VStack(alignment: .center) {
-                                        Image(systemName: "music.note")
-                                            .padding(.vertical, 8)
+                                            Spacer().frame(height: 16)
+
                                         
-                                        Button {
-                                            spotifyManager.connect()
-                                        } label: {
-                                            Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
-                                                .multilineTextAlignment(.center)
+                                            if let track = spotifyManager.currentTrackName {
+                                                Text("\(track)")
+                                                    .font(.title3)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(.white)
+                                                    .multilineTextAlignment(.center)
+                                            }
+                                            if let artist = spotifyManager.currentTrackArtist{
+                                                Text("\(artist)")
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    .multilineTextAlignment(.center)
+                                            }
+
+                                            Spacer().frame(height: 24)
+                                            
+                                            
+                                            HStack {
+                                                Spacer()
+                                                
+                                                Button {
+                                                    spotifyManager.goBack()
+                                                } label: {
+                                                    Image(systemName: "backward.fill")
+                                                        .frame(width: 48, height: 48)
+                                                        .foregroundStyle(.white)
+                                                }
+                                                
+                                                Spacer().frame(width: 24)
+                                                
+                                                Button {
+                                                    spotifyManager.togglePlayer()
+                                                } label: {
+                                                    ZStack {
+                                                        Circle()
+                                                            .fill(DARK_GREY)
+                                                            .frame(width: 64, height: 64)
+                                                        
+                                                        Image(systemName: spotifyManager.isPlayerPaused() ?  "play.fill" : "pause.fill")
+                                                            .font(.title)
+                                                            .frame(width: 48, height: 48)
+                                                            .foregroundStyle(.white)
+                                                            .transaction { transaction in
+                                                                transaction.animation = nil
+                                                            }
+                                                    }
+                                                }
+                                                
+                                                Spacer().frame(width: 24)
+                                                
+                                                Button {
+                                                    spotifyManager.skipNext()
+                                                } label: {
+                                                    Image(systemName: "forward.fill")
+                                                        .frame(width: 48, height: 48)
+                                                        .foregroundStyle(.white)
+                                                }
+                                                Spacer()
+                                            }
                                         }
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.top, 48)
-                                   
                                 }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                                .presentationDetents(runSheetDetents)
+                                .presentationBackground(.black)
+                                .presentationDragIndicator(.visible)
+                                .interactiveDismissDisabled(true)
+                                .presentationBackgroundInteraction(
+                                    .enabled(upThrough: .large)
+                                )
+                                .transition(.move(edge: .bottom)) // Slide up transition
                                 
-                                Spacer().frame(height: 48)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, 16)
-                            
-                            Spacer()
-                        }
-                    }
-                    .dragIndicatorColor(.gray)
-                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                    .onAppear {
-                        if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                            print("Reconnecting")
-                            spotifyManager.reconnect()
-                        }
-                    }
-                    
-                    
-                    // Route steps sheet
-                    .bottomSheet(
-                        bottomSheetPosition: $stepsSheetPosition,
-                        switchablePositions: [.relative(0.25), .relative(0.70)]
-                    ) {
-                        
-                        HStack {
-                            Text("Route Directions").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
-                            Spacer()
-                            
-                            // Custom dismiss button
-                            Button {
-                                stepsSheetPosition = .hidden
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.gray)
-                                    .font(.title)
                             }
                         }
-                        .padding(.horizontal, 16)
-                        
-                        
-                        List {
-                            ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
-                                
-                                VStack(alignment: .leading) {
-                                    Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
-                                        .font(.title2)
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(.white)
+                        // Route steps sheet
+                        .sheet(isPresented: $stepsSheetVisible) {
+                            VStack {
+                                HStack {
+                                    Text("Route Directions").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                    Spacer()
                                     
-                                    Text("\(locationManager.routeSteps[idx].instructions)")
-                                        .font(.title3)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                    // Custom dismiss button
+                                    Button {
+                                        stepsSheetVisible = false
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.gray)
+                                            .font(.title)
+                                    }
                                 }
-//                                .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
-
+                                
+                                List {
+                                    ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
+                                                .font(.title2)
+                                                .fontWeight(.semibold)
+                                                .foregroundStyle(.white)
+                                            
+                                            Text("\(locationManager.routeSteps[idx].instructions)")
+                                                .font(.title3)
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                        }
+                                    }
+                                    .listRowBackground(Color.clear)
+                                    .listStyle(.plain)
+                                    
+                                }
+                                .scrollContentBackground(.hidden)
                             }
-                            .listRowBackground(Color.clear)
-                            .listStyle(.plain)
-                            
-                        }
-                        .scrollContentBackground(.hidden)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .presentationDetents(stepsSheetDetents)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                            .presentationBackgroundInteraction(
+                                .enabled(upThrough: .large)
+                            )
+                            .transition(.move(edge: .bottom)) // Slide up transition
 
+                        }
+                        .onAppear {
+                            if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                print("Reconnecting")
+                                spotifyManager.reconnect()
+                            }
+                        }
+                       
                     }
-                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                    .dragIndicatorColor(.gray)
                     
                     
                     if (runStatus == .planningRoute) {
@@ -1029,11 +1089,11 @@ struct RunView: View {
                             
                             Text("").frame(width: 32, height: 32)
                         }
-                        .animation(.spring, value: startedRun)
                         .padding(.horizontal, 12)
                     }
-                    
+
                 }
+              
             }
             .onOpenURL { url in
                 // When finished authenticating, save the access token
@@ -1053,104 +1113,72 @@ struct RunView: View {
 }
 
 
+struct EndRunButton: View {
+    @Binding var isFinishRunLoading: Bool
+    @Binding var isShowingDeleteDialog: Bool
+    @Binding var searchPlaceSheetVisible: Bool
+    @Binding var stepsSheetVisible: Bool
+    @Binding var routeSheetVisible: Bool
+    @Binding var runSheetVisible: Bool
+    @Binding var showRunView: Bool
 
-
-
-
-
-
-
-//                .toolbar(runStatus == .startedRun ? .hidden : .visible)
-//                .navigationBarTitleDisplayMode(.inline) // makes navigation bar narrow
-//                .navigationTitle("")
-
-
-
-//
-//                            .presentationDetents([.fraction(0.10), .large])
-//                            .interactiveDismissDisabled(true) // Prevent dismissal with swipe down
-//                            .presentationBackgroundInteraction(.enabled) // allows user to interact with map
-//                            .presentationBackground(.black)
-//
+    @Binding var isLiveActivityEnabled: Bool
+    // Managers
+    var locationManager: LocationManager
+    var activityManager: ActivityManager
+    var saveRunData: (@escaping (Result<Bool, Error>) -> Void) -> Void
+    
+    var body: some View {
+        
+        // End run button
+        Button  {
+            isShowingDeleteDialog = true
+        } label: {
+            HStack {
+                if isFinishRunLoading {
+                    ProgressView()
+                        .tint(TEXT_LIGHT_RED)
+                } else {
+                    Text("Finish Run")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(TEXT_LIGHT_RED)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(.red)
+            .cornerRadius(12)
+        }
+        .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
+            Button("Yes", role: .destructive) {
+                Task {
+                    isFinishRunLoading = true
+                    // let system settings take over wakefulness of phone
+                    UIApplication.shared.isIdleTimerDisabled = false
+                    
+                    await activityManager.stopTracking(isLiveActivityEnabled: isLiveActivityEnabled)
+                    saveRunData { result in
                         
-                        
-//                            Text(manager.routeSteps.first?.instructions ?? "")
-//                            Text(remainingDistanceToStep ?? "")
-//
-//                            Button {
-//                                removeRoute()
-//                                routeSheetPosition = .hidden
-//                            } label: {
-//                                Text("Cancel Route").foregroundStyle(.white)
-//                            }
-//                            .buttonBorderShape(.capsule)
-//                            .background(DARK_GREY)
-//
-
-
-//                        print(pinCoordinates ?? "n/a")
-
-//                        lookUpCurrentLocation() { address in
-//                            if selectedPin != nil  {
-//                                selectedPin = address
-//                                addressInput = selectedPin!.name!
-//                            } else {
-//                                addressInput = ""
-//                            }
-//                        }
-
-
-
-// custom pin sheet
-//                    .bottomSheet(
-//                        bottomSheetPosition: self.$customPinSheetPosition,
-//                        switchablePositions: [.relative(0.25), .relative(0.50), .relative(0.70)],
-//                        headerContent: {
-//                            Text("Custom Location").font(.title3).fontWeight(.semibold).padding(.leading, 16).foregroundStyle(TEXT_LIGHT_GREY)
-//                        }
-//                    ) {
-//                        VStack(alignment: .leading){
-////
-//                            Text(selectedPin.name ?? "")
-//                                .font(.title3.bold())
-//                                .foregroundStyle(.white)
-//
-//                            HStack(spacing: 3) {
-//
-//                                // Street
-//                                Text(selectedPin!.thoroughfare ?? "")
-//                                    .foregroundStyle(.gray)
-//
-//                                // City
-//                                Text(selectedPin!.locality ?? "")
-//                                    .foregroundStyle(.gray)
-//
-//                                // State
-//                                Text(selectedPin!.administrativeArea != nil ? ", \(selectedPin!.administrativeArea!)" : "")
-//                                    .foregroundStyle(.gray)
-//                            }
-////
-//                            Button  {
-////                                modelContext.delete(selectedPin!)
-////                                selectedPin = nil
-//                            } label: {
-//                                HStack {
-//                                    Text("Add custom location")
-//                                        .fontWeight(.semibold)
-//                                        .foregroundStyle(.white)
-//                                }
-//                                .padding()
-//                                .frame(maxWidth: .infinity)
-//                                .background(DARK_GREY)
-//                                .cornerRadius(12)
-//                            }
-//
-//                        }
-//                    }
-//                    .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-//                    .showCloseButton(true)
-//                    .onDismiss {
-//                        // when user closes route detail sheet, clear the route data
-//                        selectedPin = nil
-//                    }
-//
+                        switch result {
+                        case .success(_):
+                            
+                            searchPlaceSheetVisible = false
+                            stepsSheetVisible = false
+                            routeSheetVisible = false
+                            runSheetVisible = false
+                            
+                            locationManager.clearData()
+                            activityManager.clearData()
+                            
+                            isFinishRunLoading = true
+                            showRunView = false
+                            
+                        case .failure(let error):
+                            print("Error saving run data: \(error.localizedDescription)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
