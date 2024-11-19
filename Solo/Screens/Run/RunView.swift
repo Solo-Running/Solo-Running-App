@@ -4,6 +4,8 @@
 //
 //  Created by William Kim on 10/14/24.
 //
+// https://www.rudrank.com/exploring-swiftui-detecting-and-controlling-bottom-sheet-position/
+
 
 
 
@@ -18,12 +20,21 @@ enum RunStatus: String {
     case planningRoute = "planning route", startedRun = "started run", endedRun = "ended run"
 }
 
+enum SheetPosition: CGFloat, CaseIterable {
+    case peek = 0.25
+    case detailed = 0.50
+    case full = 1.0
+
+    var detent: PresentationDetent {
+        .fraction(rawValue)
+    }
+    static let detents = Set(SheetPosition.allCases.map { $0.detent })
+}
+
 struct RunView: View {
     
     // Environment objects to handle music, location, and activity monitoring
-//    @EnvironmentObject var spotifyManager: SpotifyManager
     @StateObject private var spotifyManager = SpotifyManager()
-    
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var activityManager: ActivityManager
     @Environment(\.modelContext) private var modelContext
@@ -48,10 +59,16 @@ struct RunView: View {
     @State var stepsSheetVisible: Bool = false
     @State var customPinSheetVisible: Bool = false
 
-    @State private var searchPlaceSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
-    @State private var routeSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
-    @State private var runSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large] // Default detents
-    @State private var stepsSheetDetents: Set<PresentationDetent> = [.medium, .large] // Default detents
+    // Programmatic selection of detent
+    @State private var searchPlaceSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
+    @State private var routeSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
+
+    // Sheet position targets
+    @State private var searchPlaceSheetDetents: Set<PresentationDetent> = SheetPosition.detents
+    @State private var routeSheetDetents: Set<PresentationDetent> =   SheetPosition.detents
+    @State private var runSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
+    @State private var stepsSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large]
+
 
     // Search text field focus state
     @FocusState private var isTextFieldFocused: Bool
@@ -485,10 +502,12 @@ struct RunView: View {
                                 usePin = false
                                 await fetchRoute()
                                 isTextFieldFocused = false
-
-                                searchPlaceSheetVisible = false
-                                routeSheetVisible = true
-//
+            
+                                withAnimation {
+                                    searchPlaceSheetVisible = false
+                                    routeSheetVisible = true
+                                    routeSheetSelectedDetent = SheetPosition.peek.detent
+                                }
                             }
                         }
                         .ignoresSafeArea(.keyboard)
@@ -609,6 +628,11 @@ struct RunView: View {
                                             showRoute = true
                                             isTextFieldFocused = false // hide the keyboard
                                             
+                                            withAnimation(.easeOut) {
+                                                searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
+                                                routeSheetSelectedDetent = SheetPosition.peek.detent
+                                            }
+                                            
                                             // Animate camera movement to selected placemark
                                             withAnimation {
                                                 cameraPosition = .region(MKCoordinateRegion(
@@ -617,6 +641,7 @@ struct RunView: View {
                                                 ))
                                             }
                                         }
+                                        .listRowInsets(EdgeInsets(top: place == places.first ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
                                     }
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
@@ -627,11 +652,11 @@ struct RunView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
                         .frame(maxHeight: .infinity, alignment: .top)
-                        .presentationDetents(searchPlaceSheetDetents)
+                        .presentationDetents(searchPlaceSheetDetents, selection: $searchPlaceSheetSelectedDetent)
                         .presentationBackground(.black)
                         .interactiveDismissDisabled()
                         .presentationBackgroundInteraction(
-                            .enabled(upThrough: .large)
+                            .enabled(upThrough: SheetPosition.full.detent)
                         )
                     }
                   
@@ -639,7 +664,6 @@ struct RunView: View {
                     
                     // Route details sheet
                     .sheet(isPresented: $routeSheetVisible, onDismiss: {
-                        searchPlaceSheetVisible = true
                         removeRoute()
                         disabledFetch = false
                     }) {
@@ -746,14 +770,13 @@ struct RunView: View {
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .frame(maxHeight: .infinity, alignment: .top)
-                            .presentationDetents(routeSheetDetents)
+                            .presentationDetents(routeSheetDetents, selection: $routeSheetSelectedDetent)
                             .presentationBackground(.black)
                             .presentationDragIndicator(.visible)
                             .interactiveDismissDisabled(true)
                             .presentationBackgroundInteraction(
-                                .enabled(upThrough: .large)
+                                .enabled(upThrough: SheetPosition.full.detent)
                             )
-                            .transition(.move(edge: .bottom)) // Slide up transition
                         }
                     }
 
@@ -999,8 +1022,6 @@ struct RunView: View {
                                 .presentationBackgroundInteraction(
                                     .enabled(upThrough: .large)
                                 )
-                                .transition(.move(edge: .bottom)) // Slide up transition
-                                
                             }
                         }
                         // Route steps sheet
@@ -1033,11 +1054,12 @@ struct RunView: View {
                                                 .font(.title3)
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
+                                        .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
                                     }
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
-                                    
                                 }
+                                .padding(0)
                                 .scrollContentBackground(.hidden)
                             }
                             .frame(maxHeight: .infinity, alignment: .top)
@@ -1047,10 +1069,8 @@ struct RunView: View {
                             .presentationBackground(.black)
                             .presentationDragIndicator(.visible)
                             .presentationBackgroundInteraction(
-                                .enabled(upThrough: .large)
+                                .enabled(upThrough:  .large)
                             )
-                            .transition(.move(edge: .bottom)) // Slide up transition
-
                         }
                         .onAppear {
                             if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
