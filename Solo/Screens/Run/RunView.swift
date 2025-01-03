@@ -886,17 +886,70 @@ struct RunView: View {
                                    
                                     
                                     Spacer().frame(height: 24)
-                                    
-                                    
+//                                    
+//                                    HStack {
+//                                        
+//                                        Button {
+//                                            
+//                                            if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+//                                                print("connecting 1")
+//                                                spotifyManager.connect(isChecking: false)
+//                                            }
+//                                            
+//                                            if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
+//                                                print("disconnecting")
+//                                                spotifyManager.disconnect()
+//                                            }
+//                                           
+//                                            if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+//                                                print("connecting 2")
+//                                                spotifyManager.connect(isChecking: true)
+//                                            }
+//                                          
+//                                           
+//                                        } label: {
+//                                            HStack(spacing: 8){
+//                                                
+//                                                ZStack {
+//                                                    Circle()
+//                                                        .fill(DARK_GREY)
+//                                                        .frame(width: 32, height: 32)
+//                                                    Image(systemName: "music.note")
+//                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
+//                                                }
+//                                                
+//                                                if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+//                                                    Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
+//                                                }
+//                                                
+//                                                if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
+//                                                    Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
+//                                                }
+//                                               
+//                                                if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+//                                                    Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
+//                                                }
+//                                               
+//                                            }
+//                                        }
+//                                        
+//                                        Spacer()
+//                                        
+//                                    }
+//                                    
                                     HStack {
                                         
                                         Button {
-                                            if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                            if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
                                                 spotifyManager.disconnect()
                                             }
-                                            else {
-                                                spotifyManager.connect()
+                                            else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                                spotifyManager.connect(launchSession: false)
                                             }
+                                            else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                                spotifyManager.connect(launchSession: true)
+                                            }
+                                           
                                         } label: {
                                             HStack(spacing: 8){
                                                 
@@ -908,10 +961,13 @@ struct RunView: View {
                                                         .foregroundStyle(TEXT_LIGHT_GREEN)
                                                 }
                                                 
-                                                if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
-                                                    Text("End spotify session").foregroundStyle(TEXT_LIGHT_GREY)
+                                                if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
+                                                    Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
                                                 }
-                                                else {
+                                                else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                                    Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
+                                                }
+                                                else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
                                                     Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
                                                 }
                                             }
@@ -1068,15 +1124,11 @@ struct RunView: View {
                             .presentationDetents(stepsSheetDetents)
                             .presentationBackground(.black)
                             .presentationDragIndicator(.visible)
-                            .presentationBackgroundInteraction(
-                                .enabled(upThrough:  .large)
-                            )
+                            .presentationBackgroundInteraction(.disabled)
                         }
                         .onAppear {
-                            if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                print("Reconnecting")
-                                spotifyManager.reconnect()
-                            }
+                            // Connect to Spotify using an existing session if exists. No need to automatically launch a new one right away
+                            spotifyManager.connect(launchSession: false)
                         }
                        
                     }
@@ -1117,8 +1169,8 @@ struct RunView: View {
             }
             .onOpenURL { url in
                 // When finished authenticating, save the access token
-                print("saving response code")
-                spotifyManager.saveResponseCode(from: url)
+//                spotifyManager.saveResponseCode(from: url)
+                spotifyManager.onAuthCallback(open: url)
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
