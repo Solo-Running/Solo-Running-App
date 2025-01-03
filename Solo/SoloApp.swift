@@ -49,7 +49,6 @@ struct SoloApp: App {
                         .opacity(launchManager.state != .finished ? 1 : 0)
                         .animation(.easeOut(duration: 0.4), value: launchManager.state) // Animate opacity when state changes
 
-                
                     // When splash screen animation finishes show the main view
                     MainView()
                         .environment(appState)
