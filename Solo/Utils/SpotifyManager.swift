@@ -15,9 +15,10 @@ import CommonCrypto
 let scopes: SPTScope = [.appRemoteControl]
 let stringScopes = [ "app-remote-control"]
 var accessTokenKey = "access-token-key"
+var sessionManagerKey = "session-manager-key"
 
 @MainActor
-final class SpotifyManager: NSObject, ObservableObject {
+final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
 
     
     @Published var currentTrackURI: String?
@@ -33,21 +34,16 @@ final class SpotifyManager: NSObject, ObservableObject {
     private var connectCancellable: AnyCancellable?
     private var disconnectCancellable: AnyCancellable?
     
-    var accessToken = UserDefaults.standard.string(forKey: accessTokenKey) {
-       didSet {
-           let defaults = UserDefaults.standard
-           defaults.set(accessToken, forKey: accessTokenKey)
-       }
-    }
     
-    // When the response code is updated, get the accessToken
-    var responseCode: String? {
-        didSet {
-            // The access token will enable the app remote instance to manipulate the spotify player
-            fetchAccessToken()
-        }
-    }
-      
+    // Session Manager keeps track of the user's session status
+    lazy var sessionManager: SPTSessionManager? = {
+        self.configuration.playURI = ""
+        let manager = SPTSessionManager(configuration: configuration, delegate: self)
+        return manager
+    }()
+    
+        
+    // Spotify Player configuration with uique client id
     let configuration = SPTConfiguration(
         clientID:Bundle.main.infoDictionary?["SPOTIFY_CLIENT_ID"] as! String,
         redirectURL: URL(string: "spotify-ios-quick-start://spotify-login-callback")!
@@ -56,18 +52,11 @@ final class SpotifyManager: NSObject, ObservableObject {
     // The main entry point for interfacing with Spotify player
     lazy var appRemote: SPTAppRemote = {
         let appRemote = SPTAppRemote(configuration: configuration, logLevel: .debug)
-        appRemote.connectionParameters.accessToken = self.accessToken
         appRemote.delegate = self
         return appRemote
     }()
     
-    // Session Manager keeps track of the user's session status
-    lazy var sessionManager: SPTSessionManager? = {
-        let manager = SPTSessionManager(configuration: configuration, delegate: self)
-        return manager
-    }()
-    
-    // Pause or play
+    // Pause or play control
     func togglePlayer() {
         if let lastPlayerState = lastPlayerState, lastPlayerState.isPaused {
             appRemote.playerAPI?.resume(nil)
@@ -92,15 +81,15 @@ final class SpotifyManager: NSObject, ObservableObject {
     func goBack() {
         print("pressed go back")
         appRemote.playerAPI?.skip(toPrevious:{ result, error in
-               if let error = error {
-                   print("Error skipping to next track: \(error.localizedDescription)")
-               } else {
-                   print("Successfully skipped to next track")
-               }
+            if let error = error {
+               print("Error skipping to next track: \(error.localizedDescription)")
+            } else {
+               print("Successfully skipped to next track")
+            }
         })
-
     }
     
+    // Check if the Spotify Player has been paused
     func isPlayerPaused() -> Bool {
         if lastPlayerState != nil {
             return lastPlayerState!.isPaused
@@ -108,53 +97,86 @@ final class SpotifyManager: NSObject, ObservableObject {
         return false
     }
     
+    // Check if the session has expired
     func isSessionExpired() -> Bool{
-        if let manager = sessionManager, manager.session != nil  {
-            print("is session expired \(manager.session?.isExpired)")
-            return manager.session!.isExpired
+        guard let manager = sessionManager, manager.session != nil else{
+            return true
         }
-        return true
+        return manager.session!.isExpired
     }
     
-    
+
+    // Check if the app remote is connected
     func isAppRemoteConnected() -> Bool {
         return appRemote.isConnected
     }
     
-    func connect() {
-        print("starting session")
+    
+    // Performs the actual connection logic to Spotify
+    func connect(launchSession: Bool) {
         isLoading = true
-        guard let sessionManager = sessionManager else { return }
-        sessionManager.initiateSession(with: scopes, options: .clientOnly, campaign: nil)
+        
+        // First check if the access token exists in User Defaults
+        print("checking user defaults for session data")
+        
+        if let sessionData = UserDefaults.standard.data(forKey: sessionManagerKey) {
+            do {
+                // Decode the session with cast typing as a SPTSession
+                if let session = try NSKeyedUnarchiver.unarchivedObject(ofClass: SPTSession.self, from: sessionData) {
+                    
+                    // Check if the SPTSession has expired
+                    if session.expirationDate > Date() {
+                        print("Session is still valid.")
+                        
+                        // Reinitialize the session and reconnect the user with the saved access token
+                        self.sessionManager?.session = session
+                        self.appRemote.connectionParameters.accessToken = session.accessToken
+                        self.appRemote.connect()
+                        
+                    } else {
+                        if launchSession {
+                            print("Access token expired. Initiating new session.")
+                            sessionManager?.initiateSession(with: scopes, options: .clientOnly, campaign: nil)
+                        }
+                    }
+                } else {
+                    print("Failed to cast the unarchived object to SPTSession.")
+                }
+            } catch {
+                print("Error unarchiving session: \(error)")
+            }
+        } else {
+            print("No session data found in User Defaults.")
+            if launchSession {
+                print("Initiating new session.")
+                sessionManager?.initiateSession(with: scopes, options: .clientOnly, campaign: nil)
+            }
+        }
+        isLoading = false
     }
     
+    // This callback function will tell the SPTSessionManagerDelegate to initiate
+    func onAuthCallback(open url: URL)  {
+        sessionManager?.application(UIApplication.shared, open: url, options: [:])
+    }
+    
+    
+    // Disconnects the app remote and  nullifies the Spotify session
     func disconnect() {
         if appRemote.isConnected {
+            // Stop the music
+            togglePlayer()
+            
+            // Disconnect app remote and reset the session manager
             appRemote.disconnect()
-            print("app remote disconnected")
+            sessionManager?.session.self = nil
+
+            // Remove the session from storage
+            UserDefaults.standard.removeObject(forKey: sessionManagerKey)
+            print("Successfully disconnected")
         }
     }
     
-    func reconnect() {
-        appRemote.connect()
-    }
-    
-    // Invoked when use navigates back from authentication to save the response code
-    func saveResponseCode(from url: URL) {
-        print("setting access token from url: \(url)")
-
-        let parameters = self.appRemote.authorizationParameters(from: url)
-        
-        if let code = parameters?["code"] {
-            self.responseCode = code
-        } else if let access_token = parameters?[SPTAppRemoteAccessTokenKey] {
-            self.accessToken = access_token
-        }
-        else if let errorDescription = parameters?[SPTAppRemoteErrorDescriptionKey] {
-            print(errorDescription)
-        }
-    }
-
     
     // Keep user's player state in sync with spotify player
     func update(playerState: SPTAppRemotePlayerState) {
@@ -170,15 +192,16 @@ final class SpotifyManager: NSObject, ObservableObject {
         self.currentTrackDuration = Int(playerState.track.duration) / 1000 // playerState.track.duration is in milliseconds
         self.playBackPosition = playerState.playbackPosition
     }
-
-    
             
 }
+
+
+
 
 // Subscribe to the plater state after connecting to Spotify
 extension SpotifyManager: SPTAppRemoteDelegate {
     func appRemoteDidEstablishConnection(_ appRemote: SPTAppRemote) {
-        print("established spotify connection")
+        print("established spotify app remote connection")
         self.appRemote = appRemote
         self.appRemote.playerAPI?.delegate = self
         self.appRemote.playerAPI?.subscribe(toPlayerState: { (result, error) in
@@ -191,14 +214,12 @@ extension SpotifyManager: SPTAppRemoteDelegate {
         
         fetchPlayerState()
         isLoading = false
-
     }
     
     func appRemote(_ appRemote: SPTAppRemote, didDisconnectWithError error: Error?) {
         print("Disconnect error: \(String(describing: error))")
         self.lastPlayerState = nil
         isLoading = false
-
     }
 
     func appRemote(_ appRemote: SPTAppRemote, didFailConnectionAttemptWithError error: Error?) {
@@ -210,41 +231,44 @@ extension SpotifyManager: SPTAppRemoteDelegate {
 }
 
 
+
+
 // This delegate method is invoked whenever there's a change in the player's state from the actual spotify app
 extension SpotifyManager: SPTAppRemotePlayerStateDelegate {
     func playerStateDidChange(_ playerState: SPTAppRemotePlayerState) {
+        print("received updated from SPTAppRemotePlayerStateDelegate")
         self.update(playerState: playerState)
     }
 }
 
+
+
+
 extension SpotifyManager: SPTSessionManagerDelegate {
     func sessionManager(manager: SPTSessionManager, didFailWith error: Error) {
-        if error.localizedDescription == "The operation couldn’t be completed. (com.spotify.sdk.login error 1.)" {
-            print("AUTHENTICATE with WEBAPI")
-        } else {
+        if !error.localizedDescription.isEmpty {
             print("Authorization failed \(error.localizedDescription)")
         }
-        isLoading = false
     }
 
-    func sessionManager(manager: SPTSessionManager, didRenew session: SPTSession) {
-        print("Session renewed \(session.description)")
-    }
-
-    // Reconnect without having to authorize again
     func sessionManager(manager: SPTSessionManager, didInitiate session: SPTSession) {
-        if session.isExpired {
-            print("session expired, renewing")
-            sessionManager!.renewSession()
-        }
                 
-        print("session initiated")
+        print("session initiated. Saving to user defaults")
+        do {
+            let sessionData = try NSKeyedArchiver.archivedData(withRootObject: session, requiringSecureCoding: false)
+            UserDefaults.standard.set(sessionData, forKey: sessionManagerKey)
+            print("Session saved successfully: \(sessionData)")
+        } catch {
+            print("Failed to save session: \(error)")
+        }
+        
         appRemote.connectionParameters.accessToken = session.accessToken
         appRemote.connect()
-        
-        print("called appRemote.connect()")
-        isLoading = false
-
+    }
+    
+    // Not really needed but required to implement the delegate extension
+    func sessionManager(manager: SPTSessionManager, didRenew session: SPTSession) {
+        print("Session renewed \(session.description)")
     }
 }
 
@@ -275,6 +299,7 @@ extension SpotifyManager {
         })
     }
     
+    /*
     func challenge(verifier: String) -> String {
         
         guard let verifierData = verifier.data(using: String.Encoding.utf8) else { return "error" }
@@ -292,6 +317,7 @@ extension SpotifyManager {
             .replacingOccurrences(of: "=", with: "")
             .trimmingCharacters(in: .whitespaces)
     }
+    
     
     
     func fetchAccessToken() {
@@ -331,41 +357,69 @@ extension SpotifyManager {
                 .joined(separator: "&")
                 .data(using: .utf8)
         
-            print(request.httpBody)
+            print(request.httpBody!)
 
+            // Send the request. The response will be handled by the .onOpenURL modifier in RunView
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
                 guard let data = data, error == nil else {
                     print("Error: \(error?.localizedDescription ?? "Unknown error")")
                     return
                 }
-
-                do {
-                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                        print("Response JSON: \(json)")
-                        if let accessToken = json["access_token"] as? String {
-                            DispatchQueue.main.async {
-                                self.accessToken = accessToken
-                                self.appRemote.connectionParameters.accessToken = accessToken
-                                self.appRemote.connect()
-                            }
-                        }  else if let error = json["error"] as? String {
-                            print("Error: \(error)")
-                        }
-                    }
-                } catch {
-                    print("Error parsing JSON: \(error.localizedDescription)")
-                }
             }
             task.resume()
     }
+     */
 }
 
 
-// If connecting for the first time
-//        guard let accessToken = self.appRemote.connectionParameters.accessToken, !appRemote.isConnected else {
-//            self.appRemote.authorizeAndPlayURI("")
-//            return
+
+
+//do {
+//    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+//        print("Response JSON: \(json)")
+//        if let accessToken = json["access_token"] as? String {
+//            DispatchQueue.main.async {
+//                print("setting access token from fetchAccessToken")
+//                self.accessToken = accessToken
+//                self.appRemote.connectionParameters.accessToken = accessToken
+//                self.appRemote.connect()
+//            }
+//        }  else if let error = json["error"] as? String {
+//            print("Error: \(error)")
 //        }
-//
-//        // reconnect again
-//        appRemote.connect()
+//    }
+//} catch {
+//    print("Error parsing JSON: \(error.localizedDescription)")
+//}
+
+
+/*
+ 
+ // When the response code is updated, get the accessToken
+ var responseCode: String? {
+     didSet {
+         print("set response code")
+         // The access token will enable the app remote instance to manipulate the spotify player
+         // fetchAccessToken()
+     }
+ }
+ 
+ 
+// Invoked when use navigates back from authentication to save the response code
+func saveResponseCode(from url: URL) {
+
+    let parameters = self.appRemote.authorizationParameters(from: url)
+    
+    if let code = parameters?["code"] {
+        print("setting responde code from url: \(url)")
+        self.responseCode = code
+    } else if let access_token = parameters?[SPTAppRemoteAccessTokenKey] {
+        print("found access token from url: \(url)")
+        self.accessToken = access_token
+    }
+    else if let errorDescription = parameters?[SPTAppRemoteErrorDescriptionKey] {
+        print(errorDescription)
+    }
+}
+
+*/
