@@ -206,6 +206,9 @@ struct SubscriptionLaunchView: View {
             if case .success(.success(let transaction)) = result {
                 print("Purchased successfully: \(transaction.signedDate)")
                 subscriptionsManager.isSubscribed = true
+                Task {
+                    await subscriptionsManager.checkSubscriptionStatus()
+                }
             } else {
                 print("Something else happened")
             }
