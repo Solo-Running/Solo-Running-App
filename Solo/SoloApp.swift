@@ -17,6 +17,7 @@ struct SoloApp: App {
     @State var launchManager = LaunchStateManager()
     @StateObject var locationManager = LocationManager()
     @StateObject var activityManager = ActivityManager()
+    @StateObject var subscriptionsManager = SubscriptionsManager()
     
     // Initialize the model container for persistent storage operations
     var modelContainer: ModelContainer = {
@@ -39,8 +40,6 @@ struct SoloApp: App {
 
     var body: some Scene {
         WindowGroup {
-            
-            if (locationManager.isAuthorized) {
                 
                 ZStack{
                     
@@ -59,9 +58,9 @@ struct SoloApp: App {
                 .environment(launchManager)
                 .environmentObject(locationManager)
                 .environmentObject(activityManager)
+                .environmentObject(subscriptionsManager)
                 .modelContainer(modelContainer)
                 .onAppear {
-                    
                     // set a timer for splash screen duration
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                         withAnimation {
@@ -69,13 +68,9 @@ struct SoloApp: App {
                         }
                     }
                 }
-            } else {
-                // Location denied view
-            }
+            } 
         }
-       
-        
-    }
+    
 }
 
 //

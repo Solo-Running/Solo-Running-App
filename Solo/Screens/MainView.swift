@@ -12,32 +12,38 @@ import SwiftData
 struct MainView: View {
     
     @Environment(AppState.self) var appState
+    @Environment(\.modelContext) private var modelContext
+
+    @EnvironmentObject var locationManager: LocationManager
+    @EnvironmentObject var activityManager: ActivityManager
+    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
+
     @State var selectedScreen: Screen = .Dashboard
     @State var oldSelectedScreen: Screen = .Dashboard
-
     @State private var showRunView: Bool = false  // Control visibility of RunView
-
-    
-    @Environment(\.modelContext) private var modelContext
+    @State private var permissionsSheetDetents: Set<PresentationDetent> =  [.large]
     @Query var userData: [UserModel]
 
     
     var body: some View {
         
         ZStack {
-            if !appState.hasCredentials {
+            if !subscriptionsManager.isSubscribed  {
+                // This view also handles susbcription management
+                OnboardingView()
+            }
+           
+            else if !appState.hasCredentials {
                 ProvideCredentialsView()
                     .environment(appState)
-            }
+            }            
             else {
                 
                 ZStack(alignment: .bottom) {
                    
-                   
                     TabView(selection: Binding(get: { appState.screen }, set: { newScreen in
                         appState.screen = newScreen
                         showRunView = newScreen == .Run
-                        
                     })){
                         
                         Group {
@@ -69,13 +75,40 @@ struct MainView: View {
                     .fullScreenCover(isPresented: $showRunView, onDismiss: {
                         self.selectedScreen = self.oldSelectedScreen
                     }) {
-                        RunView(showRunView: $showRunView)
+                        
+                        if !activityManager.isMotionAuthorized || !locationManager.isAuthorized {
+                            VStack(alignment: .leading) {
+                                
+                                Button {
+                                    // dismiss the run view
+                                    showRunView = false
+                                } label: {
+                                    ZStack {
+                                        Circle()
+                                            .frame(width: 32, height: 32)
+                                            .foregroundStyle(.white)
+                                        Image(systemName: "chevron.down")
+                                            .foregroundStyle(.black)
+                                            .frame(width: 16, height: 16)
+                                            .fontWeight(.semibold)
+                                    }
+                                }
+                                .padding([.leading], 16)
+                                
+                                PermissionsView()
+
+                            }
+                            .background(DARK_GREY)
+                        }
+                        else {
+                            RunView(showRunView: $showRunView)
+                            
+                        }
                     }
                     
                 }
             }
         }
-        
         .onAppear {
     
             // check for user credentials

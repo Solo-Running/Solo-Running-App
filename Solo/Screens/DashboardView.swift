@@ -202,7 +202,6 @@ struct DashboardView: View {
                 // Container for holding run statistics
                 VStack(alignment: .leading){
                     
-                    
                     ScrollView(.horizontal, showsIndicators: false) {
                         
                         LazyHStack {
@@ -247,11 +246,10 @@ struct DashboardView: View {
                                                     Text(String(format: "Avg: %.2f", self.averageStepsInWeek))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
-                                                        .background(
-                                                            RoundedRectangle(cornerRadius: 2).fill(LIGHT_GREY)
-                                                        )
-                                                        .padding(.horizontal, 4)
-                                                        .padding(.vertical, 2)
+//                                                        .background(
+//                                                            RoundedRectangle(cornerRadius: 4).fill(LIGHT_GREY)
+//                                                        )
+                                                        .padding(4)
                                                 }
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
@@ -338,7 +336,7 @@ struct DashboardView: View {
                                     Chart(days, id: \.self) { day in
                                         
                                         let stats = statsPerDay[day]!
-                                        
+                                        let minutes = Double(stats.timeSeconds) / 60
                                         if self.averageTimeInWeek > 0 {
                                             // Display the average time as a horizontal dashed line
                                             RuleMark(y: .value("Average Time", averageTimeInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
@@ -346,16 +344,15 @@ struct DashboardView: View {
                                                     Text(String(format:"Avg: %.2f min", self.averageTimeInWeek))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
-                                                        .background(
-                                                            RoundedRectangle(cornerRadius: 2).fill(LIGHT_GREY)
-                                                        )
-                                                        .padding(.horizontal, 4)
-                                                        .padding(.vertical, 2)
+//                                                        .background(
+//                                                            RoundedRectangle(cornerRadius: 4).fill(LIGHT_GREY)
+//                                                        )
+                                                        .padding(4)
                                                 }
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
                                         // Show bars for time per day if nonzero, otherwise display a default bar
-                                        if stats.timeSeconds > 0 {
+                                        if minutes >= 1 {
                                             BarMark (
                                                 x: .value("Day", day),
                                                 y: .value("Time", secondsToMinutes(seconds: stats.timeSeconds))
@@ -364,7 +361,7 @@ struct DashboardView: View {
                                             .foregroundStyle(day == days.last ? NEON : BAR_GREY)
                                             .annotation {
                                                 if day == days.last {
-                                                    Text(String(format: "%.2f", Double(stats.timeSeconds) / 60))
+                                                    Text(String(format: "%.2f", minutes))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
                                                 }
@@ -415,9 +412,8 @@ struct DashboardView: View {
                     .padding(.top, 16)
                     .background(.black)
                     
-                    
-                    Spacer().frame(height: 24)
-                    
+                
+                    Spacer().frame(height: 16)
                     
                     
                     // Second row to hold Pace Line Chart and Daily Streak Information

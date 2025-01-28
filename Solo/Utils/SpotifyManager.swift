@@ -35,6 +35,7 @@ final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
     private var disconnectCancellable: AnyCancellable?
     
     
+    
     // Session Manager keeps track of the user's session status
     lazy var sessionManager: SPTSessionManager? = {
         self.configuration.playURI = ""
@@ -55,6 +56,13 @@ final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
         appRemote.delegate = self
         return appRemote
     }()
+    
+    
+    func canOpenSpotify() -> Bool {
+        // Use the associated spotify key written in LSApplicationQueriesSchemes from info.plist
+        let canOpen = UIApplication.shared.canOpenURL(URL(string: "spotify://")!)
+        return canOpen
+    }
     
     // Pause or play control
     func togglePlayer() {

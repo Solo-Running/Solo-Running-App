@@ -28,7 +28,7 @@ struct RunCardView: View {
                 }
                 
                 VStack(alignment: .leading) {
- 
+                    
                     Text(run.startTime.formatted(
                         .dateTime
                             .day()
@@ -46,7 +46,26 @@ struct RunCardView: View {
                     
                     HStack  {
                         
-                        CustomPin(background: Color.white, foregroundStyle: run.endPlacemark.isCustomLocation ? NEON : DARK_GREY)
+                        // Custom pin
+                        VStack {
+                            ZStack {
+                                Circle()
+                                    .fill(.white)
+                                    .frame(width: 14, height: 14)
+                                
+                                Image(systemName: "mappin.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(run.endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
+                                    .font(.system(size: 4))
+                            }
+                            
+                            Image(systemName: "arrowtriangle.down.fill")
+                                .font(.caption)
+                                .foregroundStyle(run.endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
+                                .offset(x: 0, y: -8)
+                        }
+                        
+                        
                         Text((run.endPlacemark.name)!)
                             .foregroundStyle(.white)
                             .padding(.bottom, 4)
@@ -65,33 +84,6 @@ struct RunCardView: View {
     
 }
 
-
-
-struct CustomPin: View {
-    
-    @State var background: Color
-    @State var foregroundStyle: Color
-    
-    var body: some View {
-        VStack {
-            ZStack {
-                Circle()
-                    .fill(background)
-                    .frame(width: 18, height: 18)
-                
-                Image(systemName: "mappin.circle.fill")
-                    .font(.title)
-                    .foregroundStyle(foregroundStyle)
-                    .font(.system(size: 4))
-            }
-            
-            Image(systemName: "arrowtriangle.down.fill")
-                .font(.caption)
-                .foregroundStyle(foregroundStyle)
-                .offset(x: 0, y: -7)
-        }
-    }
-}
 
 
 

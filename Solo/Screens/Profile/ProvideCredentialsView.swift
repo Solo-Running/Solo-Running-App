@@ -11,18 +11,26 @@ import PhotosUI
 
 struct ProvideCredentialsView: View {
     
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
+    @EnvironmentObject var locationManager: LocationManager
+    @EnvironmentObject var activityManager: ActivityManager
+    
     @State private var fullname: String = ""
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedPhotoData: Data? = nil
-
-    @Environment(\.modelContext) private var modelContext
-    @Environment(AppState.self) private var appState
     
     @State private var showErrorDialog: Bool = false
     
+    @State private var showPermissionsSheet: Bool = false
+    @State private var permissionsSheetDetents: Set<PresentationDetent> =  [.large]
+    
+    
+
     var body: some View {
         
         VStack(alignment: .center, spacing: 24) {
+            Spacer()
             
             PhotosPicker(
                 selection: $selectedPhoto,
@@ -69,10 +77,14 @@ struct ProvideCredentialsView: View {
             
             Spacer()
 
-            Button {
+            Button {                
                 if (fullname.isEmpty || selectedPhoto == nil) {
                     showErrorDialog = true
-                } else {
+                }
+                else if !activityManager.isMotionAuthorized || !locationManager.isAuthorized {
+                    showPermissionsSheet = true
+                }
+                else {
                     showErrorDialog = false
                     let user = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
                     modelContext.insert(user)
@@ -82,10 +94,20 @@ struct ProvideCredentialsView: View {
                     appState.hasCredentials = true
                 }
             } label : {
-                Text("Let's go!").foregroundStyle(.white).frame(maxWidth: .infinity).frame(height: 32)
+                HStack {
+                    Text("Let's go")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(BLUE)
+                .cornerRadius(12)
+                
             }
             
-            Spacer()
+            Spacer().frame(height: 32)
+            
 
         }
         .padding([.leading, .trailing], 16)
@@ -94,8 +116,94 @@ struct ProvideCredentialsView: View {
         .alert("Please ensure you choose a picture and name", isPresented: $showErrorDialog) {
             Button("OK", role: .cancel){}
         }
+        .sheet(isPresented: $showPermissionsSheet, onDismiss: {
+            // Check if the user updated their permissions from the settings
+            activityManager.checkAuthorization(launchRun: false)
+        }) {
+            PermissionsView()
+                .presentationDetents(permissionsSheetDetents)
+        }
     }
 }
 
 
+
+struct PermissionsView: View {
+    var body: some View {
+        VStack(alignment: .leading) {
+                        
+            Text("Need Permissions")
+                .foregroundStyle(.white)
+                .font(.title)
+                .fontWeight(.semibold)
+                .padding(.bottom, 16)
+        
+            Text("In order to use certain features of the app, you need to enable the following permissions See descriptions for each permission.")
+                .foregroundStyle(TEXT_LIGHT_GREY)
+                .padding(.bottom, 32)
+                .fixedSize(horizontal: false, vertical: /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/)
+            
+            VStack(alignment: .leading) {
+                    
+                VStack(alignment: .leading) {
+                    Text("Location")
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
+                        .font(.title3)
+                    
+                    Text("Allow access to your location while running")
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                        .font(.subheadline)
+                }
+                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 8, trailing: 16))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                VStack(alignment: .leading) {
+                    Text("Core Motion")
+                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
+                        .font(.title3)
+                    
+                    Text("Track stats during physical activity")
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                        .font(.subheadline)
+                }
+                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 8, trailing: 16))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .background(RoundedRectangle(cornerRadius: 12).fill(.black))
+            .padding(.bottom, 32)
+
+
+            Text("Permissions are necessary for all features to work properly. Without location permission, you won't be able to use the maps feature. Without core motion permission, you won't be able to track steps or distance.")
+                .foregroundStyle(TEXT_LIGHT_GREY)
+                .fixedSize(horizontal: false, vertical: /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/)
+                .padding(.bottom, 32)
+
+            
+            
+            Button {
+                if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                   if UIApplication.shared.canOpenURL(appSettings) {
+                       UIApplication.shared.open(appSettings, options: [:], completionHandler: nil)
+                   }
+                }
+            } label: {
+                VStack(alignment: .center) {
+                    Text("Settings")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(TEXT_LIGHT_GREEN)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity)
+                .background(LIGHT_GREEN)
+                .cornerRadius(12)
+            }
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .presentationBackground(DARK_GREY)
+    }
+}
 

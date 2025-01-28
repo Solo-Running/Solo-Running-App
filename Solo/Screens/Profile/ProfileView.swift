@@ -8,10 +8,15 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import AlertToast
+import StoreKit
+
 
 struct ProfileView: View {
     
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
+
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
 
@@ -19,17 +24,22 @@ struct ProfileView: View {
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
     @AppStorage("isSpotifyEnabled") var isSpotifyEnabled = false
     
-    @State private var showEditCustomPinsView: Bool = false  // Control visibility of RunView
-//    @EnvironmentObject var spotifyManager: SpotifyManager
+    @State private var showEditCustomPinsView: Bool = false
+    @State private var showSubscriptionsView: Bool = false
+    
+    @State private var showDeleteRunsDialog: Bool = false
+    @State private var deleteStatus: DeleteStatus = .initial
+    @State private var showDeleteToast: Bool = false
+    @State private var showEmptyRunsToast: Bool = false
 
+    
     var body: some View {
+
         NavigationStack {
-
-
             ScrollView(showsIndicators: false) {
                 
                 Spacer().frame(height: 48)
-
+                
                 // User profile image
                 Group{
                     
@@ -79,36 +89,12 @@ struct ProfileView: View {
                 .controlSize(.small)
                 .tint(DARK_GREY)
                 
-                
-
                 Spacer().frame(height: 48)
-
                 
                 VStack(alignment: .leading, spacing: 16) {
-                
-                    Button {
-                        showEditCustomPinsView = true
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading){
-                                Text("Pinned Location")
-                                    .foregroundStyle(.white)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                Text("Manage custom pins for your runs")
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .font(.subheadline)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                .frame(width: 24, height: 24)
-                        }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                    }
+                    
+                                
+                    // Change map theme
                     HStack(alignment: .center) {
                         VStack(alignment: .leading){
                             Text("Map Theme")
@@ -119,86 +105,144 @@ struct ProfileView: View {
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .font(.subheadline)
                         }
-
+                        
                         Spacer()
                         
-                        Toggle("", isOn: $isDarkMode)
+                        Toggle("", isOn: Binding(
+                                get: { !isDarkMode }, // Invert the value for the toggle
+                                set: { isDarkMode = !$0 } // Invert the value when the toggle changes
+                        ))
                             .toggleStyle(SwitchToggleStyle(tint: TEXT_LIGHT_GREY))
                             .frame(maxWidth: 48)
                     }
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading){
-                            Text("Enable Live Activities")
+                    // Navigation to edit custom pins
+                    Button {
+                        showEditCustomPinsView = true
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text("Edit custom pins for your runs")
                                 .foregroundStyle(.white)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text("Used to display a widget in your notification center")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
                                 .font(.subheadline)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .frame(width: 24, height: 24)
                         }
-                        Spacer()
-
-                        Toggle("", isOn: $isLiveActivityEnabled)
-                            .toggleStyle(SwitchToggleStyle(tint: TEXT_LIGHT_GREY))
-                            .frame(maxWidth: 48)
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     
-                    /*
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading){
-                            Text("Spotify")
+                    
+                    // Manage Subscriptions
+                    NavigationLink {
+                        SubscriptionsEditView()
+                    } label: {
+                        HStack(alignment: .center) {
+                            Text("Subscription Details")
                                 .foregroundStyle(.white)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text("Use the spotify player while running")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
                                 .font(.subheadline)
+                    
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .frame(width: 24, height: 24)
                         }
-                        Spacer()
-
-                        Toggle("", isOn: $isSpotifyEnabled)
-                            .toggleStyle(SwitchToggleStyle(tint: .green))
-                            .frame(maxWidth: 48)
-                            .onChange(of: isSpotifyEnabled) { old, new in
-                                if new {
-                                    if !spotifyManager.appRemote.isConnected {
-                                        spotifyManager.connect()
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    }
+                    
+                    // Privacy Policy
+                    Button {
+                        // TODO: Add link to website
+                    } label: {
+                        HStack(alignment: .center) {
+                            
+                            Text("Privacy Policy")
+                                .font(.subheadline)
+                                .foregroundStyle(.white)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "shield")
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .frame(width: 24, height: 24)
+                        }
+                        .padding(16)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    }
+                    
+                    
+                    // Delete all runs
+                    Button {
+                        showDeleteRunsDialog = true
+                    } label: {
+                        HStack(alignment: .center) {
+                            
+                            Text("Delete all runs")
+                                .font(.subheadline)
+                                .foregroundStyle(RED)
+                            
+                            Spacer()
+                            
+                        }
+                        .padding(16)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    }
+                    .confirmationDialog("Are you sure?", isPresented: $showDeleteRunsDialog) {
+                        Button("Yes", role: .destructive) {
+                            
+                            Task {
+                                let fetchDescriptor = FetchDescriptor<Run>()
+                                do {
+                                    let runs = try modelContext.fetch(fetchDescriptor)
+                                    if runs.count == 0 {
+                                        showEmptyRunsToast = true
+                                        return
                                     }
+                                    showDeleteToast = true
+                                    deleteStatus = .deleting
+                                
+                                    for run in runs {
+                                        modelContext.delete(run)
+                                    }
+                                    
+                                } catch {
+                                    print("could not fetch runs with custom pin")
+                                    deleteStatus = .failure
                                 }
+                                deleteStatus = .success
                             }
-                    }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                    */
-                    
-                }
-                
-                Spacer().frame(height: 48)
-                
-                Button("Delete userData") {
-                    Task {
-                        let users = try modelContext.fetch(FetchDescriptor<UserModel>())
-                        for user in users {
-                            modelContext.delete(user)
                         }
-                        try modelContext.save()
                     }
-                }
-                .padding()
+                    
                 
-                Spacer()
-            }
-            .onOpenURL { url in
-                // When finished authenticating, save the access token
-//                spotifyManager.setAccessToken(from: url)
+                }
+                                            
+                Spacer().frame(height: 80)
             }
             .fullScreenCover(isPresented: $showEditCustomPinsView) {
                 EditCustomPinsView(showView: $showEditCustomPinsView)
+            }
+            .toast(isPresenting: $showDeleteToast, tapToDismiss: true) {
+                switch deleteStatus {
+                case .deleting:
+                    AlertToast(type: .loading)
+                case .success:
+                    AlertToast(type: .systemImage("checkmark.circle", Color.green), title: "Successfully deleted all runs")
+                case .failure:
+                    AlertToast(type: .systemImage("x.circle", Color.red), title: "An error occurred. Please try again")
+                default:
+                    AlertToast(type: .loading)
+                }
+            }
+            .toast(isPresenting: $showEmptyRunsToast, tapToDismiss: true) {
+                AlertToast(type: .regular, title: "There are no runs to delete")
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -213,5 +257,131 @@ struct ProfileView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.black)
         }
+        
     }
+}
+
+
+
+struct Payload: Codable {
+    let bundleId: String
+    let currency: String
+    let deviceVerification: String
+    let deviceVerificationNonce: String
+    let environment: String
+    let expiresDate: Int
+    let inAppOwnershipType: String
+    let isUpgraded: Bool
+    let offerDiscountType: String
+    let offerType: Int
+    let originalPurchaseDate: Int
+    let originalTransactionId: String
+    let price: Int
+    let productId: String
+    let purchaseDate: Int
+    let quantity: Int
+    let signedDate: Int
+    let storefront: String
+    let storefrontId: String
+    let subscriptionGroupIdentifier: String
+    let transactionId: String
+    let transactionReason: String
+    let type: String
+    let webOrderLineItemId: String
+}
+
+
+struct SubscriptionsEditView: View {
+    
+    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
+    @State private var isPresentingCancellationSheet: Bool = false
+    @State private var payload: Payload?
+
+    func formatString(_ input: String) -> String {
+
+        let words = input.components(separatedBy: "_")
+        
+        let formattedWords = words
+            .filter { $0.lowercased() != "solo"}
+            .map { $0.capitalized }
+        
+        return formattedWords.joined(separator: " ")
+    }
+    
+    func formatDate(_ date: Date?) -> String {
+        if date == nil {
+            return "n/a"
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM dd, yyyy" // Format for "Jan 25, 2025"
+        return formatter.string(from: date!)
+    }
+    
+    var body: some View {
+        if let transaction = subscriptionsManager.currentTransaction {
+            
+            VStack(alignment: .leading, spacing: 24) {
+                
+                Spacer().frame(height: 32)
+                
+                VStack(alignment: .leading) {
+                    Text("Susbcription").foregroundStyle(.white).fontWeight(.semibold)
+                    HStack {
+                        Text(formatString(transaction.productID))
+                        if (payload?.offerDiscountType != nil) && (Date() < transaction.expirationDate! ) {
+                            Text("- \(formatString(payload!.offerDiscountType))")
+                        }
+                    }
+                    .foregroundStyle(TEXT_LIGHT_GREY)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .leading) {
+                    Text("Plan Price").foregroundStyle(.white).fontWeight(.semibold)
+                    if payload?.price != nil {
+                        Text("$\(payload!.price)").foregroundStyle(TEXT_LIGHT_GREY)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .leading) {
+                    Text("Renewal / Expiration Date").foregroundStyle(.white).fontWeight(.semibold)
+                    Text(formatDate(transaction.expirationDate)).foregroundStyle(TEXT_LIGHT_GREY)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                
+                Button {
+                    isPresentingCancellationSheet = true
+                } label: {
+                    Text("Manage your subscription")
+                        .foregroundStyle(BLUE)
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .preferredColorScheme(.dark)
+            .manageSubscriptionsSheet(isPresented: $isPresentingCancellationSheet)
+            .onAppear {
+                Task {
+                    await subscriptionsManager.checkSubscriptionStatus()
+                    if subscriptionsManager.transactionPayload != nil {
+                        do {
+                            // Decode the JSON into a Payload struct
+                            payload = try JSONDecoder().decode(Payload.self, from: subscriptionsManager.transactionPayload!)
+                        } catch {
+                            print("Failed to decode JSON: \(error)")
+                        }
+                    }
+                }
+            }            
+            Spacer()
+        }
+    }
+    
+    
+    
 }

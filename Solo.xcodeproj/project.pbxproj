@@ -32,7 +32,6 @@
 		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E6A2CCB10E200C163EA /* CapsuleView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
-		E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */ = {isa = PBXBuildFile; productRef = E493F03D2CC07F0800D023AE /* BottomSheet */; };
 		E49FC6372CE674EE0034D465 /* SpotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49FC6362CE674EE0034D465 /* SpotifyManager.swift */; };
 		E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = E49FC6382CE6D0CC0034D465 /* SpotifyiOS */; };
 		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
@@ -48,6 +47,10 @@
 		E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D740082CD0C52E001461B7 /* RunCardView.swift */; };
 		E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D7400A2CD0C718001461B7 /* Extensions.swift */; };
 		E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E4D7400D2CD21BF1001461B7 /* Algorithms */; };
+		E4E17E0D2D339F9C008E5B29 /* ChangeToSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */; };
+		E4F5324D2D46B9E30064CF02 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = E4F5324C2D46B9E30064CF02 /* AlertToast */; };
+		E4F532512D485A050064CF02 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F532502D485A050064CF02 /* OnboardingView.swift */; };
+		E4F532532D485FFF0064CF02 /* SubscriptionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,6 +138,10 @@
 		E4D740062CD0B9A4001461B7 /* RunDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailView.swift; sourceTree = "<group>"; };
 		E4D740082CD0C52E001461B7 /* RunCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunCardView.swift; sourceTree = "<group>"; };
 		E4D7400A2CD0C718001461B7 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChangeToSettingsView.swift; path = Solo/Screens/ChangeToSettingsView.swift; sourceTree = SOURCE_ROOT; };
+		E4F5324F2D4852BC0064CF02 /* Subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscription.storekit; sourceTree = "<group>"; };
+		E4F532502D485A050064CF02 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,9 +149,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4F5324D2D46B9E30064CF02 /* AlertToast in Frameworks */,
 				E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */,
 				E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */,
-				E493F03E2CC07F0800D023AE /* BottomSheet in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -188,7 +195,9 @@
 				E457B80E2CD8448F00FD6D90 /* Profile */,
 				E4BE5D632CCE27C50016D85A /* Run */,
 				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
+				E4F532502D485A050064CF02 /* OnboardingView.swift */,
 				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
+				E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */,
 				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
 			);
 			path = Screens;
@@ -203,6 +212,7 @@
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
 				E49FC6362CE674EE0034D465 /* SpotifyManager.swift */,
+				E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -231,6 +241,7 @@
 		E49160622CBC9341009294AA = {
 			isa = PBXGroup;
 			children = (
+				E4F5324F2D4852BC0064CF02 /* Subscription.storekit */,
 				E45B969A2CE87C12001A4548 /* Config.xcconfig */,
 				E43AEBE82CBCAC8400C7A322 /* Constants.swift */,
 				E41733592CC2C78C00A7E9B8 /* gpxgenerator_path-3.gpx */,
@@ -357,9 +368,9 @@
 			);
 			name = Solo;
 			packageProductDependencies = (
-				E493F03D2CC07F0800D023AE /* BottomSheet */,
 				E4D7400D2CD21BF1001461B7 /* Algorithms */,
 				E49FC6382CE6D0CC0034D465 /* SpotifyiOS */,
+				E4F5324C2D46B9E30064CF02 /* AlertToast */,
 			);
 			productName = Solo;
 			productReference = E491606B2CBC9341009294AA /* Solo.app */;
@@ -457,6 +468,7 @@
 				E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */,
 				E4D7400C2CD217F8001461B7 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				E49FC6352CE674040034D465 /* XCRemoteSwiftPackageReference "ios-sdk" */,
+				E4F5324B2D46B9E30064CF02 /* XCRemoteSwiftPackageReference "AlertToast" */,
 			);
 			productRefGroup = E491606C2CBC9341009294AA /* Products */;
 			projectDirPath = "";
@@ -510,6 +522,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E4F532512D485A050064CF02 /* OnboardingView.swift in Sources */,
 				E43AEBE92CBCAC8400C7A322 /* Constants.swift in Sources */,
 				E43AEBEB2CBCCD6100C7A322 /* DashboardView.swift in Sources */,
 				E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */,
@@ -529,7 +542,9 @@
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
 				E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
+				E4F532532D485FFF0064CF02 /* SubscriptionsManager.swift in Sources */,
 				E461C9662CDF214800E3D69B /* EditCustomPinsView.swift in Sources */,
+				E4E17E0D2D339F9C008E5B29 /* ChangeToSettingsView.swift in Sources */,
 				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
 				E457B8102CD8595500FD6D90 /* EditProfileView.swift in Sources */,
 				E4D740072CD0B9A4001461B7 /* RunDetailView.swift in Sources */,
@@ -726,7 +741,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your step count.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your run statistics.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -766,7 +781,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your step count.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your run statistics.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -994,14 +1009,17 @@
 				minimumVersion = 1.2.0;
 			};
 		};
+		E4F5324B2D46B9E30064CF02 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/elai950/AlertToast";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.9;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E493F03D2CC07F0800D023AE /* BottomSheet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */;
-			productName = BottomSheet;
-		};
 		E49FC6382CE6D0CC0034D465 /* SpotifyiOS */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E49FC6352CE674040034D465 /* XCRemoteSwiftPackageReference "ios-sdk" */;
@@ -1011,6 +1029,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E4D7400C2CD217F8001461B7 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
 			productName = Algorithms;
+		};
+		E4F5324C2D46B9E30064CF02 /* AlertToast */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E4F5324B2D46B9E30064CF02 /* XCRemoteSwiftPackageReference "AlertToast" */;
+			productName = AlertToast;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

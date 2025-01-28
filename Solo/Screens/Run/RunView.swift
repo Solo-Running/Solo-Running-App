@@ -224,7 +224,7 @@ struct RunView: View {
         let snapshotOptions = MKMapSnapshotter.Options()
         let region = MKCoordinateRegion(route!.polyline.boundingMapRect)
         
-        let paddingPercentage: CLLocationDegrees = 0.25 // Adjust percentage for padding
+        let paddingPercentage: CLLocationDegrees = 0.30 // Adjust percentage for padding
         let paddedRegion = MKCoordinateRegion(
             center: region.center,
             span: MKCoordinateSpan(
@@ -236,7 +236,7 @@ struct RunView: View {
         snapshotOptions.size =  CGSize(width: 500, height: 500)
         snapshotOptions.scale = UIScreen.main.scale
         snapshotOptions.region = paddedRegion
-        snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: .dark) // dark mode map
+        snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: isDarkMode ? .dark : .light)
 
         let snapshotter = MKMapSnapshotter(options: snapshotOptions)
 
@@ -277,17 +277,33 @@ struct RunView: View {
 
             print("added mk route polyline")
 
-            // Draw sart and end placemark annotations on the snapshot image
+            // Set up the start placemark annotation image
             let startPoint = snapshot!.point(for: locationManager.startPlacemark!.getLocation())
-            let startAnnotationImage = UIImage(systemName: "figure.walk.circle.fill")
-            startAnnotationImage?.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
-
-            let endPoint = snapshot!.point(for: locationManager.endPlacemark!.getLocation())
-            let endAnnotationImage = UIImage(systemName: "mappin.circle.fill")?.withRenderingMode(.alwaysTemplate)
-            let annotationTintColor = UIColor.red
-            annotationTintColor.set()
+            let startAnnotationTintColor = UIColor.systemBlue
+            let startAnnotationImage = UIImage(systemName: "location.circle.fill")!.resize(32,32).withTintColor(startAnnotationTintColor).withRenderingMode(.alwaysOriginal)
             
-            endAnnotationImage?.draw(at: CGPoint(x: endPoint.x, y: endPoint.y))
+            // Draw a circle behind the start annotation
+            let startBackgroundRect = CGRect(origin: CGPoint(x: startPoint.x + 2.5, y: startPoint.y + 2), size: CGSize(width: 24, height: 24))
+            let startBackgroundPath = UIBezierPath(ovalIn: startBackgroundRect)
+            UIColor.white.setFill()
+            startBackgroundPath.fill()
+            
+            // Draw the start placemark image
+            startAnnotationImage.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
+
+            // Set up the end placemark annotation image
+            let endPoint = snapshot!.point(for: locationManager.endPlacemark!.getLocation())
+            let endAnnotationTintColor = locationManager.endPlacemark!.isCustomLocation ? UIColor.systemYellow : UIColor.systemRed
+            let endAnnotationImage = UIImage(systemName: "mappin.circle.fill")!.resize(32,32).withTintColor(endAnnotationTintColor).withRenderingMode(.alwaysOriginal)
+
+            // Draw a circle behind the end annotation
+            let endBackgroundRect = CGRect(origin: CGPoint(x: endPoint.x + 2.5 , y: endPoint.y + 2), size: CGSize(width: 24, height: 24))
+            let endBackgroundPath = UIBezierPath(ovalIn: endBackgroundRect)
+            UIColor.white.setFill()
+            endBackgroundPath.fill()
+            
+            // Draw the end placemark image
+            endAnnotationImage.draw(at: CGPoint(x: endPoint.x, y: endPoint.y))
 
             let finalImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
@@ -415,6 +431,7 @@ struct RunView: View {
                 }
 
                 let newRun = Run(
+                    isDarkMode: isDarkMode,
                     postedDate: Date.now,
                     startTime: activityManager.runStartTime!,
                     endTime: activityManager.runEndTime!,
@@ -501,13 +518,16 @@ struct RunView: View {
                             if selectedPlaceMark != nil  {
                                 usePin = false
                                 await fetchRoute()
-                                isTextFieldFocused = false
-            
-                                withAnimation {
-                                    searchPlaceSheetVisible = false
-                                    routeSheetVisible = true
-                                    routeSheetSelectedDetent = SheetPosition.peek.detent
+                                
+                                if !disabledFetch {
+                                    isTextFieldFocused = false
+                                    withAnimation {
+                                        searchPlaceSheetVisible = false
+                                        routeSheetVisible = true
+                                        routeSheetSelectedDetent = SheetPosition.peek.detent
+                                    }
                                 }
+                               
                             }
                         }
                         .ignoresSafeArea(.keyboard)
@@ -551,7 +571,7 @@ struct RunView: View {
                                 Spacer()
                                 
                                 Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
-                                    .tint(NEON)
+                                    .tint(.yellow)
                                     .toggleStyle(.button)
                                     .labelStyle(.iconOnly)
                                     .font(.title)
@@ -574,6 +594,8 @@ struct RunView: View {
                                 }
                                 
                             }
+                            .padding(.leading, 16)
+                            .padding(.trailing, 8)
                             
                             
                             HStack(spacing: 8) {
@@ -593,6 +615,7 @@ struct RunView: View {
                             .background(
                                 RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
                             )
+                            .padding(.horizontal, 16)
  
                             
                             // Show list of location search results
@@ -645,11 +668,12 @@ struct RunView: View {
                                     }
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
+                                    .padding(.leading, 8)
+                                    .padding(.trailing, 16)
                                 }
                                 .scrollContentBackground(.hidden)
                             }
                         }
-                        .padding(.horizontal, 16)
                         .padding(.top, 16)
                         .frame(maxHeight: .infinity, alignment: .top)
                         .presentationDetents(searchPlaceSheetDetents, selection: $searchPlaceSheetSelectedDetent)
@@ -727,7 +751,7 @@ struct RunView: View {
                                             
                                             // Let system settings take over wakefulness of phone
                                             UIApplication.shared.isIdleTimerDisabled = true
-                                            await activityManager.startTracking(isLiveActivityEnabled: isLiveActivityEnabled)
+                                            await activityManager.beginRunSession(isLiveActivityEnabled: isLiveActivityEnabled)
                                             runStatus = .startedRun
                                             isStartRunLoading = false
                                             routeSheetVisible = false
@@ -782,7 +806,7 @@ struct RunView: View {
 
                     
                     // Run sheet
-                    .sheet(isPresented: $runSheetVisible) {
+                    .sheet(isPresented: $runSheetVisible){
                         ScrollView(showsIndicators: false) {
                             
                             if routeDestination != nil {
@@ -829,7 +853,7 @@ struct RunView: View {
                                                 }
                                         }
                                         .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
+                                        .padding(.vertical, 6)
                                         .background(LIGHT_GREY)
                                         .clipShape(Capsule())
                                         
@@ -837,7 +861,7 @@ struct RunView: View {
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .background(LIGHT_GREY)
                                             .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
+                                            .padding(.vertical, 6)
                                             .background(Capsule().fill(LIGHT_GREY))
                                             .foregroundColor(.white)
                                         
@@ -886,184 +910,137 @@ struct RunView: View {
                                    
                                     
                                     Spacer().frame(height: 24)
-//                                    
-//                                    HStack {
-//                                        
-//                                        Button {
-//                                            
-//                                            if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-//                                                print("connecting 1")
-//                                                spotifyManager.connect(isChecking: false)
-//                                            }
-//                                            
-//                                            if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-//                                                print("disconnecting")
-//                                                spotifyManager.disconnect()
-//                                            }
-//                                           
-//                                            if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-//                                                print("connecting 2")
-//                                                spotifyManager.connect(isChecking: true)
-//                                            }
-//                                          
-//                                           
-//                                        } label: {
-//                                            HStack(spacing: 8){
-//                                                
-//                                                ZStack {
-//                                                    Circle()
-//                                                        .fill(DARK_GREY)
-//                                                        .frame(width: 32, height: 32)
-//                                                    Image(systemName: "music.note")
-//                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
-//                                                }
-//                                                
-//                                                if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-//                                                    Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
-//                                                }
-//                                                
-//                                                if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-//                                                    Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
-//                                                }
-//                                               
-//                                                if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-//                                                    Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
-//                                                }
-//                                               
-//                                            }
-//                                        }
-//                                        
-//                                        Spacer()
-//                                        
-//                                    }
-//                                    
-                                    HStack {
-                                        
-                                        Button {
-                                            if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-                                                spotifyManager.disconnect()
-                                            }
-                                            else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                spotifyManager.connect(launchSession: false)
-                                            }
-                                            else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                spotifyManager.connect(launchSession: true)
-                                            }
-                                           
-                                        } label: {
-                                            HStack(spacing: 8){
-                                                
-                                                ZStack {
-                                                    Circle()
-                                                        .fill(DARK_GREY)
-                                                        .frame(width: 32, height: 32)
-                                                    Image(systemName: "music.note")
-                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
-                                                }
-                                                
+
+                                    
+                                    if spotifyManager.canOpenSpotify() {
+                                        HStack {
+                                            
+                                            Button {
                                                 if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-                                                    Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
+                                                    spotifyManager.disconnect()
                                                 }
                                                 else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                    Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
+                                                    spotifyManager.connect(launchSession: false)
                                                 }
                                                 else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                    Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
-                                                }
-                                            }
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                    }
-                                    
-                                    
-                                    if spotifyManager.isLoading {
-                                        VStack(alignment: .center) {
-                                            Spacer()
-                                            ProgressView()
-                                                .padding()
-                                            Spacer()
-                                        }
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    }
-                                    
-                                    Spacer().frame(height: 48)
-
-                                    
-                                    if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
-                                        VStack(alignment: .center) {
-                                            
-                                            if let image = spotifyManager.currentTrackImage {
-                                                VStack {
-                                                    Image(uiImage: image)
-                                                        .resizable()
-                                                        .scaledToFill()
-                                                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                                                }
-                                                .frame(width: 180, height: 180 )
-                                            }
-                                            
-                                            Spacer().frame(height: 16)
-
-                                        
-                                            if let track = spotifyManager.currentTrackName {
-                                                Text("\(track)")
-                                                    .font(.title3)
-                                                    .fontWeight(.semibold)
-                                                    .foregroundStyle(.white)
-                                                    .multilineTextAlignment(.center)
-                                            }
-                                            if let artist = spotifyManager.currentTrackArtist{
-                                                Text("\(artist)")
-                                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                                    .multilineTextAlignment(.center)
-                                            }
-
-                                            Spacer().frame(height: 24)
-                                            
-                                            
-                                            HStack {
-                                                Spacer()
-                                                
-                                                Button {
-                                                    spotifyManager.goBack()
-                                                } label: {
-                                                    Image(systemName: "backward.fill")
-                                                        .frame(width: 48, height: 48)
-                                                        .foregroundStyle(.white)
+                                                    spotifyManager.connect(launchSession: true)
                                                 }
                                                 
-                                                Spacer().frame(width: 24)
-                                                
-                                                Button {
-                                                    spotifyManager.togglePlayer()
-                                                } label: {
+                                            } label: {
+                                                HStack(spacing: 8){
+                                                    
                                                     ZStack {
                                                         Circle()
                                                             .fill(DARK_GREY)
-                                                            .frame(width: 64, height: 64)
-                                                        
-                                                        Image(systemName: spotifyManager.isPlayerPaused() ?  "play.fill" : "pause.fill")
-                                                            .font(.title)
-                                                            .frame(width: 48, height: 48)
-                                                            .foregroundStyle(.white)
-                                                            .transaction { transaction in
-                                                                transaction.animation = nil
-                                                            }
+                                                            .frame(width: 32, height: 32)
+                                                        Image(systemName: "music.note")
+                                                            .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                    }
+                                                    
+                                                    if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
+                                                        Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
+                                                    }
+                                                    else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                                        Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
+                                                    }
+                                                    else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
+                                                        Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
                                                     }
                                                 }
-                                                
-                                                Spacer().frame(width: 24)
-                                                
-                                                Button {
-                                                    spotifyManager.skipNext()
-                                                } label: {
-                                                    Image(systemName: "forward.fill")
-                                                        .frame(width: 48, height: 48)
-                                                        .foregroundStyle(.white)
-                                                }
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                        }
+                                        
+                                        
+                                        if spotifyManager.isLoading {
+                                            VStack(alignment: .center) {
                                                 Spacer()
+                                                ProgressView()
+                                                    .padding()
+                                                Spacer()
+                                            }
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        }
+                                        
+                                        Spacer().frame(height: 48)
+                                        
+                                        
+                                        if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                            VStack(alignment: .center) {
+                                                
+                                                if let image = spotifyManager.currentTrackImage {
+                                                    VStack {
+                                                        Image(uiImage: image)
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                                    }
+                                                    .frame(width: 180, height: 180 )
+                                                }
+                                                
+                                                Spacer().frame(height: 16)
+                                                
+                                                
+                                                if let track = spotifyManager.currentTrackName {
+                                                    Text("\(track)")
+                                                        .font(.title3)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(.white)
+                                                        .multilineTextAlignment(.center)
+                                                }
+                                                if let artist = spotifyManager.currentTrackArtist{
+                                                    Text("\(artist)")
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                        .multilineTextAlignment(.center)
+                                                }
+                                                
+                                                Spacer().frame(height: 24)
+                                                
+                                                
+                                                HStack {
+                                                    Spacer()
+                                                    
+                                                    Button {
+                                                        spotifyManager.goBack()
+                                                    } label: {
+                                                        Image(systemName: "backward.fill")
+                                                            .frame(width: 48, height: 48)
+                                                            .foregroundStyle(.white)
+                                                    }
+                                                    
+                                                    Spacer().frame(width: 24)
+                                                    
+                                                    Button {
+                                                        spotifyManager.togglePlayer()
+                                                    } label: {
+                                                        ZStack {
+                                                            Circle()
+                                                                .fill(DARK_GREY)
+                                                                .frame(width: 64, height: 64)
+                                                            
+                                                            Image(systemName: spotifyManager.isPlayerPaused() ?  "play.fill" : "pause.fill")
+                                                                .font(.title)
+                                                                .frame(width: 48, height: 48)
+                                                                .foregroundStyle(.white)
+                                                                .transaction { transaction in
+                                                                    transaction.animation = nil
+                                                                }
+                                                        }
+                                                    }
+                                                    
+                                                    Spacer().frame(width: 24)
+                                                    
+                                                    Button {
+                                                        spotifyManager.skipNext()
+                                                    } label: {
+                                                        Image(systemName: "forward.fill")
+                                                            .frame(width: 48, height: 48)
+                                                            .foregroundStyle(.white)
+                                                    }
+                                                    Spacer()
+                                                }
                                             }
                                         }
                                     }
@@ -1078,8 +1055,10 @@ struct RunView: View {
                                 .presentationBackgroundInteraction(
                                     .enabled(upThrough: .large)
                                 )
+
                             }
                         }
+                        
                         // Route steps sheet
                         .sheet(isPresented: $stepsSheetVisible) {
                             VStack {
@@ -1096,6 +1075,7 @@ struct RunView: View {
                                             .font(.title)
                                     }
                                 }
+                                .padding(.horizontal, 16)
                                 
                                 List {
                                     ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
@@ -1119,7 +1099,6 @@ struct RunView: View {
                                 .scrollContentBackground(.hidden)
                             }
                             .frame(maxHeight: .infinity, alignment: .top)
-                            .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .presentationDetents(stepsSheetDetents)
                             .presentationBackground(.black)
@@ -1127,9 +1106,11 @@ struct RunView: View {
                             .presentationBackgroundInteraction(.disabled)
                         }
                         .onAppear {
-                            // Connect to Spotify using an existing session if exists. No need to automatically launch a new one right away
+                            // Connect to Spotify using an existing session if exists. 
+                            // No need to automatically launch a new one right away
                             spotifyManager.connect(launchSession: false)
                         }
+
                        
                     }
                     
@@ -1144,7 +1125,7 @@ struct RunView: View {
                                     Circle()
                                         .frame(width: 32, height: 32)
                                         .foregroundStyle(.white)
-                                    Image(systemName: "chevron.backward")
+                                    Image(systemName: "chevron.down")
                                         .foregroundStyle(.black)
                                         .frame(width: 16, height: 16)
                                         .fontWeight(.semibold)
@@ -1168,18 +1149,13 @@ struct RunView: View {
               
             }
             .onOpenURL { url in
-                // When finished authenticating, save the access token
-//                spotifyManager.saveResponseCode(from: url)
+                // When finished authenticating in spotify and navigating back here, 
+                // save the access token from the url
                 spotifyManager.onAuthCallback(open: url)
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .toolbar(.hidden)
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
-                appearance.backgroundColor = UIColor(Color.black.opacity(0.2))
-            }
         }
     }
 }
@@ -1228,7 +1204,7 @@ struct EndRunButton: View {
                     // let system settings take over wakefulness of phone
                     UIApplication.shared.isIdleTimerDisabled = false
                     
-                    await activityManager.stopTracking(isLiveActivityEnabled: isLiveActivityEnabled)
+                    await activityManager.endRunSession(isLiveActivityEnabled: isLiveActivityEnabled)
                     saveRunData { result in
                         
                         switch result {

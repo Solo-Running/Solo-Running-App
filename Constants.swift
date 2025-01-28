@@ -8,6 +8,13 @@
 import Foundation
 import SwiftUI
 
+enum DeleteStatus {
+    case initial
+    case deleting
+    case success
+    case failure
+}
+
 let BLUE = Color(.blue)
 let NEON = Color(hex: 0xD4D412)
 
@@ -25,4 +32,4 @@ let TEXT_DARK_NEON = Color(hex: 0xAC8A00)
 let RED = Color(hex: 0xED3023)
 let TEXT_LIGHT_RED = Color(hex: 0xFAB2B2)
 
-
+let MAP_SNAPSHOT_ICON_SIZE = 16

@@ -15,17 +15,17 @@ struct DraggablePin: View {
         VStack {
             ZStack {
                 Circle()
-                    .fill(.black)
+                    .fill(.white)
                     .frame(width: 20, height: 20)
                 
                 Image(systemName: "mappin.circle.fill")
                     .font(.title)
-                    .foregroundStyle(NEON)
+                    .foregroundStyle(.yellow)
             }
             
             Image(systemName: "arrowtriangle.down.fill")
                 .font(.caption)
-                .foregroundStyle(NEON)
+                .foregroundStyle(.yellow)
                 .offset(x: 0, y: -6)
     }
         .frame(width: 32, height: 32)

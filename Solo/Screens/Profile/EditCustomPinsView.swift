@@ -25,9 +25,17 @@ struct EditCustomPinsView: View {
     @State var interactionModes: MapInteractionModes = [.zoom, .pan, .pitch, .rotate] // gestures for map view
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     
-    @State var allPinsSheetPosition: BottomSheetPosition = .relative(0.25)
-    @State var pinDetailsSheetPosition: BottomSheetPosition = .hidden
+    
+    @State var allPinsSheetVisible: Bool = true
+    @State var pinDetailsSheetVisible: Bool = false
+    
+    @State private var allPinsSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
+    @State private var pinDetailsSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
 
+    @State private var allPinsSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
+    @State private var pinDetailsSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
+
+    
     @State var selectedPlaceMark: MTPlacemark?
     @State var pinData: MTPlacemark?
     @State var isPinActive: Bool = false
@@ -87,6 +95,29 @@ struct EditCustomPinsView: View {
             }
         })
     }
+    
+    // When deleting a custom location, delete all runs that reference the location
+    func deleteCustomPin() {
+        
+        if let pinData, pinData.isCustomLocation {
+
+            let id = pinData.id
+            let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
+                $0.endPlacemark.id == id
+            })
+            do {
+                let runs = try modelContext.fetch(fetchDescriptor)
+                for run in runs {
+                    modelContext.delete(run)
+                }
+            } catch {
+                print("could not fetch runs with custom pin")
+            }
+            
+            modelContext.delete(pinData)
+            selectedPlaceMark = nil
+        }
+    }
 
     
     var body: some View {
@@ -98,7 +129,9 @@ struct EditCustomPinsView: View {
                     
                     // The selection parameter enables swift to emphasize any landmarks the user taps on the map
                     Map(position: $cameraPosition, interactionModes:  interactionModes, selection: $selectedPlaceMark) {
-                                                
+                        
+                        UserAnnotation()
+                        
                         // Show custom locations by default
                         ForEach(allCustomPinLocations, id: \.self) { pin in
                             Marker(pin.name ?? "Custom Pin", coordinate: pin.getLocation())
@@ -107,11 +140,18 @@ struct EditCustomPinsView: View {
                             
                         }
                     }
+                    
                     .task(id: selectedPlaceMark) {
                         if selectedPlaceMark != nil {
-                            allPinsSheetPosition = .hidden
-                            pinDetailsSheetPosition = .relative(0.25)
                             pinData = selectedPlaceMark
+                            
+                            allPinsSheetVisible = false
+                            
+                            withAnimation(.easeOut) {
+                                allPinsSheetVisible = false
+                                pinDetailsSheetVisible = true
+                                pinDetailsSheetSelectedDetent = SheetPosition.peek.detent
+                            }
                         }
                     }
                     .onMapCameraChange(frequency: .continuous) {
@@ -131,172 +171,216 @@ struct EditCustomPinsView: View {
                             .ignoresSafeArea(.all)
                         }
                     }
-                    
                     .ignoresSafeArea(.keyboard)
                     .ignoresSafeArea(edges: [.leading, .trailing])
                     .mapStyle(.standard)
+                    .mapControls {
+                        MapCompass()
+                        MapUserLocationButton()
+                    }
                 }
-                                
                 
-                .bottomSheet(bottomSheetPosition: $allPinsSheetPosition, switchablePositions: [.relative(0.25), .relative(0.70)]) {
-                    
-                    HStack {
-                        
-                        Text("All Locations")
-                            .foregroundStyle(.white)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        Spacer()
-                        
-                        Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
-                            .tint(NEON)
-                            .toggleStyle(.button)
-                            .labelStyle(.iconOnly)
-                            .font(.title)
-                        
-                        if(usePin) {
-                            Button {
-                                // add pin location to route and show route info sheet
-                                addCustomLocation()
+                
+                .sheet(isPresented: $allPinsSheetVisible) {
+                        VStack {
+                            HStack {
                                 
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
-                                    .frame(width: 48, height: 48)
+                                Text("All Locations")
                                     .foregroundStyle(.white)
-                            }
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .leading).combined(with: .opacity),
-                                removal: .move(edge: .leading).combined(with: .opacity))
-                            )
-                            .animation(.easeOut(duration: 0.2), value: usePin)
-                        }
-                        
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    if !allCustomPinLocations.isEmpty {
-                        List {
-                            ForEach(allCustomPinLocations, id: \.self) { pin in
-                                VStack(alignment: .leading) {
-                                    Text(pin.name ?? "")
-                                        .font(.title3.bold())
-                                        .foregroundStyle(.white)
-                                    
-                                    HStack(spacing: 3) {
-                                        
-                                        // Street
-                                        Text(pin.thoroughfare ?? "")
-                                            .foregroundStyle(.gray)
-                                        
-                                        // City
-                                        Text(pin.locality ?? "")
-                                            .foregroundStyle(.gray)
-                                        
-                                        // State
-                                        Text(pin.administrativeArea != nil ? ", \(pin.administrativeArea!)" : "")
-                                            .foregroundStyle(.gray)
-                                    }
-                                }
-                                .onTapGesture {
-                                    allPinsSheetPosition = .hidden
-                                    pinDetailsSheetPosition = .relative(0.25)
-                                    selectedPlaceMark = pin
-                                    pinData = pin
-                                    
-                                    // move to the corresponding pin on the map if the user taps on a list entry
-                                    withAnimation {
-                                        cameraPosition = .region(MKCoordinateRegion(
-                                            center: pin.getLocation(),
-                                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                                        ))
-                                    }
-                                }
-                                .listRowInsets(EdgeInsets(top: pin == allCustomPinLocations.first ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
-
-                            }
-                            .listRowBackground(Color.clear)
-                            .listStyle(.plain)
-                        }
-                        .padding(.top, 0) // removes default spacing at top of list
-                        .scrollContentBackground(.hidden)
-                    }
-                }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                .dragIndicatorColor(.gray)
-                
-                
-                
-                
-                
-                .bottomSheet(bottomSheetPosition: $pinDetailsSheetPosition, switchablePositions: [.relative(0.25), .relative(0.70)]) {
-                    
-                        
-                    VStack(alignment: .leading) {
-                        
-                        HStack {
-                            Text("Pin Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
-                            Spacer()
-                            
-                            // Custom dismiss button
-                            Button {
-                                self.pinDetailsSheetPosition = .hidden
-                                self.allPinsSheetPosition = .relative(0.25)
-                                selectedPlaceMark = nil
-                                pinData = nil
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.gray)
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                
+                                Spacer()
+                                
+                                Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
+                                    .tint(.yellow)
+                                    .toggleStyle(.button)
+                                    .labelStyle(.iconOnly)
                                     .font(.title)
-                            }
-                        }
-                        
-                        if pinData != nil {
-                            
-                            Text(pinData!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-                            
-                            HStack(spacing: 3) {
                                 
-                                // Street
-                                Text(pinData!.thoroughfare ?? "")
-                                    .foregroundStyle(.gray)
-                                
-                                // City
-                                Text(pinData!.locality ?? "")
-                                    .foregroundStyle(.gray)
-                                
-                                // State
-                                Text(pinData!.administrativeArea != nil ? ", \(pinData!.administrativeArea!)" : "")
-                                    .foregroundStyle(.gray)
-                            }
-
-                            Spacer().frame(height: 24)
-                            
-                            Button  {
-                                modelContext.delete(pinData!)
-                                selectedPlaceMark = nil
-                                pinData = nil
-                                self.pinDetailsSheetPosition = .hidden
-                                self.allPinsSheetPosition = .relative(0.25)
-                            } label: {
-                                HStack {
-                                    Text("Delete Pin")
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(TEXT_LIGHT_RED)
+                                if(usePin) {
+                                    Button {
+                                        // add pin location to route and show route info sheet
+                                        addCustomLocation()
+                                        
+                                    } label: {
+                                        Image(systemName: "plus.circle.fill")
+                                            .frame(width: 48, height: 48)
+                                            .foregroundStyle(.white)
+                                    }
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .leading).combined(with: .opacity),
+                                        removal: .move(edge: .leading).combined(with: .opacity))
+                                    )
+                                    .animation(.easeOut(duration: 0.2), value: usePin)
                                 }
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(.red)
-                                .cornerRadius(12)
+                                
+                            }
+                            .padding([.leading], 16)
+                            .padding([.trailing], 8)
+                            
+                            
+                            if !allCustomPinLocations.isEmpty {
+                                List {
+                                    ForEach(allCustomPinLocations, id: \.self) { pin in
+                                        VStack(alignment: .leading) {
+                                            Text(pin.name ?? "")
+                                                .font(.title3.bold())
+                                                .foregroundStyle(.white)
+                                            
+                                            HStack(spacing: 3) {
+                                                
+                                                // Street
+                                                Text(pin.thoroughfare ?? "")
+                                                    .foregroundStyle(.gray)
+                                                
+                                                // City
+                                                Text(pin.locality ?? "")
+                                                    .foregroundStyle(.gray)
+                                                
+                                                // State
+                                                Text(pin.administrativeArea != nil ? ", \(pin.administrativeArea!)" : "")
+                                                    .foregroundStyle(.gray)
+                                            }
+                                        }
+                                        .onTapGesture {
+                                            
+                                            selectedPlaceMark = pin
+                                            pinData = pin
+                                            
+                                            withAnimation(.easeOut) {
+                                                allPinsSheetVisible = false
+                                                pinDetailsSheetVisible = true
+                                                pinDetailsSheetSelectedDetent = SheetPosition.peek.detent
+                                            }
+                                            
+                                            // move to the corresponding pin on the map if the user taps on a list entry
+                                            withAnimation {
+                                                cameraPosition = .region(MKCoordinateRegion(
+                                                    center: pin.getLocation(),
+                                                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                                ))
+                                            }
+                                        }
+                                        .listRowInsets(EdgeInsets(top: pin == allCustomPinLocations.first ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
+                                        
+                                    }
+                                    .listRowBackground(Color.clear)
+                                    .listStyle(.plain)
+                                }
+                                .scrollContentBackground(.hidden)
+                            }
+                            
+                            else {
+                                ScrollView(showsIndicators: false) {
+                                    ContentUnavailableView(
+                                        "No pinned locations were found",
+                                        systemImage: "exclamationmark.magnifyingglass",
+                                        description: Text("You can add new pins using the pin icon above. ")
+                                    )
+                                    .padding(.horizontal, 8)
+                                }
                             }
                         }
-
-                    }
-                    .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .interactiveDismissDisabled(true)
+                        .presentationDetents(allPinsSheetDetents, selection: $allPinsSheetSelectedDetent)
+                        .presentationBackground(.black)
+                        .presentationDragIndicator(.visible)
+                        .presentationBackgroundInteraction(.enabled)                    
+                             
                 }
-                .customBackground(Color.black.clipShape(.rect(cornerRadius: 12)))
-                .dragIndicatorColor(.gray)
-               
+                
+                
+                
+                .sheet(isPresented: $pinDetailsSheetVisible) {
+                    ScrollView(showsIndicators: false){
+                        VStack(alignment: .leading) {
+                            
+                            HStack {
+                                Text("Pin Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                Spacer()
+                                
+                                // Custom dismiss button
+                                Button {
+                                    selectedPlaceMark = nil
+                                    pinData = nil
+                                    pinDetailsSheetVisible = false
+                                    allPinsSheetVisible = true
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.gray)
+                                        .font(.title)
+                                }
+                            }
+                            .padding(.bottom, 8)
+                            
+                            if pinData != nil {
+                                
+                                Text(pinData!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                
+                                HStack(spacing: 3) {
+                                    
+                                    // Street
+                                    Text(pinData!.thoroughfare ?? "")
+                                        .foregroundStyle(.gray)
+                                    
+                                    // City
+                                    Text(pinData!.locality ?? "")
+                                        .foregroundStyle(.gray)
+                                    
+                                    // State
+                                    Text(pinData!.administrativeArea != nil ? ", \(pinData!.administrativeArea!)" : "")
+                                        .foregroundStyle(.gray)
+                                }
+                                
+                                Spacer().frame(height: 24)
+                                
+                                Button  {
+                                    deleteCustomPin()
+                                    selectedPlaceMark = nil
+                                    pinData = nil
+                                    allPinsSheetVisible = true
+                                    pinDetailsSheetVisible = false
+                                    
+                                } label: {
+                                    HStack {
+                                        Text("Delete Pin")
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(TEXT_LIGHT_RED)
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(.red)
+                                    .cornerRadius(12)
+                                }
+                                
+                                
+                                VStack(alignment: .center) {
+                                    Image(systemName: "trash")
+                                        .padding(.vertical, 8)
+                                    Text("Deleting a custom pin will also delete any runs that reference it.").foregroundStyle(TEXT_LIGHT_GREY)
+                                        .multilineTextAlignment(.center)
+                                    
+                                }
+                                .padding(.top, 48)
+                            }
+                            
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .interactiveDismissDisabled(true)
+                        .presentationDetents(pinDetailsSheetDetents, selection: $pinDetailsSheetSelectedDetent)
+                        .presentationBackground(.black)
+                        .presentationDragIndicator(.visible)
+                        .presentationBackgroundInteraction(.enabled)
+                    }
+                }
+                
+                
+   
                 
                 
                 HStack {
@@ -308,7 +392,7 @@ struct EditCustomPinsView: View {
                             Circle()
                                 .frame(width: 32, height: 32)
                                 .foregroundStyle(.white)
-                            Image(systemName: "chevron.backward")
+                            Image(systemName: "chevron.down")
                                 .foregroundStyle(.black)
                                 .frame(width: 16, height: 16)
                                 .fontWeight(.semibold)
@@ -327,22 +411,17 @@ struct EditCustomPinsView: View {
                 }
                 .padding(.horizontal, 12)
                 
-                
-                
             }
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(.hidden, for: .tabBar)
             .toolbar(.hidden, for: .navigationBar)
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.backgroundEffect = UIBlurEffect(style: .systemMaterialDark)
-                appearance.backgroundColor = UIColor(Color.black.opacity(0.2))
-                
-            }
             .preferredColorScheme(isDarkMode ? .dark : .light)
-
+            
+            // There's a weird bug where SwiftUI will render the map user annotations and
+            // buttons as completely white. This is required to override that behavior
+            .tint(.blue)
         }
+        
     }
-
 }
 

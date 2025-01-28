@@ -45,21 +45,21 @@ struct RunHistoryView: View {
         // delete any other run that uses the same route destination or endPlacemark
         for offset in offsets {
             let run = runs[offset]
-            
-            
-            let routeId = run.endPlacemark.id
-            let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
-                $0.endPlacemark.id == routeId
-            })
-            
-            do {
-                let runs = try modelContext.fetch(fetchDescriptor)
-                for run in runs {
-                    modelContext.delete(run)
-                }
-            } catch {
-                print("could not fetch runs with custom pin")
-            }
+//            
+//            
+//            let routeId = run.endPlacemark.id
+//            let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
+//                $0.endPlacemark.id == routeId
+//            })
+//            
+//            do {
+//                let runs = try modelContext.fetch(fetchDescriptor)
+//                for run in runs {
+//                    modelContext.delete(run)
+//                }
+//            } catch {
+//                print("could not fetch runs with custom pin")
+//            }
 
             // delete the run from the context
             modelContext.delete(run)
@@ -107,11 +107,20 @@ struct RunHistoryView: View {
                                                 
                                                 HStack(alignment: .center) {
                                                     if let uiImage = UIImage(data: run.routeImage) {
-                                                        VStack {
+                                                        ZStack(alignment: .topTrailing) {
                                                             Image(uiImage: uiImage)
                                                                 .resizable()
                                                                 .scaledToFill()
                                                                 .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                                .overlay {
+                                                                    if run.endPlacemark.isCustomLocation {
+                                                                        Circle()
+                                                                            .strokeBorder(.black, lineWidth: 2)
+                                                                            .background(Circle().fill(.yellow))
+                                                                            .frame(width: 12, height: 12)
+                                                                            .offset(x: 10, y: -10)
+                                                                    }
+                                                                }
                                                         }
                                                         .frame(width: 24, height: 24 )
                                                         .padding(.trailing, 4)
@@ -126,15 +135,14 @@ struct RunHistoryView: View {
                                             }
                                             
                                             Spacer()
-
-//                                            CapsuleView(capsuleBackground: DARK_GREY, iconName: "", iconColor: "", text: String("\(run.steps!)"))
-                                            
                                         }
                                     }
+                                    
+//                                    Divider().foregroundStyle(DARK_GREY)
                                 }
                                 .onDelete(perform: deleteRuns)
                                 .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
+//                                .listRowSeparator(.hidden)
 
                             }
                         }

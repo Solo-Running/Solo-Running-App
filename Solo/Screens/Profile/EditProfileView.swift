@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import PhotosUI
 import SwiftData
+import AlertToast
 
 struct EditProfileView: View {
     
@@ -17,6 +18,8 @@ struct EditProfileView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedPhotoData: Data? = nil
     @State private var showErrorDialog: Bool = false
+    
+    @State private var showSaveToast: Bool = false
 
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
@@ -98,13 +101,16 @@ struct EditProfileView: View {
                         else {
                             newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
                         }
+                    
                         modelContext.delete(user!)
                         modelContext.insert(newUser)
-                        
-                        print("inserted credentials into swift data")
+                        showSaveToast = true                                            
                     }
                 } label : {
-                    Text("Let's go!").foregroundStyle(.white).frame(maxWidth: .infinity).frame(height: 32)
+                    Text("Save changes")
+                        .foregroundStyle(BLUE)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 32)
                 }
                 
                 
@@ -118,6 +124,9 @@ struct EditProfileView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                 }
+            }
+            .toast(isPresenting: $showSaveToast, tapToDismiss: true) {
+                AlertToast(type: .systemImage("checkmark.circle", Color.green), title: "Successfully saved changes")
             }
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {

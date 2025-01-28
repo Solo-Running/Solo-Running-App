@@ -63,10 +63,10 @@ func timeDifference(from startDate: Date, to endDate: Date) -> String {
        
        // If the difference is less than 60 seconds, display seconds
        if hours == 0 && minutes == 0 && seconds > 0 {
-           result = "\(seconds)sec"
+           result = "\(seconds)s"
        }
 
-       return result.isEmpty ? "0sec" : result
+       return result.isEmpty ? "0s" : result
 }
 
 // Helper function to format route step distances to user friendly format

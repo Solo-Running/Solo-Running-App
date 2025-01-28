@@ -23,6 +23,7 @@ class RunData {
 @Model
 final class Run: Identifiable{
     @Attribute(.unique) public var id: String = UUID().uuidString
+    var isDarkMode: Bool
     var postedDate: Date
     var startTime: Date
     var endTime: Date
@@ -30,14 +31,16 @@ final class Run: Identifiable{
     var distanceTraveled: Double    // distance in meters
     var steps: Int
     var startPlacemark: MTPlacemark
-    @Relationship(deleteRule: .cascade)  var endPlacemark: MTPlacemark // delete any runs that reference a deleted location
+    @Relationship(deleteRule: .noAction)  var endPlacemark: MTPlacemark // don't delete the placemark. The user should do this manually
     var avgSpeed: Double            // miles per hour
     var avgPace: Int                // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data
+    var notes: String
 
     
-    init(id: String = UUID().uuidString, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startPlacemark: MTPlacemark, endPlacemark: MTPlacemark,  avgSpeed: Double, avgPace: Int, routeImage: Data) {
+    init(id: String = UUID().uuidString, isDarkMode: Bool = false, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startPlacemark: MTPlacemark, endPlacemark: MTPlacemark,  avgSpeed: Double, avgPace: Int, routeImage: Data, notes: String = "") {
         self.id = id
+        self.isDarkMode = isDarkMode
         self.postedDate = postedDate
         self.startTime = startTime
         self.endTime = endTime
@@ -49,5 +52,7 @@ final class Run: Identifiable{
         self.avgSpeed = avgSpeed
         self.avgPace = avgPace
         self.routeImage = routeImage
+        self.notes = notes
+        
     }
 }

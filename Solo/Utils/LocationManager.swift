@@ -50,7 +50,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
     
     func updateStartEndPlacemarks(start: MTPlacemark, end: MTPlacemark) {
-        
         self.startPlacemark = start
         self.endPlacemark = end
         print("saved start and end placemarks")
@@ -84,81 +83,43 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         
     }
     
-
-    
-    
-
-    //  Invoked when a user creates a route with directions
     func updateStepCoordinates(steps: [MKRoute.Step]) {
-        routeSteps = steps
-        
-        for step in steps {
-            let coordinate = step.polyline.coordinate
-            stepCoordinates.append(coordinate)
-        }
-    }
+           routeSteps = steps
+           
+           for step in steps {
+               let coordinate = step.polyline.coordinate
+               stepCoordinates.append(coordinate)
+           }
+       }
     
-    
+
+
     // updates user location and calculates next step with remaining distance
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         userLocation = locations.last
 
         if !stepCoordinates.isEmpty  {
- 
             let nextStepCoordinate = stepCoordinates.first
             let nextStepLocation = CLLocation(latitude: nextStepCoordinate!.latitude, longitude: nextStepCoordinate!.longitude)
-            
-            remainingDistanceToStep = userLocation!.distance(from: nextStepLocation)
-            
-            // get next step if within 10 meters of current step
-            if remainingDistanceToStep! < 10 {
-                let isFinished = moveToNextStep()
-                if isFinished {
-                    print("Done with run!")
-                }
-            }
+                       
         }
     }
     
-    
-    func moveToNextStep() -> Bool {
-        stepCoordinates.removeFirst()
-        routeSteps.removeFirst()
-        
-        if routeSteps.isEmpty {
-            return true
-        }
-        return false
-    }
-    
-    
-//    func findClosestRouteStep() -> Int{
-//        if userLocation != nil {
-//            for (index, coordinate) in stepCoordinates.enumerated() {
-//                let stepLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-//                let distance = userLocation!.distance(from: stepLocation)
-//                
-//                // Check if the user is within a certain threshold (e.g., 20 meters) of the step
-//                if distance < 20 {
-//                    return index // Return the index of the next step the user is close to
-//                }
-//            }
-//        }
-//       return -1 // Return nil if no step is close enough
-//    }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
             isAuthorized = true
+            print("location authorization enabled")
             manager.requestLocation()
             
         case .notDetermined:
             isAuthorized = false
+            print("location authorization not determined")
             manager.requestWhenInUseAuthorization()
         case .denied:
             isAuthorized = false
-            print("Access denied")
+            print("location authorization denied")
             // should navigate to new screen to tell user to turn on location services
         default:
             isAuthorized = true

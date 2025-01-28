@@ -25,7 +25,7 @@ struct CapsuleView: View {
                 if !iconName.isEmpty {
                     Image(systemName: iconName)
                         .foregroundStyle(iconColor)
-                        .font(.system(size: 12))
+                        .font(.system(size: 14))
                 }
             }
             
