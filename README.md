@@ -3,4 +3,4 @@ Solo Running is very much a passion project of mine after seeing the lack of sim
 
 
 # Privacy Policy
-Solo Running requires the use of Apple's Location Services and Motion Kit to track physical activity. All other data including images, notes, and statistics are all stored locally on every user's device. Solo Running does share this data with any entity. 
+Solo Running requires the use of Apple's Location Services for maps and Motion Kit to track physical activity. The Spotify IOS SDK has been implemented according to the official guidelines here. Users of this app should expect to grant authorization to establish Spotify Player control whenever they use the service. All other data including images, notes, and statistics are all stored locally on every user's device. Solo Running does share this data with any entity. 
