@@ -329,16 +329,16 @@ struct RunView: View {
                     
                     if let firstLocation = placemarks?[0] {
                         let placemark = MTPlacemark(
-                            name: firstLocation.name,
-                            thoroughfare: firstLocation.thoroughfare,
-                            subThoroughfare: firstLocation.subThoroughfare,
-                            locality: firstLocation.locality,
-                            subLocality: firstLocation.subLocality,
-                            administrativeArea: firstLocation.administrativeArea,
-                            subAdministrativeArea: firstLocation.subAdministrativeArea,
-                            postalCode: firstLocation.postalCode,
-                            country: firstLocation.country,
-                            isoCountryCode: firstLocation.isoCountryCode,
+                            name: firstLocation.name ?? "",
+                            thoroughfare: firstLocation.thoroughfare ?? "",
+                            subThoroughfare: firstLocation.subThoroughfare ?? "",
+                            locality: firstLocation.locality ?? "",
+                            subLocality: firstLocation.subLocality ?? "",
+                            administrativeArea: firstLocation.administrativeArea ?? "",
+                            subAdministrativeArea: firstLocation.subAdministrativeArea ?? "",
+                            postalCode: firstLocation.postalCode ?? "",
+                            country: firstLocation.country ?? "",
+                            isoCountryCode: firstLocation.isoCountryCode ?? "",
                             longitude: firstLocation.location!.coordinate.longitude,
                             latitude: firstLocation.location!.coordinate.latitude,
                             isCustomLocation: false,
@@ -363,7 +363,7 @@ struct RunView: View {
             let routeId = routeDestination.id
 
             let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
-                $0.endPlacemark.id == routeId
+                $0.endPlacemark?.id == routeId
             })
             do {
                 let runs = try modelContext.fetch(fetchDescriptor)
@@ -389,16 +389,16 @@ struct RunView: View {
             if let customPlacemark {
 
                 let placemark = MTPlacemark(
-                    name: customPlacemark.name,
-                    thoroughfare: customPlacemark.thoroughfare,
-                    subThoroughfare: customPlacemark.subThoroughfare,
-                    locality: customPlacemark.locality,
-                    subLocality: customPlacemark.subLocality,
-                    administrativeArea: customPlacemark.administrativeArea,
-                    subAdministrativeArea: customPlacemark.subAdministrativeArea,
-                    postalCode: customPlacemark.postalCode,
-                    country: customPlacemark.country,
-                    isoCountryCode: customPlacemark.isoCountryCode,
+                    name: customPlacemark.name ?? "",
+                    thoroughfare: customPlacemark.thoroughfare ?? "",
+                    subThoroughfare: customPlacemark.subThoroughfare ?? "",
+                    locality: customPlacemark.locality ?? "",
+                    subLocality: customPlacemark.subLocality ?? "",
+                    administrativeArea: customPlacemark.administrativeArea ?? "",
+                    subAdministrativeArea: customPlacemark.subAdministrativeArea ?? "",
+                    postalCode: customPlacemark.postalCode ?? "",
+                    country: customPlacemark.country ?? "",
+                    isoCountryCode: customPlacemark.isoCountryCode ?? "",
                     longitude: customPlacemark.location!.coordinate.longitude,
                     latitude: customPlacemark.location!.coordinate.latitude,
                     isCustomLocation: true,
@@ -496,7 +496,7 @@ struct RunView: View {
                             
                             // This is used to persist the marker even when the user taps elsewhere on the screen
                             if let routeDestination {
-                                Marker(routeDestination.name!, coordinate: routeDestination.getLocation())
+                                Marker(routeDestination.name, coordinate: routeDestination.getLocation())
                                     .tint(routeDestination.isCustomLocation ? .yellow : .red)
                                     .tag(routeDestination)
                             }
@@ -626,22 +626,22 @@ struct RunView: View {
                                     ForEach(places, id: \.self) { place in
                                         
                                         VStack(alignment: .leading) {
-                                            Text(place.name ?? "")
+                                            Text(place.name)
                                                 .font(.title3.bold())
                                                 .foregroundStyle(.white)
                                             
                                             HStack(spacing: 3) {
                                                 
                                                 // Street
-                                                Text(place.thoroughfare ?? "")
+                                                Text(place.thoroughfare)
                                                     .foregroundStyle(.gray)
                                                 
                                                 // City
-                                                Text(place.locality ?? "")
+                                                Text(place.locality)
                                                     .foregroundStyle(.gray)
                                                 
                                                 // State
-                                                Text(place.administrativeArea != nil ? ", \(place.administrativeArea!)" : "")
+                                                Text(place.administrativeArea)
                                                     .foregroundStyle(.gray)
                                             }
                                         }

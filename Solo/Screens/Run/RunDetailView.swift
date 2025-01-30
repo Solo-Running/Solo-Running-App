@@ -140,9 +140,10 @@ struct RunDetailView: View {
                                         .fill(.white)
                                         .frame(width: 12, height: 12)
                                     
-                                    Text((runData?.startPlacemark.name)!)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
+                                    if let startPlacemark = runData.startPlacemark {
+                                        Text(startPlacemark.name)
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                    }
                                     Spacer()
                                 }
                                 .overlay(alignment: .topLeading){
@@ -158,10 +159,11 @@ struct RunDetailView: View {
                                         .fill(.white)
                                         .frame(width: 12, height: 12)
                                     
-                                    Text((runData?.endPlacemark.name)!)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                        .offset(y: -4)
-                                    
+                                    if let endPlacemark = runData.endPlacemark {
+                                        Text(endPlacemark.name)
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .offset(y: -4)
+                                    }
                                     Spacer()
                                 }
                             }

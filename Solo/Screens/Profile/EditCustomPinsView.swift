@@ -48,16 +48,16 @@ struct EditCustomPinsView: View {
             if let customPlacemark {
 
                 let placemark = MTPlacemark(
-                    name: customPlacemark.name,
-                    thoroughfare: customPlacemark.thoroughfare,
-                    subThoroughfare: customPlacemark.subThoroughfare,
-                    locality: customPlacemark.locality,
-                    subLocality: customPlacemark.subLocality,
-                    administrativeArea: customPlacemark.administrativeArea,
-                    subAdministrativeArea: customPlacemark.subAdministrativeArea,
-                    postalCode: customPlacemark.postalCode,
-                    country: customPlacemark.country,
-                    isoCountryCode: customPlacemark.isoCountryCode,
+                    name: customPlacemark.name ?? "",
+                    thoroughfare: customPlacemark.thoroughfare ?? "",
+                    subThoroughfare: customPlacemark.subThoroughfare ?? "",
+                    locality: customPlacemark.locality ?? "",
+                    subLocality: customPlacemark.subLocality ?? "",
+                    administrativeArea: customPlacemark.administrativeArea ?? "",
+                    subAdministrativeArea: customPlacemark.subAdministrativeArea ?? "",
+                    postalCode: customPlacemark.postalCode ?? "",
+                    country: customPlacemark.country ?? "",
+                    isoCountryCode: customPlacemark.isoCountryCode ?? "",
                     longitude: customPlacemark.location!.coordinate.longitude,
                     latitude: customPlacemark.location!.coordinate.latitude,
                     isCustomLocation: true
@@ -103,7 +103,7 @@ struct EditCustomPinsView: View {
 
             let id = pinData.id
             let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
-                $0.endPlacemark.id == id
+                $0.endPlacemark?.id == id
             })
             do {
                 let runs = try modelContext.fetch(fetchDescriptor)
@@ -224,22 +224,22 @@ struct EditCustomPinsView: View {
                                 List {
                                     ForEach(allCustomPinLocations, id: \.self) { pin in
                                         VStack(alignment: .leading) {
-                                            Text(pin.name ?? "")
+                                            Text(pin.name)
                                                 .font(.title3.bold())
                                                 .foregroundStyle(.white)
                                             
                                             HStack(spacing: 3) {
                                                 
                                                 // Street
-                                                Text(pin.thoroughfare ?? "")
+                                                Text(pin.thoroughfare)
                                                     .foregroundStyle(.gray)
                                                 
                                                 // City
-                                                Text(pin.locality ?? "")
+                                                Text(pin.locality)
                                                     .foregroundStyle(.gray)
                                                 
                                                 // State
-                                                Text(pin.administrativeArea != nil ? ", \(pin.administrativeArea!)" : "")
+                                                Text(pin.administrativeArea)
                                                     .foregroundStyle(.gray)
                                             }
                                         }
@@ -318,20 +318,20 @@ struct EditCustomPinsView: View {
                             
                             if pinData != nil {
                                 
-                                Text(pinData!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                Text(pinData?.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
                                 
                                 HStack(spacing: 3) {
                                     
                                     // Street
-                                    Text(pinData!.thoroughfare ?? "")
+                                    Text(pinData?.thoroughfare ?? "")
                                         .foregroundStyle(.gray)
                                     
                                     // City
-                                    Text(pinData!.locality ?? "")
+                                    Text(pinData?.locality ?? "")
                                         .foregroundStyle(.gray)
                                     
                                     // State
-                                    Text(pinData!.administrativeArea != nil ? ", \(pinData!.administrativeArea!)" : "")
+                                    Text(pinData?.administrativeArea ?? "")
                                         .foregroundStyle(.gray)
                                 }
                                 

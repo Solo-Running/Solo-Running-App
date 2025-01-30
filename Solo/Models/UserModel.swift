@@ -14,8 +14,8 @@ import SwiftUI
 public class UserModel {
 //    @Attribute(.unique) public var id: String = UUID().uuidString
     public var id: String = UUID().uuidString
-    var fullName: String
-    var streak: Int
+    var fullName: String = ""
+    var streak: Int = 0
     var streakLastDoneDate: Date?
     @Attribute(.externalStorage) var profilePicture: Data?
 

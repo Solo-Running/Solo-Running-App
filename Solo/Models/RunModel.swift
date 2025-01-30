@@ -23,20 +23,20 @@ class RunData {
 @Model
 final class Run: Identifiable{
 //    @Attribute(.unique) public var id: String = UUID().uuidString
-    var id: String = UUID().uuidString
-    var isDarkMode: Bool
-    var postedDate: Date
-    var startTime: Date
-    var endTime: Date
-    var elapsedTime: Int            // seconds
-    var distanceTraveled: Double    // distance in meters
-    var steps: Int
-    var startPlacemark: MTPlacemark
-    @Relationship(deleteRule: .noAction)  var endPlacemark: MTPlacemark // don't delete the placemark. The user should do this manually
-    var avgSpeed: Double            // miles per hour
-    var avgPace: Int                // minutes per mile
-    @Attribute(.externalStorage) var routeImage: Data
-    var notes: String
+    public var id: String = UUID().uuidString
+    var isDarkMode: Bool = true
+    var postedDate: Date = Date()
+    var startTime: Date = Date()
+    var endTime: Date = Date()
+    var elapsedTime: Int  = 0           // seconds
+    var distanceTraveled: Double  = 0.0   // distance in meters
+    var steps: Int = 0
+    var startPlacemark: MTPlacemark?
+    @Relationship(deleteRule: .noAction)  var endPlacemark: MTPlacemark? // don't delete the endPlacemark. The user should do this manually
+    var avgSpeed: Double = 0.0        // miles per hour
+    var avgPace: Int  = 0          // minutes per mile
+    @Attribute(.externalStorage) var routeImage: Data?
+    var notes: String = ""
 
     
     init(id: String = UUID().uuidString, isDarkMode: Bool = false, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startPlacemark: MTPlacemark, endPlacemark: MTPlacemark,  avgSpeed: Double, avgPace: Int, routeImage: Data, notes: String = "") {

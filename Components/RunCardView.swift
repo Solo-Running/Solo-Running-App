@@ -16,9 +16,9 @@ struct RunCardView: View {
             
             HStack(alignment: .top) {
                 
-                if let uiImage = UIImage(data: run.routeImage) {
+                if let data = run.routeImage {
                     VStack {
-                        Image(uiImage: uiImage)
+                        Image(uiImage: UIImage(data: data)!)
                             .resizable()
                             .scaledToFill()
                             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -47,32 +47,36 @@ struct RunCardView: View {
                     HStack  {
                         
                         // Custom pin
-                        VStack {
-                            ZStack {
-                                Circle()
-                                    .fill(.white)
-                                    .frame(width: 14, height: 14)
+                        if let endPlacemark = run.endPlacemark {
+                            VStack {
+                                ZStack {
+                                    Circle()
+                                        .fill(.white)
+                                        .frame(width: 14, height: 14)
+                                    
+                                    
+                                    Image(systemName: "mappin.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
+                                        .font(.system(size: 4))
+                                }
                                 
-                                Image(systemName: "mappin.circle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(run.endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
-                                    .font(.system(size: 4))
+                                Image(systemName: "arrowtriangle.down.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
+                                    .offset(x: 0, y: -8)
                             }
                             
-                            Image(systemName: "arrowtriangle.down.fill")
-                                .font(.caption)
-                                .foregroundStyle(run.endPlacemark.isCustomLocation ? .yellow : DARK_GREY)
-                                .offset(x: 0, y: -8)
+                            
+                            
+                            Text(endPlacemark.name)
+                                .foregroundStyle(.white)
+                                .padding(.bottom, 4)
+                                .font(.system(size: 14))
+                                .multilineTextAlignment(.leading)
+                            
+                            Spacer()
                         }
-                        
-                        
-                        Text((run.endPlacemark.name)!)
-                            .foregroundStyle(.white)
-                            .padding(.bottom, 4)
-                            .font(.system(size: 14))
-                            .multilineTextAlignment(.leading)
-                        
-                        Spacer()
                     }
                 }
                 

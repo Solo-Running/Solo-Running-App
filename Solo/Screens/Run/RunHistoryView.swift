@@ -13,22 +13,17 @@ import Algorithms
 struct RunHistoryView: View {
     
     @Environment(\.modelContext) private var modelContext
+    @State private var isExpanded: Set<String> = []
     @Query(sort: \Run.postedDate, order: .reverse) var runs: [Run]
     
-    var sectionedRuns: [(String, [Run])] {
-        chunkRuns(runsToChunk: runs)
-    }
-    
-    
-    let sectionDateFormatter = DateFormatter()
+    var sectionedRuns: [(String, [Run])] { chunkRuns(runsToChunk: runs)}
+    private var sectionDateFormatter = DateFormatter()
    
-    @State private var isExpanded: Set<String> = []
       
-    
     init() {
         sectionDateFormatter.dateFormat = "MMM yyyy"
-//        _isExpanded = State(initialValue: Set(sectionedRuns.map { $0.0 }))  this causes error .modelContext in view's environment to use Query
     }
+    
     
     func chunkRuns(runsToChunk: [Run]) -> [(String, [Run])] {
         let chunks = runsToChunk.chunked(on: {
@@ -45,23 +40,6 @@ struct RunHistoryView: View {
         // delete any other run that uses the same route destination or endPlacemark
         for offset in offsets {
             let run = runs[offset]
-//            
-//            
-//            let routeId = run.endPlacemark.id
-//            let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
-//                $0.endPlacemark.id == routeId
-//            })
-//            
-//            do {
-//                let runs = try modelContext.fetch(fetchDescriptor)
-//                for run in runs {
-//                    modelContext.delete(run)
-//                }
-//            } catch {
-//                print("could not fetch runs with custom pin")
-//            }
-
-            // delete the run from the context
             modelContext.delete(run)
         }
     }
@@ -99,50 +77,51 @@ struct RunHistoryView: View {
                                         NavigationLink(destination: RunDetailView(runData: run)) {EmptyView()}.opacity(0)
                                         
                                         // Run preview content
-                                        HStack {
-                                            VStack(alignment: .leading) {
-                                                Text(String(getDayAndTimeRange(startDate: run.startTime, endDate: run.endTime)))
-                                                    .font(.subheadline)
-                                                    .fontWeight(.semibold)
-                                                
-                                                HStack(alignment: .center) {
-                                                    if let uiImage = UIImage(data: run.routeImage) {
-                                                        ZStack(alignment: .topTrailing) {
-                                                            Image(uiImage: uiImage)
-                                                                .resizable()
-                                                                .scaledToFill()
-                                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                                .overlay {
-                                                                    if run.endPlacemark.isCustomLocation {
-                                                                        Circle()
-                                                                            .strokeBorder(.black, lineWidth: 2)
-                                                                            .background(Circle().fill(.yellow))
-                                                                            .frame(width: 12, height: 12)
-                                                                            .offset(x: 10, y: -10)
+                                        if let endPlacemark = run.endPlacemark {
+                                            HStack {
+                                                VStack(alignment: .leading) {
+                                                    Text(String(getDayAndTimeRange(startDate: run.startTime, endDate: run.endTime)))
+                                                        .font(.subheadline)
+                                                        .fontWeight(.semibold)
+                                                    
+                                                    HStack(alignment: .center) {
+                                                        if let data = run.routeImage {
+                                                            ZStack(alignment: .topTrailing) {
+                                                                Image(uiImage: UIImage(data: data)!)
+                                                                    .resizable()
+                                                                    .scaledToFill()
+                                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                                    .overlay {
+                                                                        
+                                                                        if endPlacemark.isCustomLocation {
+                                                                            Circle()
+                                                                                .strokeBorder(.black, lineWidth: 2)
+                                                                                .background(Circle().fill(.yellow))
+                                                                                .frame(width: 12, height: 12)
+                                                                                .offset(x: 10, y: -10)
+                                                                        }
                                                                     }
-                                                                }
+                                                            }
+                                                            .frame(width: 24, height: 24 )
+                                                            .padding(.trailing, 4)
                                                         }
-                                                        .frame(width: 24, height: 24 )
-                                                        .padding(.trailing, 4)
+                                                        
+                                                        Text(endPlacemark.name)
+                                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                                            .font(.subheadline)
+                                                    
+                                                        Spacer()
+                                                        
                                                     }
-                                                    
-                                                    Text("\(run.endPlacemark.name!)")
-                                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                                    
-                                                    Spacer()
-
                                                 }
+                                                
+                                                Spacer()
                                             }
-                                            
-                                            Spacer()
                                         }
                                     }
-                                    
-//                                    Divider().foregroundStyle(DARK_GREY)
                                 }
                                 .onDelete(perform: deleteRuns)
                                 .listRowBackground(Color.clear)
-//                                .listRowSeparator(.hidden)
 
                             }
                         }
