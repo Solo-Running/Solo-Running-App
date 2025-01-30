@@ -13,7 +13,9 @@ enum LaunchScreenStep {
     case finished
 }
 
-
+/**
+  Handles the appearance and dismissal of the LaunchView
+ */
 @Observable
 public class LaunchStateManager {
 

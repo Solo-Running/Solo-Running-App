@@ -12,7 +12,6 @@ enum Screen: Int {
     case Dashboard = 0, Run, Profile
 }
 
-
 @Observable
 final class AppState {
     var hasCredentials: Bool

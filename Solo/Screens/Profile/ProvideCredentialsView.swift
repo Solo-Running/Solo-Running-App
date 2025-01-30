@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import PhotosUI
 
+
+/**
+ Provides a basic form to input a name and profile image when the user first creates their profile.
+ Do note that this information is purely for user experience and is not shared with anyone.
+ */
 struct ProvideCredentialsView: View {
     
     @Environment(\.modelContext) private var modelContext
@@ -118,7 +123,7 @@ struct ProvideCredentialsView: View {
         }
         .sheet(isPresented: $showPermissionsSheet, onDismiss: {
             // Check if the user updated their permissions from the settings
-            activityManager.checkAuthorization(launchRun: false)
+            activityManager.checkAuthorization()
         }) {
             PermissionsView()
                 .presentationDetents(permissionsSheetDetents)
@@ -127,7 +132,11 @@ struct ProvideCredentialsView: View {
 }
 
 
-
+/**
+ An informative presentation that appears whenever a user tries to open the app or start a run
+ without first having permissions enabled for location and core motion. It comes with a button
+ to direct the user to the app's settings.
+ */
 struct PermissionsView: View {
     var body: some View {
         VStack(alignment: .leading) {
@@ -179,8 +188,6 @@ struct PermissionsView: View {
                 .foregroundStyle(TEXT_LIGHT_GREY)
                 .fixedSize(horizontal: false, vertical: /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/)
                 .padding(.bottom, 32)
-
-            
             
             Button {
                 if let appSettings = URL(string: UIApplication.openSettingsURLString) {

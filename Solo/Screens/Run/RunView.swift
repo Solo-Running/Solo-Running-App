@@ -46,9 +46,7 @@ struct RunView: View {
     @EnvironmentObject var activityManager: ActivityManager
     @Environment(\.modelContext) private var modelContext
 
-    // App storage configurations
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
-    @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
 
     @State var startedRun: Bool = false
     @State var runStatus: RunStatus = .planningRoute
@@ -743,7 +741,7 @@ struct RunView: View {
                                             
                                             // Make the app stay awake during run session
                                             UIApplication.shared.isIdleTimerDisabled = true
-                                            await activityManager.beginRunSession(isLiveActivityEnabled: isLiveActivityEnabled)
+                                            await activityManager.beginRunSession()
                                             runStatus = .startedRun
                                             isStartRunLoading = false
                                             routeSheetVisible = false
@@ -891,7 +889,6 @@ struct RunView: View {
                                         routeSheetVisible: $routeSheetVisible,
                                         runSheetVisible: $runSheetVisible,
                                         showRunView: $showRunView,
-                                        isLiveActivityEnabled: $isLiveActivityEnabled,
                                         locationManager: locationManager,
                                         activityManager: activityManager,
                                         saveRunData: saveRunData
@@ -1282,7 +1279,6 @@ struct EndRunButton: View {
     @Binding var runSheetVisible: Bool
     @Binding var showRunView: Bool
 
-    @Binding var isLiveActivityEnabled: Bool
     // Managers
     var locationManager: LocationManager
     var activityManager: ActivityManager
@@ -1316,7 +1312,7 @@ struct EndRunButton: View {
                     // let system settings take over wakefulness of phone
                     UIApplication.shared.isIdleTimerDisabled = false
                     
-                    await activityManager.endRunSession(isLiveActivityEnabled: isLiveActivityEnabled)
+                    await activityManager.endRunSession()
                     saveRunData { result in
                         
                         switch result {

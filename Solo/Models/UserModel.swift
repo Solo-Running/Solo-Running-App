@@ -9,7 +9,9 @@ import Foundation
 import SwiftData
 import SwiftUI
 
-
+/**
+  Model that holds a user's name, profile pic, and run streak data.
+ */
 @Model
 public class UserModel {
     public var id: String = UUID().uuidString

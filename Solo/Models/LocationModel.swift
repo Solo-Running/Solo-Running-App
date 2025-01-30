@@ -10,7 +10,9 @@ import SwiftData
 import SwiftUI
 import MapKit
 
-// MTPlacemark is used for encoding any location into a consistent datat structure for displaying placemarks on the map
+/**
+ Model used to encoding any location into a consistent data structure for displaying placemarks on the map
+ */
 @Model
 class MTPlacemark {
     public var id: String = UUID().uuidString

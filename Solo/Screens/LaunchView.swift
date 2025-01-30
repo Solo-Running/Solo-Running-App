@@ -9,7 +9,9 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-
+/**
+ Renders the app logo when first launching the application.
+ */
 struct LaunchView: View {
 
     var body: some View {

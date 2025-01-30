@@ -10,6 +10,10 @@ import CoreMotion
 import Combine
 import ActivityKit
 
+
+/**
+  The emitted data that Live Widgets use to display to the user about an active run session
+ */
 struct SoloLiveWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
@@ -21,6 +25,10 @@ struct SoloLiveWidgetAttributes: ActivityAttributes {
     var timerName: String
 }
 
+
+/**
+  Manages the monitoring of time, Core Motion  data, and execution of any Live Activities for an active run session.
+ */
 class ActivityManager: NSObject, ObservableObject {
     
     private let activityManager = CMMotionActivityManager()
@@ -30,15 +38,13 @@ class ActivityManager: NSObject, ObservableObject {
     
     @Published var steps: Int = 0
     @Published var distanceTraveled: Double = 0 // estimated distance in meters
-    @Published var averageSpeed: Double = 0 // speed in miles per hour
-    @Published var averagePace: Int = 0 // seconds per meter
-    
+    @Published var averageSpeed: Double = 0     // speed in miles per hour
+    @Published var averagePace: Int = 0         // seconds per meter
     
     @Published var runStartTime: Date?
     @Published var runEndTime: Date?
     @Published var secondsElapsed = 0
     @Published var formattedDuration: String = ""
-    
     
     private var timer: AnyCancellable?
     private var isPaused: Bool = false
@@ -53,20 +59,31 @@ class ActivityManager: NSObject, ObservableObject {
         let today = Date()
 
         activityManager.queryActivityStarting(from: today, to: today, to: OperationQueue.main, withHandler: { (activities: [CMMotionActivity]?, error: Error?) -> () in
-               if error != nil {
-                   let errorCode = (error! as NSError).code
-                   if errorCode == Int(CMErrorMotionActivityNotAuthorized.rawValue) {
-                       print("Activity manager not authorized")
-                       self.setMotionAuthorization(value: false)
-                   }
-               } else {
-                   print("Activity manager authorized")
-                   self.setMotionAuthorization(value: true)
+           if error != nil {
+               let errorCode = (error! as NSError).code
+               if errorCode == Int(CMErrorMotionActivityNotAuthorized.rawValue) {
+                   print("Activity manager not authorized")
+                   self.setMotionAuthorization(value: false)
                }
-           })
+           } else {
+               print("Activity manager authorized")
+               self.setMotionAuthorization(value: true)
+           }
+        })
     }
     
     
+    private var isPedometerAvailable: Bool {
+        return CMPedometer.isPedometerEventTrackingAvailable() &&
+        CMPedometer.isDistanceAvailable() && CMPedometer.isStepCountingAvailable()
+     }
+    
+    func setMotionAuthorization(value: Bool) {
+        DispatchQueue.main.async {
+            self.isMotionAuthorized = value
+        }
+    }
+        
    func startTimer() {
        // Create a timer that fires every second
        timer = Timer.publish(every: 1, on: .main, in: .common)
@@ -77,7 +94,7 @@ class ActivityManager: NSObject, ObservableObject {
                    self!.formattedDuration = Duration.seconds(self!.secondsElapsed).formatted(
                       .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
                   )
-                   self?.updateActivity() // Update activity on every tick
+                   self?.updateLiveActivity()
                }
            }
    }
@@ -90,7 +107,7 @@ class ActivityManager: NSObject, ObservableObject {
 
     func resumeTimer() {
        if isPaused {
-           startTimer() // Start the timer again from where it left off
+           startTimer()
            isPaused = false
        }
     }
@@ -114,23 +131,10 @@ class ActivityManager: NSObject, ObservableObject {
             self.averagePace = 0
         }
     }
-    
-    
-    
-    private var isPedometerAvailable: Bool {
-        return CMPedometer.isPedometerEventTrackingAvailable() &&
-        CMPedometer.isDistanceAvailable() && CMPedometer.isStepCountingAvailable()
-     }
-    
-    func setMotionAuthorization(value: Bool) {
-        DispatchQueue.main.async {
-            self.isMotionAuthorized = value
-        }
-    }
         
     
-    // This listens for changes in pedometer authorizations.
-    func checkAuthorization(launchRun: Bool) {
+    // This listens for changes in pedometer authorizations
+    func checkAuthorization() {
         switch CMPedometer.authorizationStatus() {
             
         case .notDetermined:
@@ -142,11 +146,6 @@ class ActivityManager: NSObject, ObservableObject {
         case .authorized:
             print("core motion authorized")
             setMotionAuthorization(value: true)
-            if launchRun {
-                Task {
-                    await trackWhenAuthorized()
-                }
-            }
         default:
             print("core motion authorized by default")
             setMotionAuthorization(value: true)
@@ -154,47 +153,46 @@ class ActivityManager: NSObject, ObservableObject {
     }
     
     
-    func trackWhenAuthorized() async {
-        await startActivity { success in
-            print("started activity")
-            if success {
-                print("success starting activity")
-                if self.runStartTime != nil && self.isPedometerAvailable {
+    func startMotionAndActivityTracking() async {
+        
+        // We should always start the run regardless of live activity permissions
+        await startLiveActivity { _ in
+
+            if self.runStartTime != nil && self.isPedometerAvailable {
+                self.startTimer()
+                
+                // The pedometer will track distance and steps. I ignored CMPedometer pace for now since it's a bit inaccurate
+                self.pedometer.startUpdates(from: self.runStartTime!) { (data, error) in
+                    if let error = error {
+                        print("pedometer start updates  error: \(error)")
+                        return
+                    }
                     
-                    self.startTimer()
-                    self.pedometer.startUpdates(from: self.runStartTime!) { (data, error) in
-                        if let error = error {
-                            print("pedometer start updates  error: \(error)")
-                            return
-                        }
-                        
-                        if let data = data {
-                            DispatchQueue.main.async {
-                                self.steps = data.numberOfSteps.intValue
-                                self.distanceTraveled = data.distance?.doubleValue ?? 0
-                            }
+                    if let data = data {
+                        DispatchQueue.main.async {
+                            self.steps = data.numberOfSteps.intValue
+                            self.distanceTraveled = data.distance?.doubleValue ?? 0
                         }
                     }
                 }
             }
-            else {
-                print("there was an error starting the activity and initializing the timer")
-            }
         }
     }
+    
 
         
     // Prepare to launch the run session only if the user had previously authorized the use of the pedometer
-    func beginRunSession(isLiveActivityEnabled: Bool) async {
+    func beginRunSession() async {
         
         DispatchQueue.main.async {
             self.runStartTime = Date.now
         }
         
         if CMPedometer.authorizationStatus() == .authorized {
-            await trackWhenAuthorized()
+            await startMotionAndActivityTracking()
         }
         else {
+            // MMaybe show an error to the user that core motion needs to be enabled
             setMotionAuthorization(value: false)
         }
     }
@@ -202,19 +200,15 @@ class ActivityManager: NSObject, ObservableObject {
         
     
     // Stop the timer and capture the user's final statistics
-    func endRunSession(isLiveActivityEnabled: Bool) async {
+    func endRunSession() async {
         
         DispatchQueue.main.async {
             self.runEndTime = Date.now
         }
+        
         stopTimer()
-        
-        if isLiveActivityEnabled {
-            await endActivity()
-        }
-        
+        await endLiveActivity()
         pedometer.stopUpdates()
-        
         
         if isPedometerAvailable && runStartTime != nil && runEndTime != nil {
             pedometer.queryPedometerData(from: runStartTime!, to: runEndTime!) { (data, error) in
@@ -236,9 +230,7 @@ class ActivityManager: NSObject, ObservableObject {
     }
     
     
-    
-    // Launches the IOS live activity
-    func startActivity(completion: @escaping (Bool) -> Void) async {
+    func startLiveActivity(completion: @escaping (Bool) -> Void) async {
         
         if ActivityAuthorizationInfo().areActivitiesEnabled {
             let attributes = SoloLiveWidgetAttributes(timerName: "time elapsed")
@@ -248,7 +240,6 @@ class ActivityManager: NSObject, ObservableObject {
                 attributes: attributes,
                 content: .init(state: initialState, staleDate: Date().addingTimeInterval(28800))
             )
-            
             
             guard let activity = activity else {
                 return completion(false)
@@ -261,19 +252,19 @@ class ActivityManager: NSObject, ObservableObject {
     }
     
     
-    func updateActivity()  {
+    func updateLiveActivity()  {
         Task {
             guard let activityID = await activityID,
                   let runningActivity = Activity<SoloLiveWidgetAttributes>.activities.first(where: { $0.id == activityID }) else {
                 return
             }
             let newRandomContentState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: secondsElapsed, steps: steps)
-            try await runningActivity.update(using: newRandomContentState)
+            await runningActivity.update(using: newRandomContentState)
         }
     }
     
     
-    func endActivity() async {
+    func endLiveActivity() async {
         guard let activityID = await activityID,
               let runningActivity = Activity<SoloLiveWidgetAttributes>.activities.first(where: { $0.id == activityID }) else {
             return

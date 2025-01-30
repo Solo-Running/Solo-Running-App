@@ -11,27 +11,31 @@ import SwiftData
 import Charts
 
 
+
 struct StepsPerDay: Identifiable {
     var id = UUID()
     var day: String
     var steps: Int
 }
 
-
-
-struct RunStats {
+struct RunStatsPerDay {
     var steps: Int
     var paceMinutesPerMile: Int // minutes per mile
-    var timeSeconds: Int // minutes
+    var timeSeconds: Int        // minutes
+    var contributedRuns: Int    // the number of runs that fell on this day
 }
 
 
+/**
+ Displays a comprehensive overview of a user's statistics over the week as well as
+ a preview of the user's recent run sessions.
+ */
 struct DashboardView: View {
     
     @Environment(\.modelContext) private var modelContext
     
-    // Get the runs, time, and pace for the past week
-    @State var statsPerDay: [String: RunStats] = [:]
+    // Stores the aggregated time, steps, and pace for each day in the past week
+    @State var weeklyStats: [String: RunStatsPerDay] = [:]
 
     @State var totalStepsInWeek: Int = 0
     @State var totalTimeInWeek: Int = 0
@@ -54,10 +58,10 @@ struct DashboardView: View {
         
     @Query(sort: \Run.postedDate, order: .reverse) var allRuns: [Run]
         
-    // Run a query to fetch the user data
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
    
+    // Configures the gradient appearance underneath the average pace graph
     var gradientColor: LinearGradient {
         LinearGradient(
             gradient: Gradient(
@@ -91,16 +95,15 @@ struct DashboardView: View {
     }()
 
     
-    
     func generateWeeklyData() {
         
-        // date formatter used for indexing into dictionary
+        // Date formatter used for indexing into dictionary
         let calendar = Calendar.current
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E"
         
         // Create temporary dictionary for storing stats
-        var statsDictionary: [String: RunStats] = Dictionary(uniqueKeysWithValues: days.map { ($0, RunStats(steps: 0, paceMinutesPerMile: 0, timeSeconds: 0 )) })
+        var statsDictionary: [String: RunStatsPerDay] = Dictionary(uniqueKeysWithValues: days.map { ($0, RunStatsPerDay(steps: 0, paceMinutesPerMile: 0, timeSeconds: 0, contributedRuns: 0 )) })
         
         var totalSteps = 0
         var todaySteps = 0
@@ -119,10 +122,11 @@ struct DashboardView: View {
             if var stats = statsDictionary[dayAbbreviation] {
                 stats.steps += run.steps
                 stats.paceMinutesPerMile += run.avgPace // this needs to be fixed to take the correct average of average paces
+                stats.contributedRuns += 1
                 stats.timeSeconds += run.elapsedTime
                 statsDictionary[dayAbbreviation] = stats
             }
-            
+                        
             if run.avgPace > 0 {
                 if bestPace == 0 || run.avgPace < bestPace {
                     bestPace = run.avgPace
@@ -143,7 +147,7 @@ struct DashboardView: View {
             }
         }
         
-        self.statsPerDay = statsDictionary
+        self.weeklyStats = statsDictionary
         self.bestPaceInWeek = bestPace
         
         // Update the total steps and time
@@ -153,6 +157,7 @@ struct DashboardView: View {
         // Calculate the average steps for this week
         self.averageStepsInWeek = Double(totalSteps) / 7
         self.averageTimeInWeek = Double(secondsToMinutes(seconds: totalTime)) / 7
+                
         
         // update the user's streaks
         if yesterdaySteps > 0 && todaySteps > 0{
@@ -175,7 +180,7 @@ struct DashboardView: View {
             user?.streak = 0
         }
         
-        // Calculate the percentage change from yesterday's data
+        // Calculate the percentage change from yesterday's steps and time
         if yesterdaySteps > 0 && yesterdayTime > 0 && todaySteps > 0 && todayTime > 0{
             let stepChange = todaySteps - yesterdaySteps
             let timeChange = todayTime - yesterdayTime
@@ -188,10 +193,9 @@ struct DashboardView: View {
     }
 
     
-    func getStats(day: String) -> RunStats {
-        return statsPerDay[day]!
+    func getStats(day: String) -> RunStatsPerDay {
+        return weeklyStats[day]!
     }
-    
 
     
     var body: some View {
@@ -232,13 +236,14 @@ struct DashboardView: View {
                                 }
                                 .padding(.bottom, 8)
                                 
-                                if !statsPerDay.isEmpty {
+                                if !weeklyStats.isEmpty {
                                     
                                     Chart(days, id: \.self) { day in
                                         
-                                        let stats = statsPerDay[day]!
+                                        let stats = weeklyStats[day]!
                                         
-                                        if self.averageStepsInWeek > 0 {
+                                        // TODO: Render average line only if there are at least two days in the week with nonzero steps
+                                        if self.averageStepsInWeek > 0 && weeklyStats.count > 1 {
                                             
                                             // Display the average steps as a horizontal dashed line
                                             RuleMark(y: .value("Average Steps", averageStepsInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
@@ -246,9 +251,6 @@ struct DashboardView: View {
                                                     Text(String(format: "Avg: %.2f", self.averageStepsInWeek))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
-//                                                        .background(
-//                                                            RoundedRectangle(cornerRadius: 4).fill(LIGHT_GREY)
-//                                                        )
                                                         .padding(4)
                                                 }
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
@@ -260,7 +262,7 @@ struct DashboardView: View {
                                                 y: .value("Steps", stats.steps)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? NEON : BAR_GREY)
+                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
                                             .annotation {
                                                 if day == days.last {
                                                     Text("\(stats.steps)")
@@ -268,7 +270,7 @@ struct DashboardView: View {
                                                         .foregroundStyle(.white)
                                                 }
                                             }
-                                        } 
+                                        }
                                                                                 
                                         else{
                                             BarMark (
@@ -331,42 +333,56 @@ struct DashboardView: View {
                                 }
                                 .padding(.bottom, 8)
                                 
-                                if !statsPerDay.isEmpty {
+                                if !weeklyStats.isEmpty {
                                     
                                     Chart(days, id: \.self) { day in
                                         
-                                        let stats = statsPerDay[day]!
-                                        let minutes = Double(stats.timeSeconds) / 60
-                                        if self.averageTimeInWeek > 0 {
+                                        let statsForDay = weeklyStats[day]!
+                                        let minutesForDay =  Double(statsForDay.timeSeconds / 60) // secondsToMinutes(seconds: statsForDay.timeSeconds)
+                                        
+                                        if self.averageTimeInWeek >= 1  && weeklyStats.count > 1 {
                                             // Display the average time as a horizontal dashed line
                                             RuleMark(y: .value("Average Time", averageTimeInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
                                                 .annotation(position: .top, alignment: .leading) {
                                                     Text(String(format:"Avg: %.2f min", self.averageTimeInWeek))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
-//                                                        .background(
-//                                                            RoundedRectangle(cornerRadius: 4).fill(LIGHT_GREY)
-//                                                        )
                                                         .padding(4)
                                                 }
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
-                                        // Show bars for time per day if nonzero, otherwise display a default bar
-                                        if minutes >= 1 {
+                                    
+                                        if totalTimeInWeek >= 1 {
                                             BarMark (
                                                 x: .value("Day", day),
-                                                y: .value("Time", secondsToMinutes(seconds: stats.timeSeconds))
+                                                y: .value("Time", minutesForDay)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? NEON : BAR_GREY)
+                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
                                             .annotation {
                                                 if day == days.last {
-                                                    Text(String(format: "%.2f", minutes))
+                                                    Text(String(format: "%.2f", minutesForDay))
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
                                                 }
                                             }
-                                        } else {
+                                        }
+                                        else if statsForDay.timeSeconds > 0 && statsForDay.timeSeconds < 60 && totalTimeInWeek < 1 {
+                                            BarMark (
+                                                x: .value("Day", day),
+                                                y: .value("Time", statsForDay.timeSeconds)
+                                            )
+                                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
+                                            .annotation {
+                                                if day == days.last {
+                                                    Text("\(statsForDay.timeSeconds)s")
+                                                        .font(.caption)
+                                                        .foregroundStyle(.white)
+                                                }
+                                            }
+                                        }
+                                        else if statsForDay.timeSeconds == 0 {
                                             BarMark (
                                                 x: .value("Day", day),
                                                 y: .value("Steps", 0)
@@ -399,11 +415,8 @@ struct DashboardView: View {
                                     )
                                     .offset(y: phase.isIdentity ? 0: 0.5)
                             }
-
                         }
                         .scrollTargetLayout()
-
-                        
                     }
                     .contentMargins(0, for: .scrollContent)
                     .scrollTargetBehavior(.viewAligned)
@@ -433,25 +446,24 @@ struct DashboardView: View {
                             
                             Spacer().frame(height: 8)
                             
-                            if !statsPerDay.isEmpty {
+                            if !weeklyStats.isEmpty {
     
                                 Chart(days, id: \.self) { day in
                                     
-                                    let stats = statsPerDay[day]!
+                                    let stats = weeklyStats[day]!
                                         LineMark(
                                             x: .value("Day", day),
-                                            y: .value("Pace", stats.paceMinutesPerMile)
+                                            y: .value("Pace", stats.contributedRuns > 0 ? Int(stats.paceMinutesPerMile / stats.contributedRuns) : 0)
                                         )
                                         .interpolationMethod(.catmullRom)
                                         .foregroundStyle(Color.green)
                                         
                                         AreaMark(
                                             x: .value("Day", day),
-                                            y: .value("Pace", stats.paceMinutesPerMile)
+                                            y: .value("Pace", stats.contributedRuns > 0 ? Int(stats.paceMinutesPerMile / stats.contributedRuns) : 0)
                                         )
                                         .interpolationMethod(.catmullRom)
                                         .foregroundStyle(gradientColor)
-                                    
                                    
                                 }
                                 .frame(height: 54)
@@ -608,7 +620,7 @@ struct DashboardView: View {
                         ForEach(allRuns.prefix(5)) { run in
                             RunCardView(run: run)
                         }
-                    }                    
+                    }
                 }
                 .padding(.all, 16)
                 
@@ -619,79 +631,5 @@ struct DashboardView: View {
             .preferredColorScheme(.dark)
 
         }
-
     }
 }
-
-
-
-
-
-
-/*
- 
- 
- 
- // Chart to display time per day
- VStack {
-     HStack(alignment: .center) {
-         VStack(alignment: .leading, spacing: -2) {
-             Text("Time last 7 days")
-                 .font(Font.custom("Koulen-Regular", size: 20))
-                 .foregroundStyle(.white)
-                 .fontWeight(.semibold)
-             
-             Text("You spent a total of \(totalTimeInWeek) minutes this week")
-                 .font(.caption)
-                 .foregroundStyle(TEXT_LIGHT_GREY)
-         }
-         
-         Spacer()
-         
-         if (timePercentageChange > 0) {
-             Text("\(timePercentageChange)%")
-                 .foregroundStyle(LIGHT_GREEN)
-                 .fontWeight(.semibold)
-         }
-     }
-     .padding(.bottom, 8)
-                                 
-     // Chart to display time in minutes per day
-     Chart(days, id: \.self) { day in
-         // Show bars for time per day if nonzero, otherwise display a default bar
-         if self.statsPerDay[day].timeMinutes > 0 {
-             BarMark (
-                 x: .value("Day", day),
-                 y: .value("Steps", self.statsPerDay[day]!.timeMinutes!)
-             )
-             .clipShape(RoundedRectangle(cornerRadius: 4))
-             .foregroundStyle(NEON)
-             .annotation {
-                 if day == days.last {
-                     Text("\(self.statsPerDay[day]!.timeMinutes!)")
-                         .font(.caption)
-                         .foregroundStyle(.white)
-                 }
-             }
-         } else {
-             BarMark (
-                 x: .value("Day", day),
-                 y: .value("Steps", 10)
-             )
-             .clipShape(RoundedRectangle(cornerRadius: 4))
-             .foregroundStyle(DARK_GREY)
-         }
-     }
-     .chartYAxis(.hidden)
-     .chartXAxis {
-         AxisMarks() {
-             AxisValueLabel()
-                 .foregroundStyle(TEXT_LIGHT_GREY)
-         }
-     }
- }
- .padding()
- .background(LIGHT_GREY)
- .cornerRadius(16)
- .frame(height: 200)
- */

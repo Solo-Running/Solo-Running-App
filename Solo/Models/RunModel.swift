@@ -19,7 +19,9 @@ class RunData {
     }
 }
 
-
+/**
+ Model that holds all of a run's statistics
+ */
 @Model
 final class Run: Identifiable{
     public var id: String = UUID().uuidString
@@ -53,6 +55,5 @@ final class Run: Identifiable{
         self.avgPace = avgPace
         self.routeImage = routeImage
         self.notes = notes
-        
     }
 }
