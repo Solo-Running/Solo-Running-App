@@ -9,6 +9,10 @@ import Foundation
 import SwiftUI
 import StoreKit
 
+
+/**
+ Renders a SubscriptionStoreView for onboarding users or users that don't have an active subscription.
+ */
 struct SubscriptionLaunchView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
@@ -52,7 +56,6 @@ struct SubscriptionLaunchView: View {
         .subscriptionStoreButtonLabel(.action)
         .toolbar(.hidden)
         .tint(BLUE)
-        
     }
 }
 

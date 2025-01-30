@@ -10,21 +10,24 @@ import SwiftUI
 import StoreKit
 
 
+/**
+ Provides fine tuned access to  a user's active susbscription, renewal information, and past purchases.
+ Comes with the ability to refund purchases as well althouugh this action will disable access to the app
+ once completed successfully.
+*/
 struct SubscriptionEditView: View {
     
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var isPresentingCancellationSheet: Bool = false
     @State private var payload: Payload?
-    
     @State private var refundRequestTransactionID: UInt64 = 0
     @State private var isPresentingRefundRequestSheet: Bool = false
     
     func presentRefundRequest(transaction: StoreKit.Transaction) {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-               print("No active scene found")
-               return
+           print("No active scene found")
+           return
         }
-
        Task {
            do {
                try await transaction.beginRefundRequest(in: scene)
@@ -33,10 +36,6 @@ struct SubscriptionEditView: View {
                print("Error presenting refund request: \(error.localizedDescription)")
            }
        }
-        
-//        Task {
-//            await subscriptionManager.getSubscriptionStatusAndEntitlement()
-//        }
     }
     
     var body: some View {
@@ -83,9 +82,7 @@ struct SubscriptionEditView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                
                 Divider()
-                
                 
                 VStack(alignment: .leading) {
                     Text("Recent Purchases")
@@ -97,7 +94,6 @@ struct SubscriptionEditView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                 }
                
-            
                 if !subscriptionManager.recentPurchases.isEmpty {
                     
                     if subscriptionManager.isLoadingPurchases {
@@ -140,15 +136,12 @@ struct SubscriptionEditView: View {
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                     }
                                 }
-                                
                             }
                             .padding(.vertical, 8)
                         }
                         .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
                     }
-                   
                 }
-                
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
@@ -183,33 +176,4 @@ struct SubscriptionEditView: View {
             Spacer()
         }
     }
-            
 }
-
-
-//                .refundRequestSheet(for: refundRequestTransactionID, isPresented: $isPresentingRefundRequestSheet) { result in
-//                    switch result {
-//                    case .success(let status):
-//                        print(status)
-//                    case .failure(let error):
-//                        print(error.localizedDescription)
-//                    }
-//
-//                    isPresentingCancellationSheet = false
-//                    refundRequestTransactionID = nil
-//                }
-
-
-
-//                    VStack(alignment: .leading) {
-//                        if let nextRenewalInfo = subscriptionManager.nextRenewalInfo {
-//                            Text("Next renewing subscription").foregroundStyle(.white).fontWeight(.semibold)
-//
-//                            HStack {
-//                                Text(formatString(nextRenewalInfo.currentProductID)).foregroundStyle(TEXT_LIGHT_GREY)
-//                                Text(formatDate(nextRenewalInfo.renewalDate)).foregroundStyle(TEXT_LIGHT_GREY)
-//                            }
-//                        }
-//                    }
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//

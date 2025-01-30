@@ -49,11 +49,8 @@ final class SubscriptionManager: NSObject, ObservableObject {
        switch transaction.revocationDate {
        case .some(_):
            print("Transaction revoked: \(transaction.id)")
-           // Handle refund/revocation if needed
-           
        case .none:
            print("Transaction successful: \(transaction.id)")
-           // Unlock content here
            isSubscribed = true
            
            // Finish transaction to remove it from queue
@@ -69,14 +66,12 @@ final class SubscriptionManager: NSObject, ObservableObject {
             switch verificationResult {
             case .verified(let transaction):
                 if productIds.contains(transaction.productID) {
-                    // Create a Purchase object with a unique ID for each transaction
                     recentPurchases.append(transaction)
                 }
             case .unverified(_, _):
                 print("not verified")
             }
         }
-        // print("Purchases \(recentPurchases)")
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.isLoadingPurchases = false
@@ -90,13 +85,11 @@ final class SubscriptionManager: NSObject, ObservableObject {
         for await result in Transaction.currentEntitlements {
             print("verification Result: \(result)")
            
-            // Could be a current active subscription and/or one that will start in
-            // a later cycle. This might happen if a user changes from an active subscription
-            // in which case, the next plan starts after the current expiration date
             guard case .verified(let transaction) = result else {
                 continue
             }
                         
+            // Get the current subscription data
             if productIds.contains(transaction.productID) {
                 await transaction.finish()
                 currentTransaction = transaction
@@ -104,7 +97,7 @@ final class SubscriptionManager: NSObject, ObservableObject {
             }
             
             
-            // Get the renewal information for the current active subscription or any next different subscriptions
+            // Get additional renewal information for the current active subscription
             do {
                 let products = try await Product.products(for: [transaction.productID])
                 for product in products {
@@ -115,14 +108,9 @@ final class SubscriptionManager: NSObject, ObservableObject {
                             case .verified(let prodStatus):
                                 if (prodStatus.currentProductID == transaction.productID) {
                                     currentRenewalInfo = prodStatus
-                                    NSLog("Product is the same")
-                                } 
-                                
+                                }
                                 if(prodStatus.autoRenewPreference != nil) && (prodStatus.autoRenewPreference != transaction.productID){
                                     nextRenewalInfo = prodStatus
-                                }
-                                else {
-//                                    NSLog("Product is different : \(String(describing: prodStatus.autoRenewPreference))")
                                 }
                                 break
                             default:

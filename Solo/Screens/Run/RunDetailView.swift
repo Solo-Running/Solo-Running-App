@@ -9,6 +9,11 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+
+/**
+ A custom header with an image and run statistics that sits at the top of a screen. When the user scrolls the page, the image
+ should experience a delayed downward shift to bring the image into better view.
+ */
 struct ParallaxHeader<Content: View> : View {
     var run: Run!
     @ViewBuilder var content: () -> Content
@@ -34,7 +39,6 @@ struct ParallaxHeader<Content: View> : View {
                         Text("\(convertDateToString(date: run!.startTime)) - \(convertDateToString(date: run!.endTime))")
                             .font(.subheadline)
                             .foregroundStyle(run.isDarkMode ? .white : .black)
-
                         
                         Text("Run Summary")
                             .fontWeight(.bold)
@@ -58,17 +62,22 @@ struct ParallaxHeader<Content: View> : View {
                 .opacity(fadeOutOpacity)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
-      
             }
             .frame(height: 280)
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
         }
     }
 }
+
+
+/**
+ Displays a user's previous run session with statistics like time, steps, distance, and average pace.
+ It utilizes the ParallaxHeader component to render the route image at the top of the screen.
+ Users also have the ability to add notes for the run.
+ */
 struct RunDetailView: View {
     
     var runData: Run!
-    
     @State private var scrollOffset: CGFloat = 0
     @FocusState var notesIsFocused: Bool
     @Namespace var bottomID
@@ -93,7 +102,7 @@ struct RunDetailView: View {
             ScrollViewReader { proxy in
                 
                 GeometryReader { geometry in
-                    let fadeInOpacity = min(1, max(0, (scrollOffset - 200) / 200)) // Fade in after 200 pixels
+                    let fadeInOpacity = min(1, max(0, (scrollOffset - 200) / 200))
                     
                     Color.clear
                         .onAppear {
@@ -104,21 +113,16 @@ struct RunDetailView: View {
                         }
                     
                     ScrollView(showsIndicators: false) {
-                        
-                        
                         if imageData != nil {
                             ParallaxHeader(run: runData!) {
                                 Image(uiImage: imageData!)
                                     .resizable()
                                     .scaledToFill()
-                                
                             }
                             .frame(height: 200)
                         }
                         
-                        
                         VStack(alignment: .leading) {
-                            
                             HStack() {
                                 Text("Details")
                                     .foregroundStyle(.white)
@@ -130,7 +134,6 @@ struct RunDetailView: View {
                                 ShareLink(item: imageForShare!, preview: SharePreview("Route Image", image: imageForShare!))
                                     .labelStyle(.iconOnly)
                                     .background(Circle().fill(DARK_GREY).padding(6))
-                                
                             }
                             
                             // Route start and end timeline
@@ -171,7 +174,6 @@ struct RunDetailView: View {
                             VStack(spacing: 16) {
                                 Spacer().frame(height: 32)
                                 
-                                // Run statistics
                                 HStack {
                                     Text("Distance (meters)")
                                         .font(.subheadline)
@@ -220,12 +222,10 @@ struct RunDetailView: View {
                                 .cornerRadius(12)
                                 
                                 Spacer().frame(height: 32)
-                                
                             }
                             
                             
                             VStack(alignment: .leading) {
-                                
                                 Text("Notes")
                                     .foregroundStyle(.white)
                                     .font(.title2)
@@ -262,14 +262,11 @@ struct RunDetailView: View {
                     .defaultScrollAnchor(.top)
                     .background(.black)
                     .toolbar {
-                        
                         ToolbarItem(placement: .principal) {
                             Color
                                 .clear
                                 .opacity(fadeInOpacity)
                         }
-
-                        
                         ToolbarItem(placement: .topBarTrailing) {
                             if notesIsFocused {
                                 Button("Done") {
@@ -278,12 +275,10 @@ struct RunDetailView: View {
                                 .foregroundStyle(.white)
                             }
                         }
-                        
                     }
                 }
             }
         }
     }
-    
 }
 

@@ -10,20 +10,23 @@ import SwiftUI
 import SwiftData
 import Algorithms
 
+
+/**
+ Renders an organized list of runs sorted by their corresponding months. Each run preview item can be deleted by
+ swiping left on an entry.
+ */
 struct RunHistoryView: View {
     
     @Environment(\.modelContext) private var modelContext
-    @State private var isExpanded: Set<String> = []
     @Query(sort: \Run.postedDate, order: .reverse) var runs: [Run]
-    
+    @State private var isExpanded: Set<String> = []
     var sectionedRuns: [(String, [Run])] { chunkRuns(runsToChunk: runs)}
+
     private var sectionDateFormatter = DateFormatter()
    
-      
     init() {
         sectionDateFormatter.dateFormat = "MMM yyyy"
     }
-    
     
     func chunkRuns(runsToChunk: [Run]) -> [(String, [Run])] {
         let chunks = runsToChunk.chunked(on: {
@@ -37,7 +40,7 @@ struct RunHistoryView: View {
     
     func deleteRuns(at offsets: IndexSet) {
         
-        // delete any other run that uses the same route destination or endPlacemark
+        // Delete any other run that uses the same route destination or endPlacemark
         for offset in offsets {
             let run = runs[offset]
             modelContext.delete(run)
@@ -52,7 +55,6 @@ struct RunHistoryView: View {
 
             VStack {
                 if !runs.isEmpty {
-                    // List View
                     List {
                         ForEach(sectionedRuns, id: \.self.0) { title, runs in
                             Section(
@@ -73,7 +75,7 @@ struct RunHistoryView: View {
                                 ForEach(runs) { run in
                             
                                     ZStack(alignment: .topLeading) {
-                                        // ovleray an empty view to hide the default navigation arrow icon
+                                        // Ovleray an empty view to hide the default navigation arrow icon
                                         NavigationLink(destination: RunDetailView(runData: run)) {EmptyView()}.opacity(0)
                                         
                                         // Run preview content
@@ -111,7 +113,6 @@ struct RunHistoryView: View {
                                                             .font(.subheadline)
                                                     
                                                         Spacer()
-                                                        
                                                     }
                                                 }
                                                 
@@ -122,13 +123,11 @@ struct RunHistoryView: View {
                                 }
                                 .onDelete(perform: deleteRuns)
                                 .listRowBackground(Color.clear)
-
                             }
                         }
                     }
                     .listStyle(.sidebar)
                     .scrollContentBackground(.hidden)
-
                 }
                 else {
                     ContentUnavailableView(
@@ -138,9 +137,7 @@ struct RunHistoryView: View {
                     )
                 }
             }
-            
             .toolbar {
-                
                 ToolbarItem(placement: .principal) {
                     Text("Run History")
                         .font(.title2)

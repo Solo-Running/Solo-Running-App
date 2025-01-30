@@ -122,26 +122,24 @@ struct OnboardingView: View {
 
                             
                             Spacer().frame(height: 32)
-                            Button {
-                                // Nothing
-                            } label: {
-                                NavigationLink {
-                                    // if user has subscription, go to dashboard
-                                    if isSubscribed {
-                                        DashboardView()
-                                    } else {
-                                        SubscriptionLaunchView()
-                                    }
-                                } label : {
-                                    HStack {
-                                        Text("Continue").foregroundStyle(.white)
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(BLUE)
-                                    .cornerRadius(12)
+                            
+                            NavigationLink {
+                                // if user has subscription, go to dashboard
+                                if isSubscribed {
+                                    DashboardView()
+                                } else {
+                                    SubscriptionLaunchView()
                                 }
+                            } label : {
+                                HStack {
+                                    Text("Continue").foregroundStyle(.white)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(BLUE)
+                                .cornerRadius(12)
                             }
+                            
                         }
                         .tag(SelectedTab.Start)
 
@@ -155,7 +153,7 @@ struct OnboardingView: View {
                 .frame(maxHeight: .infinity)
             }
             .toast(isPresenting: $showIgnoreToast, tapToDismiss: true) {
-                AlertToast(type: .systemImage("checkmark.circle", Color.green), title: "SYou will no longer see onboarding content next time.")
+                AlertToast(type: .systemImage("checkmark.circle", Color.green), title: "You will no longer see onboarding content next time.")
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

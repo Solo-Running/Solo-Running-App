@@ -31,6 +31,13 @@ enum SheetPosition: CGFloat, CaseIterable {
     static let detents = Set(SheetPosition.allCases.map { $0.detent })
 }
 
+/**
+ Renders an interactive map using MapKit that enables pan, zoom, and rotate gestures. Users can find specific locations
+ using a search bar with matching results appearing as Markers on the map. Custom pins can also be added by dragging a
+ pin around the region. A sheet will appear for displaying a run session with realtime data broadcasted to the user and
+ a LiveActivity Widget if enabled. It also comes with a Spotify Player to enable remote playback capabilities without having to switch contexts.
+ When a user is done, the view will process a MapSnapshot of the route along with the recorded run data.
+ */
 struct RunView: View {
     
     // Environment objects to handle music, location, and activity monitoring
@@ -51,7 +58,6 @@ struct RunView: View {
     @State var isStartRunLoading: Bool = false
     @State var isFinishRunLoading: Bool = false
     
-    
     // Bottom sheet visibility states
     @State var searchPlaceSheetVisible: Bool = true
     @State var routeSheetVisible: Bool = false
@@ -60,7 +66,7 @@ struct RunView: View {
     @State var customPinSheetVisible: Bool = false
     @State var spotifyFAQSheetVisible: Bool = false
 
-    // Programmatic selection of detent
+    // Programmatic selection of detents
     @State private var searchPlaceSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
     @State private var routeSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
 
@@ -70,7 +76,6 @@ struct RunView: View {
     @State private var runSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
     @State private var stepsSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large]
     @State private var spotifyFAQSheetDetents: Set<PresentationDetent> = [.medium, .large]
-
 
     // Search text field focus state
     @FocusState private var isTextFieldFocused: Bool
@@ -167,6 +172,7 @@ struct RunView: View {
         }
     }
     
+    
     func fetchCustomPinLocation(completionHandler: @escaping (CLPlacemark?) -> Void){
         let geocoder = CLGeocoder()
         let location = CLLocation(latitude: pinCoordinates!.latitude, longitude: pinCoordinates!.longitude)
@@ -188,18 +194,6 @@ struct RunView: View {
     }
 
     
-    var remainingDistanceToStep: String? {
-        guard let remainingDistance = locationManager.remainingDistanceToStep else { return nil }
-        
-        // Create a distance formatter
-        let formatter = MKDistanceFormatter()
-        formatter.units = .imperial // units in feet
-        
-        // Format the remaining distance and return it as a string
-        return formatter.string(fromDistance: remainingDistance)
-    }
-    
-    
     // Removes a route when user dismisses the details sheet
     func removeRoute() {
         routeDisplaying = false
@@ -212,7 +206,7 @@ struct RunView: View {
         locationManager.stepCoordinates.removeAll()
         locationManager.routeSteps.removeAll()
         
-        // return back to user location if cancelled route
+        // Return back to user location if cancelled route
         withAnimation {
             cameraPosition = .userLocation(fallback: .automatic)
         }
@@ -242,7 +236,7 @@ struct RunView: View {
 
         let snapshotter = MKMapSnapshotter(options: snapshotOptions)
 
-        // start request to create the snapshot image
+        // Start request to create the snapshot image
         snapshotter.start { snapshot, error in
 
             if let error = error {
@@ -251,7 +245,7 @@ struct RunView: View {
                 return
             }
 
-            // draw initial map
+            // Draw initial map
             let image = snapshot!.image
             UIGraphicsBeginImageContextWithOptions(image.size, true, image.scale)
             image.draw(at: .zero)
@@ -483,7 +477,7 @@ struct RunView: View {
                             // Show custom locations by default
                             ForEach(allCustomPinLocations, id: \.self) { pin in
                                 if !routeDisplaying {
-                                    Marker(pin.name ?? "Custom Pin", coordinate: pin.getLocation())
+                                    Marker(pin.name, coordinate: pin.getLocation())
                                         .tint(.yellow)
                                         .tag(pin)
                                 }
@@ -494,7 +488,7 @@ struct RunView: View {
                                 MapPolyline(route.polyline).stroke(.blue, lineWidth: 6)
                             }
                             
-                            // This is used to persist the marker even when the user taps elsewhere on the screen
+                            // The routeDestination is used to persist the marker even when the user taps elsewhere on the screen
                             if let routeDestination {
                                 Marker(routeDestination.name, coordinate: routeDestination.getLocation())
                                     .tint(routeDestination.isCustomLocation ? .yellow : .red)
@@ -507,7 +501,7 @@ struct RunView: View {
                                     Group {
                                         // Show search results on map if user hasn't selected a destination yet
                                         if !routeDisplaying {
-                                            Marker(place.name ?? "Unknown", coordinate: place.getLocation())
+                                            Marker(place.name, coordinate: place.getLocation())
                                                 .tint(.red)
                                         }
                                     }.tag(place)
@@ -559,7 +553,6 @@ struct RunView: View {
                     }
                    
                     
-                    
                     // Bottom sheet to enable location search and select a destination
                     .sheet(isPresented: $searchPlaceSheetVisible) {
                         VStack(alignment: .leading) {
@@ -580,9 +573,7 @@ struct RunView: View {
                                 
                                 if(usePin) {
                                     Button {
-                                        // add pin location to route and show route info sheet
                                         addCustomLocation()
-                                        
                                     } label: {
                                         Image(systemName: "plus.circle.fill")
                                             .frame(width: 48, height: 48)
@@ -685,7 +676,6 @@ struct RunView: View {
                             .enabled(upThrough: SheetPosition.full.detent)
                         )
                     }
-                  
                     
                     
                     // Route details sheet
@@ -717,7 +707,7 @@ struct RunView: View {
                                 
                                 if routeDestination != nil {
                                     
-                                    Text(routeDestination!.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                    Text(routeDestination!.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
                                     
                                     HStack(spacing: 16) {
                                         if routeDestination!.isCustomLocation {
@@ -751,7 +741,7 @@ struct RunView: View {
                                                 }
                                             }
                                             
-                                            // Let system settings take over wakefulness of phone
+                                            // Make the app stay awake during run session
                                             UIApplication.shared.isIdleTimerDisabled = true
                                             await activityManager.beginRunSession(isLiveActivityEnabled: isLiveActivityEnabled)
                                             runStatus = .startedRun
@@ -778,19 +768,17 @@ struct RunView: View {
                                         .cornerRadius(12)
                                     }
                                     
-                                    
                                     VStack(alignment: .center) {
                                         Image(systemName: "lightbulb.max")
                                             .padding(.vertical, 8)
                                         Text("To track your stats, keep your phone awake while running.").foregroundStyle(TEXT_LIGHT_GREY)
                                             .multilineTextAlignment(.center)
-                                        
                                     }
                                     .padding(.top, 48)
                                 }
                             }
                             .onAppear {
-                                // prevents behavior where tapping on a different route destination marker fetches a different route
+                                // Prevents behavior where tapping on a different route destination marker fetches a different route
                                 disabledFetch = true
                             }
                             .padding(.horizontal, 16)
@@ -816,7 +804,7 @@ struct RunView: View {
                                     
                                     // Header content
                                     HStack {
-                                        Text(routeDestination!.name ?? "")
+                                        Text(routeDestination!.name)
                                             .font(.title3)
                                             .fontWeight(.semibold)
                                             .foregroundStyle(.white)
@@ -839,7 +827,6 @@ struct RunView: View {
                                                     activityManager.resumeTimer()
                                                 }
                                             }
-                                        
                                     }
                                     
                                     // Display timer and step count
@@ -909,13 +896,9 @@ struct RunView: View {
                                         activityManager: activityManager,
                                         saveRunData: saveRunData
                                     )
-                                   
                                     
                                     Spacer().frame(height: 24)
 
-                                    
-                                    
-                                    // TODO: Add link to spotify on app store to download it if not installed
                                     if !spotifyManager.canOpenSpotify() {
                                         HStack(spacing: 8){
                                             
@@ -939,16 +922,14 @@ struct RunView: View {
                                             
                                             Button {
                                                 if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-                                                    spotifyManager.disconnect() // end spotify session
+                                                    spotifyManager.disconnect() // ends the spotify session
                                                 }
                                                 else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                    spotifyManager.resumePlayback() // resume playback - no need to initiate authorization with a new session
+                                                    spotifyManager.resumePlayback() // resume playback
                                                 }
                                                 else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
                                                     spotifyManager.connect(launchSession: true) // connect and play spotify
                                                 }
-                                                
-                                                
                                             } label: {
                                                 HStack(spacing: 8){
                                                     
@@ -960,7 +941,6 @@ struct RunView: View {
                                                     }
                                                     .frame(width: 32, height: 32)
 
-                                                    
                                                     if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
                                                         Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
                                                     }
@@ -974,7 +954,6 @@ struct RunView: View {
                                             }
                                             
                                             Spacer()
-                                            
                                             
                                             if spotifyManager.canOpenSpotify() {
                                                 Button {
@@ -1000,11 +979,8 @@ struct RunView: View {
                                         }
                                         
                                         Spacer().frame(height: 48)
-                                        
-                                        
-                                        // TODO: Display all metadata
-                                        // Use the Playback Restrictions to limit what controls are enabled
-                                        // Make the content link back to the spotify service
+                                  
+                                        // Display the Spotify song metadata and playback controls here
                                         if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
                                             VStack(alignment: .center) {
                                                 
@@ -1057,7 +1033,6 @@ struct RunView: View {
                                                         }
                                                         
                                                         Spacer().frame(width: 24)
-
                                                     }
                                                    
                                                     Button {
@@ -1082,7 +1057,6 @@ struct RunView: View {
                                                     if spotifyManager.canSkipNext {
                                                         Spacer().frame(width: 24)
                                                         
-                                                        
                                                         Button {
                                                             spotifyManager.skipNext()
                                                         } label: {
@@ -1095,7 +1069,7 @@ struct RunView: View {
                                                     Spacer()
                                                 }
                                                 
-                                                // Users should be able to view the song in the Spotify app
+                                                // Users can view the song in the Spotify app using this link
                                                 if let trackURI = spotifyManager.currentTrackURI {
                                                     Link("Open in Spotify", destination: URL(string: trackURI)!)
                                                         .font(.subheadline)
@@ -1143,28 +1117,30 @@ struct RunView: View {
                                     .padding(.vertical, 16)
                                     
                                     
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text("Why can't I skip or revert tracks?")
                                             .foregroundStyle(.white)
                                             .fontWeight(.semibold)
-                                            .font(.title2)
+                                            .font(.title3)
                                         
                                         Text("If you have Spotify without a premium account installed, the Spotify IOS SDK imposes playback restrictions. If you would like to use these feaures, navigate to Spotify to upgrade your plan. ")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .font(.subheadline)
                                     }
                                     .padding(16)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                                     
                                     
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text("What is Resume Playback?")
                                             .foregroundStyle(.white)
                                             .fontWeight(.semibold)
-                                            .font(.title2)
+                                            .font(.title3)
                                         
                                         Text("Network disconnections or termination of a previous song can sometimes trigger Spotify Player disconnections. Use Resume Playback to establish connection again. This may require further authorization sometimes.")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .font(.subheadline)
                                     }
                                     .padding(16)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -1174,16 +1150,15 @@ struct RunView: View {
                                         Text("What does it mean to end my Spotify Session?")
                                             .foregroundStyle(.white)
                                             .fontWeight(.semibold)
-                                            .font(.title2)
+                                            .font(.title3)
                                         
                                         Text("Solo Running uses an authorized access token to establish a connection with Spotify and is used to launch the Player everytime you start a run. This token usually expires after an hour. If you end your session, this token is deleted and subsequent connections will require app authorization.")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
-                                        
+                                            .font(.subheadline)
                                     }
                                     .padding(16)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                                    
                                 }
                                 .frame(maxHeight: .infinity, alignment: .top)
                                 .padding(.horizontal, 16)
@@ -1215,14 +1190,14 @@ struct RunView: View {
                                 List {
                                     ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
                                         
-                                        VStack(alignment: .leading) {
+                                        VStack(alignment: .leading, spacing: 2) {
                                             Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
                                                 .font(.title2)
                                                 .fontWeight(.semibold)
                                                 .foregroundStyle(.white)
                                             
                                             Text("\(locationManager.routeSteps[idx].instructions)")
-                                                .font(.title3)
+                                                .font(.subheadline)
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
                                         .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
@@ -1245,8 +1220,6 @@ struct RunView: View {
                             // No need to automatically launch a new one right away
                             spotifyManager.connect(launchSession: false)
                         }
-
-                       
                     }
                     
                     
@@ -1296,6 +1269,10 @@ struct RunView: View {
 }
 
 
+/**
+ A custom button to end a run session. When triggered, the user is presented with a confirmation dialog to proceed.
+ Confirmation will then run a task to end a run and background processes.
+ */
 struct EndRunButton: View {
     @Binding var isFinishRunLoading: Bool
     @Binding var isShowingDeleteDialog: Bool
