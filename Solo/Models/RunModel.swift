@@ -22,19 +22,18 @@ class RunData {
 
 @Model
 final class Run: Identifiable{
-//    @Attribute(.unique) public var id: String = UUID().uuidString
     public var id: String = UUID().uuidString
     var isDarkMode: Bool = true
     var postedDate: Date = Date()
     var startTime: Date = Date()
     var endTime: Date = Date()
-    var elapsedTime: Int  = 0           // seconds
-    var distanceTraveled: Double  = 0.0   // distance in meters
+    var elapsedTime: Int  = 0               // seconds
+    var distanceTraveled: Double  = 0.0     // distance in meters
     var steps: Int = 0
     var startPlacemark: MTPlacemark?
-    @Relationship(deleteRule: .noAction)  var endPlacemark: MTPlacemark? // don't delete the endPlacemark. The user should do this manually
-    var avgSpeed: Double = 0.0        // miles per hour
-    var avgPace: Int  = 0          // minutes per mile
+    @Relationship(deleteRule: .noAction) var endPlacemark: MTPlacemark? // don't delete the endPlacemark. The user should do this manually
+    var avgSpeed: Double = 0.0              // miles per hour
+    var avgPace: Int  = 0                   // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data?
     var notes: String = ""
 
