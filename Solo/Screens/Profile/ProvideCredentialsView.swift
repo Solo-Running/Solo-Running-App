@@ -155,7 +155,7 @@ struct PermissionsView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                         .font(.subheadline)
                 }
-                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 8, trailing: 16))
+                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 24, trailing: 16))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 VStack(alignment: .leading) {
@@ -168,7 +168,7 @@ struct PermissionsView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                         .font(.subheadline)
                 }
-                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 8, trailing: 16))
+                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 24, trailing: 16))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(RoundedRectangle(cornerRadius: 12).fill(.black))

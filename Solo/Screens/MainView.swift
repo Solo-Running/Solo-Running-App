@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import StoreKit
 
 struct MainView: View {
     
@@ -16,23 +17,23 @@ struct MainView: View {
 
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var activityManager: ActivityManager
-    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
 
     @State var selectedScreen: Screen = .Dashboard
     @State var oldSelectedScreen: Screen = .Dashboard
     @State private var showRunView: Bool = false  // Control visibility of RunView
     @State private var permissionsSheetDetents: Set<PresentationDetent> =  [.large]
     @Query var userData: [UserModel]
+    
 
     
     var body: some View {
         
         ZStack {
-            if !subscriptionsManager.isSubscribed  {
+            if !subscriptionManager.isSubscribed  {
                 // This view also handles susbcription management
                 OnboardingView()
             }
-           
             else if !appState.hasCredentials {
                 ProvideCredentialsView()
                     .environment(appState)
@@ -108,6 +109,21 @@ struct MainView: View {
                     
                 }
             }
+        }
+        .subscriptionStatusTask(for: "09C0271F") { taskState in
+            print("Checking status task")
+            if let value = taskState.value {
+                print("Task state: \(taskState.value as Any)")
+                subscriptionManager.isSubscribed = !value
+                    .filter { $0.state != .revoked && $0.state != .expired }
+                    .isEmpty
+            } else {
+                subscriptionManager.isSubscribed = false
+            }
+            
+        }
+        .task {
+            await subscriptionManager.listenForTransactions()
         }
         .onAppear {
     

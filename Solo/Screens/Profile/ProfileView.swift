@@ -15,7 +15,7 @@ import StoreKit
 struct ProfileView: View {
     
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
 
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
@@ -140,7 +140,7 @@ struct ProfileView: View {
                     
                     // Manage Subscriptions
                     NavigationLink {
-                        SubscriptionsEditView()
+                        SubscriptionEditView()
                     } label: {
                         HStack(alignment: .center) {
                             Text("Subscription Details")
@@ -263,125 +263,3 @@ struct ProfileView: View {
 
 
 
-struct Payload: Codable {
-    let bundleId: String
-    let currency: String
-    let deviceVerification: String
-    let deviceVerificationNonce: String
-    let environment: String
-    let expiresDate: Int
-    let inAppOwnershipType: String
-    let isUpgraded: Bool
-    let offerDiscountType: String
-    let offerType: Int
-    let originalPurchaseDate: Int
-    let originalTransactionId: String
-    let price: Int
-    let productId: String
-    let purchaseDate: Int
-    let quantity: Int
-    let signedDate: Int
-    let storefront: String
-    let storefrontId: String
-    let subscriptionGroupIdentifier: String
-    let transactionId: String
-    let transactionReason: String
-    let type: String
-    let webOrderLineItemId: String
-}
-
-
-struct SubscriptionsEditView: View {
-    
-    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
-    @State private var isPresentingCancellationSheet: Bool = false
-    @State private var payload: Payload?
-
-    func formatString(_ input: String) -> String {
-
-        let words = input.components(separatedBy: "_")
-        
-        let formattedWords = words
-            .filter { $0.lowercased() != "solo"}
-            .map { $0.capitalized }
-        
-        return formattedWords.joined(separator: " ")
-    }
-    
-    func formatDate(_ date: Date?) -> String {
-        if date == nil {
-            return "n/a"
-        }
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM dd, yyyy" // Format for "Jan 25, 2025"
-        return formatter.string(from: date!)
-    }
-    
-    var body: some View {
-        if let transaction = subscriptionsManager.currentTransaction {
-            
-            VStack(alignment: .leading, spacing: 24) {
-                
-                Spacer().frame(height: 32)
-                
-                VStack(alignment: .leading) {
-                    Text("Susbcription").foregroundStyle(.white).fontWeight(.semibold)
-                    HStack {
-                        Text(formatString(transaction.productID))
-                        if (payload?.offerDiscountType != nil) && (Date() < transaction.expirationDate! ) {
-                            Text("- \(formatString(payload!.offerDiscountType))")
-                        }
-                    }
-                    .foregroundStyle(TEXT_LIGHT_GREY)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(alignment: .leading) {
-                    Text("Plan Price").foregroundStyle(.white).fontWeight(.semibold)
-                    if payload?.price != nil {
-                        Text("$\(payload!.price)").foregroundStyle(TEXT_LIGHT_GREY)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(alignment: .leading) {
-                    Text("Renewal / Expiration Date").foregroundStyle(.white).fontWeight(.semibold)
-                    Text(formatDate(transaction.expirationDate)).foregroundStyle(TEXT_LIGHT_GREY)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                
-                Button {
-                    isPresentingCancellationSheet = true
-                } label: {
-                    Text("Manage your subscription")
-                        .foregroundStyle(BLUE)
-                        .font(.subheadline)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .preferredColorScheme(.dark)
-            .manageSubscriptionsSheet(isPresented: $isPresentingCancellationSheet)
-            .onAppear {
-                Task {
-                    await subscriptionsManager.checkSubscriptionStatus()
-                    if subscriptionsManager.transactionPayload != nil {
-                        do {
-                            // Decode the JSON into a Payload struct
-                            payload = try JSONDecoder().decode(Payload.self, from: subscriptionsManager.transactionPayload!)
-                        } catch {
-                            print("Failed to decode JSON: \(error)")
-                        }
-                    }
-                }
-            }            
-            Spacer()
-        }
-    }
-    
-    
-    
-}

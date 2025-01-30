@@ -34,6 +34,8 @@
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
 		E49FC6372CE674EE0034D465 /* SpotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49FC6362CE674EE0034D465 /* SpotifyManager.swift */; };
 		E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = E49FC6382CE6D0CC0034D465 /* SpotifyiOS */; };
+		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
+		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
 		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
 		E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B02CC372BD00B23CFE /* WidgetKit.framework */; };
 		E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B22CC372BD00B23CFE /* SwiftUI.framework */; };
@@ -47,10 +49,9 @@
 		E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D740082CD0C52E001461B7 /* RunCardView.swift */; };
 		E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D7400A2CD0C718001461B7 /* Extensions.swift */; };
 		E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E4D7400D2CD21BF1001461B7 /* Algorithms */; };
-		E4E17E0D2D339F9C008E5B29 /* ChangeToSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */; };
 		E4F5324D2D46B9E30064CF02 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = E4F5324C2D46B9E30064CF02 /* AlertToast */; };
 		E4F532512D485A050064CF02 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F532502D485A050064CF02 /* OnboardingView.swift */; };
-		E4F532532D485FFF0064CF02 /* SubscriptionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */; };
+		E4F532532D485FFF0064CF02 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -125,6 +126,8 @@
 		E4922E6A2CCB10E200C163EA /* CapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleView.swift; sourceTree = "<group>"; };
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		E49FC6362CE674EE0034D465 /* SpotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyManager.swift; sourceTree = "<group>"; };
+		E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionLaunchView.swift; sourceTree = "<group>"; };
+		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
 		E4BB6EB62CDCA96000932C4C /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
 		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -138,10 +141,9 @@
 		E4D740062CD0B9A4001461B7 /* RunDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailView.swift; sourceTree = "<group>"; };
 		E4D740082CD0C52E001461B7 /* RunCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunCardView.swift; sourceTree = "<group>"; };
 		E4D7400A2CD0C718001461B7 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChangeToSettingsView.swift; path = Solo/Screens/ChangeToSettingsView.swift; sourceTree = SOURCE_ROOT; };
 		E4F5324F2D4852BC0064CF02 /* Subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscription.storekit; sourceTree = "<group>"; };
 		E4F532502D485A050064CF02 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
-		E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionsManager.swift; sourceTree = "<group>"; };
+		E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -192,13 +194,13 @@
 		E43AEBE52CBCAB7F00C7A322 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				E4A9C22E2D4AA17B00C35CA6 /* Dashboard */,
 				E457B80E2CD8448F00FD6D90 /* Profile */,
 				E4BE5D632CCE27C50016D85A /* Run */,
 				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
 				E4F532502D485A050064CF02 /* OnboardingView.swift */,
+				E4A9C2292D4A914F00C35CA6 /* Subscription */,
 				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
-				E4E17E0C2D339F9C008E5B29 /* ChangeToSettingsView.swift */,
-				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -212,7 +214,7 @@
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
 				E49FC6362CE674EE0034D465 /* SpotifyManager.swift */,
-				E4F532522D485FFF0064CF02 /* SubscriptionsManager.swift */,
+				E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -316,6 +318,23 @@
 				E461C9672CDF355A00E3D69B /* DraggablePin.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		E4A9C2292D4A914F00C35CA6 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */,
+				E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		E4A9C22E2D4AA17B00C35CA6 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
+			);
+			path = Dashboard;
 			sourceTree = "<group>";
 		};
 		E4BE5D632CCE27C50016D85A /* Run */ = {
@@ -533,6 +552,7 @@
 				E461C9682CDF355A00E3D69B /* DraggablePin.swift in Sources */,
 				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
 				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
+				E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */,
@@ -542,12 +562,12 @@
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
 				E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
-				E4F532532D485FFF0064CF02 /* SubscriptionsManager.swift in Sources */,
+				E4F532532D485FFF0064CF02 /* SubscriptionManager.swift in Sources */,
 				E461C9662CDF214800E3D69B /* EditCustomPinsView.swift in Sources */,
-				E4E17E0D2D339F9C008E5B29 /* ChangeToSettingsView.swift in Sources */,
 				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
 				E457B8102CD8595500FD6D90 /* EditProfileView.swift in Sources */,
 				E4D740072CD0B9A4001461B7 /* RunDetailView.swift in Sources */,
+				E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */,
 				E491606F2CBC9341009294AA /* SoloApp.swift in Sources */,
 				E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */,
 			);
@@ -741,12 +761,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your run statistics.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "This app requires access to motion data to track your activities and provide personalized feedback.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -756,9 +775,13 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -781,12 +804,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
-				INFOPLIST_KEY_NSMotionUsageDescription = "We need to track your run statistics.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "This app requires access to motion data to track your activities and provide personalized feedback.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -796,9 +818,13 @@
 				PRODUCT_BUNDLE_IDENTIFIER = Solo.running.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

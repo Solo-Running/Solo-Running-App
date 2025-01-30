@@ -16,7 +16,8 @@ enum SelectedTab: Int {
 }
 
 struct OnboardingView: View {
-    
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+
     @State private var isSubscribed: Bool = false
     @State var selectedTab: SelectedTab = .Welcome
 
@@ -115,7 +116,7 @@ struct OnboardingView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Text("Join the community with a free 7 day trial. Cancel anytime.")
+                            Text("An active trial or subscription is required to use the app.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
 
@@ -175,53 +176,4 @@ struct OnboardingView: View {
         }
     }
 }
-
-struct SubscriptionLaunchView: View {
-    @EnvironmentObject var subscriptionsManager: SubscriptionsManager
-    
-    
-    var body: some View {
-        SubscriptionStoreView(groupID: "09C0271F"){
-            VStack {
-                Image("SoloLogo")
-                    .resizable()
-                    .frame(width: 48, height: 48)
-               
-                Text("Unlock Full Access")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                
-                Text("Experience Solo with unlimited access. Your support keeps this platform thriving!")
-                    .frame(maxWidth: 200, alignment: .center)
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .onInAppPurchaseStart { product in
-            print("User has started buying \(product.id)")
-        }
-        .onInAppPurchaseCompletion { product, result in
-            if case .success(.success(let transaction)) = result {
-                print("Purchased successfully: \(transaction.signedDate)")
-                subscriptionsManager.isSubscribed = true
-                Task {
-                    await subscriptionsManager.checkSubscriptionStatus()
-                }
-            } else {
-                print("Something else happened")
-            }
-        }
-        .preferredColorScheme(/*@START_MENU_TOKEN@*/.dark/*@END_MENU_TOKEN@*/)
-        .storeButton(.visible, for: .restorePurchases)
-        .storeButton(.visible, for: .cancellation)
-        .subscriptionStoreButtonLabel(.action)
-        .toolbar(.hidden)
-        .tint(BLUE)
-        
-    }
-}
-
-    
 

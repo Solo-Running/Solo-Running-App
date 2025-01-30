@@ -12,7 +12,8 @@ import SwiftUI
 
 @Model
 public class UserModel {
-    @Attribute(.unique) public var id: String = UUID().uuidString
+//    @Attribute(.unique) public var id: String = UUID().uuidString
+    public var id: String = UUID().uuidString
     var fullName: String
     var streak: Int
     var streakLastDoneDate: Date?

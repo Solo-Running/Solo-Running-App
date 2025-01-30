@@ -19,7 +19,7 @@ struct LaunchView: View {
             Text("SOLO")
                 .font(Font.custom("Koulen-Regular", size: 48))
                 .fontWeight(.heavy)
-                .foregroundStyle(NEON)
+                .foregroundStyle(.white)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black)       

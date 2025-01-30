@@ -11,13 +11,12 @@ import SwiftUI
 import MapKit
 
 
-
-
 // MTPlacemark is used for encoding any location into a consistent datat structure for displaying placemarks on the map
 @Model
-class MTPlacemark: Identifiable {
+class MTPlacemark {
     
-    @Attribute(.unique) var id: String = UUID().uuidString
+//    @Attribute(.unique) var id: String = UUID().uuidString
+    var id: String = UUID().uuidString
     var name: String?
     var thoroughfare: String?
     var subThoroughfare: String?
@@ -76,7 +75,8 @@ class MTPlacemark: Identifiable {
 
 @Model
 class Location {
-    @Attribute(.unique) var id: String = UUID().uuidString
+//    @Attribute(.unique) var id: String = UUID().uuidString
+    var id: String = UUID().uuidString
     var name: String?
     var thoroughfare: String?
     var subThoroughfare: String?

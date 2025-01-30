@@ -58,6 +58,7 @@ struct RunView: View {
     @State var runSheetVisible: Bool = false
     @State var stepsSheetVisible: Bool = false
     @State var customPinSheetVisible: Bool = false
+    @State var spotifyFAQSheetVisible: Bool = false
 
     // Programmatic selection of detent
     @State private var searchPlaceSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
@@ -68,6 +69,7 @@ struct RunView: View {
     @State private var routeSheetDetents: Set<PresentationDetent> =   SheetPosition.detents
     @State private var runSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
     @State private var stepsSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large]
+    @State private var spotifyFAQSheetDetents: Set<PresentationDetent> = [.medium, .large]
 
 
     // Search text field focus state
@@ -912,30 +914,52 @@ struct RunView: View {
                                     Spacer().frame(height: 24)
 
                                     
-                                    if spotifyManager.canOpenSpotify() {
+                                    
+                                    // TODO: Add link to spotify on app store to download it if not installed
+                                    if !spotifyManager.canOpenSpotify() {
+                                        HStack(spacing: 8){
+                                            
+                                            VStack {
+                                                Image("Primary_Logo_Green_RGB")
+                                                    .resizable()
+                                                    .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                    .scaledToFill()
+                                            }
+                                            .frame(width: 32, height: 32)
+                                            
+                                            Link("Get Spotify", destination: URL(string: "https://itunes.apple.com/us/app/spotify-music/id324684580?mt=8")!)
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Spacer()
+                                        }
+                                    }
+                                    
+                                    else if spotifyManager.canOpenSpotify() {
                                         HStack {
                                             
                                             Button {
                                                 if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
-                                                    spotifyManager.disconnect()
+                                                    spotifyManager.disconnect() // end spotify session
                                                 }
                                                 else if !spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                    spotifyManager.connect(launchSession: false)
+                                                    spotifyManager.resumePlayback() // resume playback - no need to initiate authorization with a new session
                                                 }
                                                 else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                    spotifyManager.connect(launchSession: true)
+                                                    spotifyManager.connect(launchSession: true) // connect and play spotify
                                                 }
+                                                
                                                 
                                             } label: {
                                                 HStack(spacing: 8){
                                                     
-                                                    ZStack {
-                                                        Circle()
-                                                            .fill(DARK_GREY)
-                                                            .frame(width: 32, height: 32)
-                                                        Image(systemName: "music.note")
+                                                    VStack {
+                                                        Image("Primary_Logo_Green_RGB")
+                                                            .resizable()
                                                             .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                            .scaledToFill()
                                                     }
+                                                    .frame(width: 32, height: 32)
+
                                                     
                                                     if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
                                                         Text("End Spotify Session").foregroundStyle(TEXT_LIGHT_GREY)
@@ -944,12 +968,23 @@ struct RunView: View {
                                                         Text("Resume Playback").foregroundStyle(TEXT_LIGHT_GREY)
                                                     }
                                                     else if spotifyManager.isSessionExpired() && !spotifyManager.isAppRemoteConnected() {
-                                                        Text("Connect to Spotify").foregroundStyle(TEXT_LIGHT_GREY)
+                                                        Text("Play Spotify").foregroundStyle(TEXT_LIGHT_GREY)
                                                     }
                                                 }
                                             }
                                             
                                             Spacer()
+                                            
+                                            
+                                            if spotifyManager.canOpenSpotify() {
+                                                Button {
+                                                    spotifyFAQSheetVisible = true
+                                                } label: {
+                                                    Image(systemName: "questionmark.circle.fill")
+                                                        .tint(TEXT_LIGHT_GREY)
+                                                        .font(.title2)
+                                                }
+                                            }
                                             
                                         }
                                         
@@ -967,7 +1002,10 @@ struct RunView: View {
                                         Spacer().frame(height: 48)
                                         
                                         
-                                        if !spotifyManager.isSessionExpired() || spotifyManager.isAppRemoteConnected() {
+                                        // TODO: Display all metadata
+                                        // Use the Playback Restrictions to limit what controls are enabled
+                                        // Make the content link back to the spotify service
+                                        if !spotifyManager.isSessionExpired() && spotifyManager.isAppRemoteConnected() {
                                             VStack(alignment: .center) {
                                                 
                                                 if let image = spotifyManager.currentTrackImage {
@@ -975,7 +1013,7 @@ struct RunView: View {
                                                         Image(uiImage: image)
                                                             .resizable()
                                                             .scaledToFill()
-                                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                                            .clipShape(RoundedRectangle(cornerRadius: 4))
                                                     }
                                                     .frame(width: 180, height: 180 )
                                                 }
@@ -996,22 +1034,32 @@ struct RunView: View {
                                                         .multilineTextAlignment(.center)
                                                 }
                                                 
-                                                Spacer().frame(height: 24)
+                                                if let artist = spotifyManager.currentAlbum{
+                                                    Text("\(artist)")
+                                                        .font(.caption)
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                        .multilineTextAlignment(.center)
+                                                        .padding(.top, 2)
+                                                }
                                                 
+                                                Spacer().frame(height: 24)
                                                 
                                                 HStack {
                                                     Spacer()
                                                     
-                                                    Button {
-                                                        spotifyManager.goBack()
-                                                    } label: {
-                                                        Image(systemName: "backward.fill")
-                                                            .frame(width: 48, height: 48)
-                                                            .foregroundStyle(.white)
+                                                    if spotifyManager.canSkipPrevious {
+                                                        Button {
+                                                            spotifyManager.goBack()
+                                                        } label: {
+                                                            Image(systemName: "backward.fill")
+                                                                .frame(width: 48, height: 48)
+                                                                .foregroundStyle(.white)
+                                                        }
+                                                        
+                                                        Spacer().frame(width: 24)
+
                                                     }
-                                                    
-                                                    Spacer().frame(width: 24)
-                                                    
+                                                   
                                                     Button {
                                                         spotifyManager.togglePlayer()
                                                     } label: {
@@ -1030,19 +1078,34 @@ struct RunView: View {
                                                         }
                                                     }
                                                     
-                                                    Spacer().frame(width: 24)
                                                     
-                                                    Button {
-                                                        spotifyManager.skipNext()
-                                                    } label: {
-                                                        Image(systemName: "forward.fill")
-                                                            .frame(width: 48, height: 48)
-                                                            .foregroundStyle(.white)
+                                                    if spotifyManager.canSkipNext {
+                                                        Spacer().frame(width: 24)
+                                                        
+                                                        
+                                                        Button {
+                                                            spotifyManager.skipNext()
+                                                        } label: {
+                                                            Image(systemName: "forward.fill")
+                                                                .frame(width: 48, height: 48)
+                                                                .foregroundStyle(.white)
+                                                        }
                                                     }
+                                                    
                                                     Spacer()
+                                                }
+                                                
+                                                // Users should be able to view the song in the Spotify app
+                                                if let trackURI = spotifyManager.currentTrackURI {
+                                                    Link("Open in Spotify", destination: URL(string: trackURI)!)
+                                                        .font(.subheadline)
+                                                        .foregroundStyle(BLUE)
+                                                        .padding(.top, 16)
                                                 }
                                             }
                                         }
+                                        
+                                        Spacer().frame(height: 32)
                                     }
                                 }
                                 .frame(maxHeight: .infinity, alignment: .top)
@@ -1056,6 +1119,78 @@ struct RunView: View {
                                     .enabled(upThrough: .large)
                                 )
 
+                            }
+                        }
+                        
+                        // Spotify FAQ sheet
+                        .sheet(isPresented: $spotifyFAQSheetVisible) {
+                            ScrollView(showsIndicators: false) {
+                                
+                                VStack(spacing: 24) {
+                                        
+                                    VStack(alignment: .center) {
+                                        VStack {
+                                            Image("Primary_Logo_Green_RGB")
+                                                .resizable()
+                                                .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                .scaledToFill()
+                                        }
+                                        .frame(width: 64, height: 64)
+                                        
+                                        Text("Spotify IOS SDK FAQ")
+                                            .fontWeight(.semibold)
+                                    }
+                                    .padding(.vertical, 16)
+                                    
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text("Why can't I skip or revert tracks?")
+                                            .foregroundStyle(.white)
+                                            .fontWeight(.semibold)
+                                            .font(.title2)
+                                        
+                                        Text("If you have Spotify without a premium account installed, the Spotify IOS SDK imposes playback restrictions. If you would like to use these feaures, navigate to Spotify to upgrade your plan. ")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                    }
+                                    .padding(16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                    
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text("What is Resume Playback?")
+                                            .foregroundStyle(.white)
+                                            .fontWeight(.semibold)
+                                            .font(.title2)
+                                        
+                                        Text("Network disconnections or termination of a previous song can sometimes trigger Spotify Player disconnections. Use Resume Playback to establish connection again. This may require further authorization sometimes.")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                    }
+                                    .padding(16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text("What does it mean to end my Spotify Session?")
+                                            .foregroundStyle(.white)
+                                            .fontWeight(.semibold)
+                                            .font(.title2)
+                                        
+                                        Text("Solo Running uses an authorized access token to establish a connection with Spotify and is used to launch the Player everytime you start a run. This token usually expires after an hour. If you end your session, this token is deleted and subsequent connections will require app authorization.")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                        
+                                    }
+                                    .padding(16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                    
+                                }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                                .presentationDetents(spotifyFAQSheetDetents)
+                                .presentationBackground(.black)
+                                .presentationDragIndicator(.visible)
                             }
                         }
                         

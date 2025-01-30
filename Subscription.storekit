@@ -80,6 +80,7 @@
           "groupNumber" : 1,
           "internalID" : "7681706B",
           "introductoryOffer" : {
+            "displayPrice" : "0.99",
             "internalID" : "CD052CC2",
             "paymentMode" : "free",
             "subscriptionPeriod" : "P1W"

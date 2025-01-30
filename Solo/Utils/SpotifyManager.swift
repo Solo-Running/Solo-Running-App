@@ -24,10 +24,11 @@ final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
     @Published var currentTrackURI: String?
     @Published var currentTrackName: String?
     @Published var currentTrackArtist: String?
-    @Published var currentTrackDuration: Int?
+    @Published var currentAlbum: String?
     @Published var currentTrackImage: UIImage?
-    @Published var playBackPosition: Int?
     @Published var lastPlayerState: SPTAppRemotePlayerState?
+    @Published var canSkipNext: Bool = true
+    @Published var canSkipPrevious: Bool = true
     
     @Published var isLoading: Bool = false
 
@@ -163,6 +164,23 @@ final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
         isLoading = false
     }
     
+    
+    func resumePlayback() {
+        print("Resuming playback")
+        // Connect normally
+        connect(launchSession: false)
+        
+        // If failed, launch a new session
+        if !isAppRemoteConnected() {
+            print("Normal connection failed. Launching new session")
+            sessionManager?.initiateSession(with: scopes, options: .clientOnly, campaign: nil)
+        } else {
+            print("Normal connection success")
+        }
+        
+    }
+    
+    
     // This callback function will tell the SPTSessionManagerDelegate to initiate
     func onAuthCallback(open url: URL)  {
         sessionManager?.application(UIApplication.shared, open: url, options: [:])
@@ -196,9 +214,10 @@ final class SpotifyManager: NSObject, ObservableObject, UIApplicationDelegate {
         self.lastPlayerState = playerState
         self.currentTrackURI = playerState.track.uri
         self.currentTrackName = playerState.track.name
+        self.currentAlbum = playerState.track.album.name
         self.currentTrackArtist = playerState.track.artist.name
-        self.currentTrackDuration = Int(playerState.track.duration) / 1000 // playerState.track.duration is in milliseconds
-        self.playBackPosition = playerState.playbackPosition
+        self.canSkipNext = playerState.playbackRestrictions.canSkipNext
+        self.canSkipPrevious = playerState.playbackRestrictions.canSkipPrevious
     }
             
 }

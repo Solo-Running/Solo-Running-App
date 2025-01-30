@@ -17,7 +17,7 @@ struct SoloApp: App {
     @State var launchManager = LaunchStateManager()
     @StateObject var locationManager = LocationManager()
     @StateObject var activityManager = ActivityManager()
-    @StateObject var subscriptionsManager = SubscriptionsManager()
+    @StateObject var subscriptionManager = SubscriptionManager()
     
     // Initialize the model container for persistent storage operations
     var modelContainer: ModelContainer = {
@@ -40,48 +40,35 @@ struct SoloApp: App {
 
     var body: some Scene {
         WindowGroup {
+            
+            ZStack{
                 
-                ZStack{
-                    
-                    // Show a splash screen on first app launch
-                    LaunchView()
-                        .opacity(launchManager.state != .finished ? 1 : 0)
-                        .animation(.easeOut(duration: 0.4), value: launchManager.state) // Animate opacity when state changes
+                // Show a splash screen on first app launch
+                LaunchView()
+                    .opacity(launchManager.state != .finished ? 1 : 0)
+                    .animation(.easeOut(duration: 0.4), value: launchManager.state) // Animate opacity when state changes
 
-                    // When splash screen animation finishes show the main view
-                    MainView()
-                        .environment(appState)
-                        .opacity(launchManager.state == .finished ? 1: 0)
-                        .animation(.easeOut(duration: 0.2), value: launchManager.state) // Animate opacity when state changes
+                // When splash screen animation finishes show the main view
+                MainView()
+                    .environment(appState)
+                    .opacity(launchManager.state == .finished ? 1: 0)
+                    .animation(.easeOut(duration: 0.2), value: launchManager.state) // Animate opacity when state changes
 
-                }
-                .environment(launchManager)
-                .environmentObject(locationManager)
-                .environmentObject(activityManager)
-                .environmentObject(subscriptionsManager)
-                .modelContainer(modelContainer)
-                .onAppear {
-                    // set a timer for splash screen duration
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        withAnimation {
-                            launchManager.dismiss()
-                        }
+            }
+            .environment(launchManager)
+            .environmentObject(locationManager)
+            .environmentObject(activityManager)
+            .environmentObject(subscriptionManager)
+            .modelContainer(modelContainer)
+            .onAppear {
+                // set a timer for splash screen duration
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation {
+                        launchManager.dismiss()
                     }
                 }
-            } 
+            }
         }
-    
+    }
 }
 
-//
-//    @MainActor
-//    private func initializeRuns() async {
-//        do {
-//            print("fetching data")
-//            let fetchedRuns = try modelContainer.mainContext.fetch(FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate)]))
-//            runData.runs = fetchedRuns // Update the state with the fetched data
-//            self.launchManager.dismiss()
-//        } catch {
-//            print("Failed to fetch runs: \(error)")
-//        }
-//    }

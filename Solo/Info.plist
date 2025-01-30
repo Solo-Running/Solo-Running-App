@@ -28,8 +28,6 @@
 	<array>
 		<string>spotify</string>
 	</array>
-    <key>NSMotionUsageDescription</key>
-    <string>This app requires access to motion data to track your activities and provide personalized feedback.</string>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array>
 		<string>MKDirectionsModeBike</string>

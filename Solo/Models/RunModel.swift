@@ -22,7 +22,8 @@ class RunData {
 
 @Model
 final class Run: Identifiable{
-    @Attribute(.unique) public var id: String = UUID().uuidString
+//    @Attribute(.unique) public var id: String = UUID().uuidString
+    var id: String = UUID().uuidString
     var isDarkMode: Bool
     var postedDate: Date
     var startTime: Date

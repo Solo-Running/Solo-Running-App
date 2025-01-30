@@ -105,3 +105,67 @@ func secondsToMinutes(seconds: Int) -> Int {
 }
 
 
+struct Payload: Codable {
+    let bundleId: String
+    let currency: String
+    let deviceVerification: String
+    let deviceVerificationNonce: String
+    let environment: String
+    let expiresDate: Int
+    let inAppOwnershipType: String
+    let isUpgraded: Bool
+    let offerDiscountType: String?
+    let offerType: Int?
+    let originalPurchaseDate: Int
+    let originalTransactionId: String
+    let price: Int
+    let productId: String
+    let purchaseDate: Int
+    let quantity: Int
+    let signedDate: Int
+    let storefront: String
+    let storefrontId: String
+    let subscriptionGroupIdentifier: String
+    let transactionId: String
+    let transactionReason: String
+    let type: String
+    let webOrderLineItemId: String
+}
+
+
+func formatString(_ input: String) -> String {
+
+    let words = input.components(separatedBy: "_")
+    
+    let formattedWords = words
+        .filter { $0.lowercased() != "solo"}
+        .map { $0.capitalized }
+    
+    return formattedWords.joined(separator: " ")
+}
+
+func formatDate(_ date: Date?) -> String {
+    if date == nil {
+        return "n/a"
+    }
+    
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMM dd, yyyy, h:mm a" // Format for "Jan 25, 2025"
+    return formatter.string(from: date!)
+}
+
+func formatPrice(_ price: Int) -> String {
+    // Convert to Double for decimal formatting
+    let amount = Double(price) / 1000.0
+    
+    // Create a NumberFormatter to format as currency
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .currency
+    formatter.currencyCode = "USD" // Change to your desired currency code
+    formatter.minimumFractionDigits = 2
+    formatter.maximumFractionDigits = 2
+    
+    // Format the amount
+    return formatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+}
+
