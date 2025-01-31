@@ -65,9 +65,16 @@ class MTPlacemark {
     }
     
     // Method to get CLLocationCoordinate2D for start placemark
-      func getLocation() -> CLLocationCoordinate2D {
-          return CLLocationCoordinate2D(latitude: self.latitude, longitude: self.longitude)
-      }
+    func getLocation() -> CLLocationCoordinate2D {
+      return CLLocationCoordinate2D(latitude: self.latitude, longitude: self.longitude)
+    }
+    
+    // Returns a copy of the placemarks name
+    func getName() -> String {
+        let copy = MTPlacemark()
+        copy.name = name
+        return copy.name
+    }        
 }
 
 

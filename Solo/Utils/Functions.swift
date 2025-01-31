@@ -10,8 +10,6 @@ import MapKit
 
 
 
-
-
 // Formats a Date to friendly format into 1:13am
 func convertDateToString(date: Date) -> String {
     let formatter = DateFormatter()
@@ -21,6 +19,19 @@ func convertDateToString(date: Date) -> String {
     return timeString
 }
 
+func convertDateToDateTime(date: Date) -> String {
+    let dayFormatter = DateFormatter()
+    dayFormatter.dateFormat = "E d"
+    
+    let timeFormatter = DateFormatter()
+    timeFormatter.dateFormat = "h:mm a"
+    
+    let dayString = dayFormatter.string(from: date)
+    let timeString = timeFormatter.string(from: date)
+    
+    return "\(dayString), \(timeString)"
+    
+}
 
 func getDayAndTimeRange(startDate: Date, endDate: Date) -> String {
     let dayFormatter = DateFormatter()
@@ -38,7 +49,10 @@ func getDayAndTimeRange(startDate: Date, endDate: Date) -> String {
 }
 
 
-// Formats time difference between start and end times into 1hr 2min
+/**
+ Converts a range of Dates into a presentable string.
+ An example output would be 1:40 PM - 3:00 PM
+ */
 func timeDifference(from startDate: Date, to endDate: Date) -> String {
     let calendar = Calendar.current
        
@@ -69,7 +83,11 @@ func timeDifference(from startDate: Date, to endDate: Date) -> String {
        return result.isEmpty ? "0s" : result
 }
 
-// Helper function to format route step distances to user friendly format
+
+/**
+ Converts CLLocationDistance units in meters to feet or miles if the distance is
+ at least 1000 ft. An example output would be 500ft or 0.3 mi
+ */
 func convertMetersToString(distance: CLLocationDistance) -> String {
     // Constants for conversion
     let metersInMile = 1609.34
@@ -90,7 +108,9 @@ func convertMetersToString(distance: CLLocationDistance) -> String {
 
 
 
-// Converts CMPedometer Pace Units to Minutes/Mile
+/**
+ Converts a CMPedometer pace units to minutes / mile
+ */
 func convertPace(secondsPerMeter: Double) -> Double {
     let minutesPerMeter = secondsPerMeter / 60
     let minutesPerMile = minutesPerMeter * 1609.34
@@ -100,40 +120,15 @@ func convertPace(secondsPerMeter: Double) -> Double {
 
 
 func secondsToMinutes(seconds: Int) -> Int {
-    
     return Int(floor(Double(seconds) / 60))
 }
 
 
-struct Payload: Codable {
-    let bundleId: String
-    let currency: String
-    let deviceVerification: String
-    let deviceVerificationNonce: String
-    let environment: String
-    let expiresDate: Int
-    let inAppOwnershipType: String
-    let isUpgraded: Bool
-    let offerDiscountType: String?
-    let offerType: Int?
-    let originalPurchaseDate: Int
-    let originalTransactionId: String
-    let price: Int
-    let productId: String
-    let purchaseDate: Int
-    let quantity: Int
-    let signedDate: Int
-    let storefront: String
-    let storefrontId: String
-    let subscriptionGroupIdentifier: String
-    let transactionId: String
-    let transactionReason: String
-    let type: String
-    let webOrderLineItemId: String
-}
-
-
-func formatString(_ input: String) -> String {
+/**
+ Formats a transaction product id into a presentable string. An example input would be
+ solo_yearly_subscription which would become Yearly Subscription
+ */
+func formatTransactionProductID(_ input: String) -> String {
 
     let words = input.components(separatedBy: "_")
     
@@ -144,7 +139,12 @@ func formatString(_ input: String) -> String {
     return formattedWords.joined(separator: " ")
 }
 
-func formatDate(_ date: Date?) -> String {
+
+/**
+ Formats a transaction Date into a date and time string in the form of
+ MMM dd. yyy, h:mm a. An example output would be Jan 25, 2025 4:00 PM
+ */
+func formatTransactionDate(_ date: Date?) -> String {
     if date == nil {
         return "n/a"
     }
@@ -154,7 +154,14 @@ func formatDate(_ date: Date?) -> String {
     return formatter.string(from: date!)
 }
 
-func formatPrice(_ price: Int) -> String {
+
+/**
+ Formats a transaction price into a currency string. Inputs primarily come from a transaction payload found
+ in the subscription manager which can offten appear as a large integer without decimal offsets. Because of this,
+ the function has to divide by 1000 to account for this offset and uses a mask to keep the last 2 fraction digits.
+ For example a price could appear as 8990 which would become $8.99. Otherwise if the price is 0, it becomes $0.00
+ */
+func formatTransactionPrice(_ price: Int) -> String {
     // Convert to Double for decimal formatting
     let amount = Double(price) / 1000.0
     

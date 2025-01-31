@@ -56,8 +56,18 @@ struct DashboardView: View {
         return run.postedDate >= weekAgoDate
     }, sort: \Run.postedDate, order: .reverse) var weeklyRuns: [Run]
         
-    @Query(sort: \Run.postedDate, order: .reverse) var allRuns: [Run]
-        
+
+    static var descriptor: FetchDescriptor<Run> {
+        var descriptor = FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate, order: .reverse)])
+        descriptor.fetchLimit = 5
+        return descriptor
+    }
+    @Query(descriptor) var recentRuns: [Run]
+//    @Query var customPins: [MTPlacemark]
+    
+//    @State var recentRuns: [Run] = []
+
+    
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
    
@@ -93,7 +103,6 @@ struct DashboardView: View {
         
         return dates
     }()
-
     
     func generateWeeklyData() {
         
@@ -103,7 +112,9 @@ struct DashboardView: View {
         dateFormatter.dateFormat = "E"
         
         // Create temporary dictionary for storing stats
-        var statsDictionary: [String: RunStatsPerDay] = Dictionary(uniqueKeysWithValues: days.map { ($0, RunStatsPerDay(steps: 0, paceMinutesPerMile: 0, timeSeconds: 0, contributedRuns: 0 )) })
+        var statsDictionary: [String: RunStatsPerDay] = Dictionary(uniqueKeysWithValues: days.map {
+            ($0, RunStatsPerDay(steps: 0, paceMinutesPerMile: 0, timeSeconds: 0, contributedRuns: 0 ))
+        })
         
         var totalSteps = 0
         var todaySteps = 0
@@ -422,12 +433,10 @@ struct DashboardView: View {
                     .scrollTargetBehavior(.viewAligned)
                     .scrollContentBackground(.hidden)
                     .frame(height: 200)
-                    .padding(.top, 16)
+                    .padding(.vertical, 16)
                     .background(.black)
                     
-                
-                    Spacer().frame(height: 16)
-                    
+
                     
                     // Second row to hold Pace Line Chart and Daily Streak Information
                     HStack(spacing: 16) {
@@ -516,7 +525,6 @@ struct DashboardView: View {
                                 Text("Amazing job")
                                     .font(.caption)
                                     .foregroundStyle(TEXT_LIGHT_GREY)
-                                
                             }
                       
                             Spacer()
@@ -608,7 +616,7 @@ struct DashboardView: View {
                         }
                     }
 
-                    if allRuns.isEmpty {
+                    if recentRuns.isEmpty {
                         ContentUnavailableView(
                             "No runs were found",
                             systemImage: "figure.run.square.stack.fill",
@@ -617,8 +625,72 @@ struct DashboardView: View {
                     }
                     else {
                         // Display past runs in a list. Limit to 5 items
-                        ForEach(allRuns.prefix(5)) { run in
-                            RunCardView(run: run)
+                        ForEach(recentRuns) { run in
+                            NavigationLink(destination: RunDetailView(runData: run)) {
+                                
+                                HStack(alignment: .top) {
+                                    
+                                    if let data = run.routeImage {
+                                        VStack {
+                                            Image(uiImage: UIImage(data: data)!)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        }
+                                        .frame(width: 80, height: 80 )
+                                        .padding(.trailing, 8)
+                                    }
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(run.startTime.formatted(
+                                            .dateTime
+                                            .day()
+                                            .month(.abbreviated)
+                                        ))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white)
+                                        .fontWeight(.bold)
+                                        .padding(.bottom, 0)
+                                        
+                                        Text("\(convertDateToString(date: run.startTime)) - \(convertDateToString(date: run.endTime))")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .font(.subheadline)
+                                        
+                                        HStack  {
+                                            
+                                            // Custom pin
+                                            VStack {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(.white)
+                                                        .frame(width: 14, height: 14)
+                                                    Image(systemName: "mappin.circle.fill")
+                                                        .font(.title2)
+                                                        .foregroundStyle(run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
+                                                        .font(.system(size: 4))
+                                                }
+                                                
+                                                Image(systemName: "arrowtriangle.down.fill")
+                                                    .font(.caption)
+                                                    .foregroundStyle(run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
+                                                    .offset(x: 0, y: -8)
+                                            }
+                                                                                    
+                                            Text(run.endPlacemark!.name)
+                                                .foregroundStyle(.white)
+                                                .padding(.bottom, 4)
+                                                .font(.system(size: 14))
+                                                .multilineTextAlignment(.leading)
+                                            
+                                            Spacer()
+                                        }
+                                        
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                .padding(.vertical, 8)
+                            }
                         }
                     }
                 }

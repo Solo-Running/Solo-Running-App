@@ -9,6 +9,32 @@ import Foundation
 import SwiftUI
 import StoreKit
 
+struct Payload: Codable {
+    let bundleId: String
+    let currency: String
+    let deviceVerification: String
+    let deviceVerificationNonce: String
+    let environment: String
+    let expiresDate: Int
+    let inAppOwnershipType: String
+    let isUpgraded: Bool
+    let offerDiscountType: String?
+    let offerType: Int?
+    let originalPurchaseDate: Int
+    let originalTransactionId: String
+    let price: Int
+    let productId: String
+    let purchaseDate: Int
+    let quantity: Int
+    let signedDate: Int
+    let storefront: String
+    let storefrontId: String
+    let subscriptionGroupIdentifier: String
+    let transactionId: String
+    let transactionReason: String
+    let type: String
+    let webOrderLineItemId: String
+}
 
 /**
  Provides fine tuned access to  a user's active susbscription, renewal information, and past purchases.
@@ -48,9 +74,9 @@ struct SubscriptionEditView: View {
                 VStack(alignment: .leading) {
                     Text("Susbcription").foregroundStyle(.white).fontWeight(.semibold)
                     HStack {
-                        Text(formatString(transaction.productID))
+                        Text(formatTransactionProductID(transaction.productID))
                         if (payload?.offerDiscountType != nil) && (Date() < transaction.expirationDate! ) {
-                            Text("- \(formatString(payload!.offerDiscountType!))")
+                            Text("- \(formatTransactionProductID(payload!.offerDiscountType!))")
                         }
                     }
                     .foregroundStyle(TEXT_LIGHT_GREY)
@@ -60,7 +86,7 @@ struct SubscriptionEditView: View {
                 VStack(alignment: .leading) {
                     Text("Plan Price").foregroundStyle(.white).fontWeight(.semibold)
                     if payload?.price != nil {
-                        Text("\(formatPrice(payload!.price))").foregroundStyle(TEXT_LIGHT_GREY)
+                        Text("\(formatTransactionPrice(payload!.price))").foregroundStyle(TEXT_LIGHT_GREY)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -69,7 +95,7 @@ struct SubscriptionEditView: View {
                     if let renewalInfo = subscriptionManager.currentRenewalInfo {
                         Text(renewalInfo.willAutoRenew ? "Renews" : "Expires").foregroundStyle(.white).fontWeight(.semibold)
                     }
-                    Text(formatDate(transaction.expirationDate)).foregroundStyle(TEXT_LIGHT_GREY)
+                    Text(formatTransactionDate(transaction.expirationDate)).foregroundStyle(TEXT_LIGHT_GREY)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -113,13 +139,13 @@ struct SubscriptionEditView: View {
                         List(sortedPurchases, id: \.id) { purchase in
                             VStack(alignment: .leading) {
                                 
-                                Text(formatString(purchase.productID))
+                                Text(formatTransactionProductID(purchase.productID))
                                     .onTapGesture {
-                                        print(formatDate(purchase.purchaseDate))
+                                        print(formatTransactionDate(purchase.purchaseDate))
                                         presentRefundRequest(transaction: purchase)
                                     }
                                 HStack(alignment: .center) {
-                                    Text("Purchased \(formatDate(purchase.purchaseDate))")
+                                    Text("Purchased \(formatTransactionDate(purchase.purchaseDate))")
                                         .font(.caption)
                                         .foregroundStyle(TEXT_LIGHT_GREY)
                                     Spacer()

@@ -10,6 +10,10 @@ import MapKit
 import Combine
 import CoreMotion
 
+
+/**
+ Manages user location, routing, and dynamic data as user interacts with run configurations in the run view.
+ */
 class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocationManagerDelegate {
     
     @Published var manager = CLLocationManager()
@@ -94,17 +98,16 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
 
 
-    // updates user location and calculates next step with remaining distance
+    // Updates the user location which is reflected on the map 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         userLocation = locations.last
-
-        if !stepCoordinates.isEmpty  {
-            let nextStepCoordinate = stepCoordinates.first
-            let nextStepLocation = CLLocation(latitude: nextStepCoordinate!.latitude, longitude: nextStepCoordinate!.longitude)
-                       
-        }
     }
     
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("location manager did fail: \(error)")
+    }
+        
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
@@ -120,7 +123,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         case .denied:
             isAuthorized = false
             print("location authorization denied")
-            // should navigate to new screen to tell user to turn on location services
         default:
             isAuthorized = true
             startLocationServices()
@@ -139,20 +141,20 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
                         let placemark = item.placemark
                         return MTPlacemark(
                             name: placemark.name ?? "",
-                                    thoroughfare: placemark.thoroughfare ?? "",
-                                    subThoroughfare: placemark.subThoroughfare ?? "",
-                                    locality: placemark.locality ?? "",
-                                    subLocality: placemark.subLocality ?? "",
-                                    administrativeArea: placemark.administrativeArea ?? "",
-                                    subAdministrativeArea: placemark.subAdministrativeArea ?? "",
-                                    postalCode: placemark.postalCode ?? "",
-                                    country: placemark.country ?? "",
-                                    isoCountryCode: placemark.isoCountryCode ?? "",
-                                    longitude: placemark.location!.coordinate.longitude,
-                                    latitude: placemark.location!.coordinate.latitude,
-                                    isCustomLocation: false,
-                                    timestamp: Date()
-                                )
+                            thoroughfare: placemark.thoroughfare ?? "",
+                            subThoroughfare: placemark.subThoroughfare ?? "",
+                            locality: placemark.locality ?? "",
+                            subLocality: placemark.subLocality ?? "",
+                            administrativeArea: placemark.administrativeArea ?? "",
+                            subAdministrativeArea: placemark.subAdministrativeArea ?? "",
+                            postalCode: placemark.postalCode ?? "",
+                            country: placemark.country ?? "",
+                            isoCountryCode: placemark.isoCountryCode ?? "",
+                            longitude: placemark.location!.coordinate.longitude,
+                            latitude: placemark.location!.coordinate.latitude,
+                            isCustomLocation: false,
+                            timestamp: Date()
+                        )
                     })
                 })
             } catch {
@@ -160,13 +162,6 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
             }
         }
     }
-    
 
-    
-    
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("location manager did fail: \(error)")
-    }
-        
     
 }

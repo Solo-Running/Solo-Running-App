@@ -46,7 +46,6 @@
 		E4C5091F2CC3762C00B23CFE /* SoloLiveWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */; };
 		E4D740072CD0B9A4001461B7 /* RunDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D740062CD0B9A4001461B7 /* RunDetailView.swift */; };
-		E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D740082CD0C52E001461B7 /* RunCardView.swift */; };
 		E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D7400A2CD0C718001461B7 /* Extensions.swift */; };
 		E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E4D7400D2CD21BF1001461B7 /* Algorithms */; };
 		E4F5324D2D46B9E30064CF02 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = E4F5324C2D46B9E30064CF02 /* AlertToast */; };
@@ -139,7 +138,6 @@
 		E4C5091A2CC3762C00B23CFE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E4C5091C2CC3762C00B23CFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E4D740062CD0B9A4001461B7 /* RunDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailView.swift; sourceTree = "<group>"; };
-		E4D740082CD0C52E001461B7 /* RunCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunCardView.swift; sourceTree = "<group>"; };
 		E4D7400A2CD0C718001461B7 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		E4F5324F2D4852BC0064CF02 /* Subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscription.storekit; sourceTree = "<group>"; };
 		E4F532502D485A050064CF02 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -314,7 +312,6 @@
 			isa = PBXGroup;
 			children = (
 				E4922E6A2CCB10E200C163EA /* CapsuleView.swift */,
-				E4D740082CD0C52E001461B7 /* RunCardView.swift */,
 				E461C9672CDF355A00E3D69B /* DraggablePin.swift */,
 			);
 			path = Components;
@@ -555,7 +552,6 @@
 				E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
-				E4D740092CD0C52E001461B7 /* RunCardView.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
 				E49FC6372CE674EE0034D465 /* SpotifyManager.swift in Sources */,
 				E47E67222CCE084A006941B1 /* Functions.swift in Sources */,

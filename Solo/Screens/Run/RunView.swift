@@ -14,7 +14,7 @@ import SwiftUI
 import MapKit
 import BottomSheet
 import SwiftData
-
+import CoreHaptics
 
 enum RunStatus: String {
     case planningRoute = "planning route", startedRun = "started run", endedRun = "ended run"
@@ -55,29 +55,38 @@ struct RunView: View {
     // Loading States
     @State var isStartRunLoading: Bool = false
     @State var isFinishRunLoading: Bool = false
+    @State var isLoadingAssociatedRuns: Bool = false
     
     // Bottom sheet visibility states
     @State var searchPlaceSheetVisible: Bool = true
     @State var routeSheetVisible: Bool = false
+    @State var editCustomPinNameSheetVisible: Bool = false
+    @State var viewPinAssociatedRunsSheetVisible: Bool = false
+
     @State var runSheetVisible: Bool = false
     @State var stepsSheetVisible: Bool = false
     @State var customPinSheetVisible: Bool = false
     @State var spotifyFAQSheetVisible: Bool = false
 
-    // Programmatic selection of detents
+    // Sheet position targets. The first two are designed to make their sheet positions dynamically change according to user specific requirements
     @State private var searchPlaceSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
     @State private var routeSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
 
-    // Sheet position targets
     @State private var searchPlaceSheetDetents: Set<PresentationDetent> = SheetPosition.detents
     @State private var routeSheetDetents: Set<PresentationDetent> =   SheetPosition.detents
+    @State private var editCustomPinNameSheetDetents: Set<PresentationDetent> = [.medium, .large]
+    @State private var viewPinAssociatedRunsSheetDetents: Set<PresentationDetent> = [.medium, .large]
     @State private var runSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
-    @State private var stepsSheetDetents: Set<PresentationDetent> = [.fraction(0.25), .medium, .large]
+    @State private var stepsSheetDetents: Set<PresentationDetent> = [.medium, .large]
     @State private var spotifyFAQSheetDetents: Set<PresentationDetent> = [.medium, .large]
 
-    // Search text field focus state
+    // Search text field and focus state
     @FocusState private var isTextFieldFocused: Bool
     @State var addressInput: String = ""
+    
+    // Custom pin interaction states
+    @State var associatedRuns: [Run] = []
+    @State var newCustomPinName: String = ""
     
     // Map variables to handle interactions and camera
     @State var interactionModes: MapInteractionModes = [.zoom, .pan, .pitch, .rotate] // gestures for map view
@@ -121,7 +130,10 @@ struct RunView: View {
     @State private var isPaused: Bool = false
     
     // Confirmation dialog to end the run
-    @State private var isShowingDeleteDialog: Bool = false
+    @State private var isShowingEndRunDialog: Bool = false
+    
+    // Confirmation dialog to delete a custom pin
+    @State private var isShowingDeleteCustomPinDialog: Bool = false
     
     // Subsequent route fetches are disabled when viewing current route details
     @State private var disabledFetch: Bool = false
@@ -129,6 +141,22 @@ struct RunView: View {
     // If user has finished saving a run, navigate to run summary view
     @State private var canShowSummary: Bool = false
         
+    @State private var isCustomPinNewNameSaved: Bool = false
+        
+    
+    func saveNewCustomPinName() {
+        isCustomPinNewNameSaved = false
+        if !newCustomPinName.isEmpty {
+            routeDestination!.name = newCustomPinName
+            isCustomPinNewNameSaved = true
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                newCustomPinName = ""
+                isCustomPinNewNameSaved = false
+            }
+        }
+    }
+    
     // Code source: https://www.youtube.com/watch?v=yVMvOXGMd_Q&t=698s
     func fetchRoute() async  {
         print("fetching route")
@@ -191,6 +219,28 @@ struct RunView: View {
         })
     }
 
+    
+    func fetchAssociatedRunsForPin(pin: MTPlacemark) async {
+        isLoadingAssociatedRuns = true
+        let id = pin.id
+        let fetchDescriptor = FetchDescriptor<Run>(
+            predicate: #Predicate<Run> { $0.endPlacemark?.id == id },
+            sortBy:[SortDescriptor(\.startTime, order: .reverse)]
+        )
+        
+        do {
+            associatedRuns = try modelContext.fetch(fetchDescriptor)
+        } catch {
+            print("could not fetch runs with custom pin")
+            associatedRuns = []
+        }
+        
+        isLoadingAssociatedRuns = false
+    }
+    
+    func saveNewNameForPin() {
+        
+    }
     
     // Removes a route when user dismisses the details sheet
     func removeRoute() {
@@ -708,19 +758,36 @@ struct RunView: View {
                                     Text(routeDestination!.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
                                     
                                     HStack(spacing: 16) {
+                                        
+                                        CapsuleView(iconBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
+                                        CapsuleView(iconBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
+                                        
                                         if routeDestination!.isCustomLocation {
                                             Menu {
-                                                Button("Remove custom pin") { deleteCustomPin()}
+                                                Button("Delete custom pin") {
+                                                    isShowingDeleteCustomPinDialog = true
+                                                }
+                                                
+                                                Button("Edit name") { editCustomPinNameSheetVisible = true}
+                                                
+                                                Button("Past runs") { viewPinAssociatedRunsSheetVisible = true }
+
                                             } label: {
                                                 Image(systemName: "ellipsis.circle.fill")
                                                     .font(.largeTitle)
                                                     .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
                                                     .rotationEffect(Angle(degrees: 90))
+                                                    .padding(2)
+                                            }
+                                            .alert("Deleting this pin will delete any runs that reference it", isPresented: $isShowingDeleteCustomPinDialog) {
+                                                Button("Delete", role: .destructive) {
+                                                    deleteCustomPin()
+                                                }
+                                                
+                                                Button("Cancel", role: .cancel) {}
                                             }
                                         }
-                                        CapsuleView(iconBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
-                                        CapsuleView(iconBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
-                                        
+                                      
                                         Spacer()
                                     }
                                     .padding(.vertical, 8)
@@ -789,9 +856,147 @@ struct RunView: View {
                             .presentationBackgroundInteraction(
                                 .enabled(upThrough: SheetPosition.full.detent)
                             )
+                            
+                            // Past runs for pin sheet
+                            .sheet(isPresented: $viewPinAssociatedRunsSheetVisible) {
+                                VStack {
+                                    HStack {
+                                        Text("Past Runs").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                        Spacer()
+                                        
+                                        // Custom dismiss button
+                                        Button {
+                                            viewPinAssociatedRunsSheetVisible = false
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundStyle(.gray)
+                                                .font(.title)
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    
+                                    // Timeline View of associated runs
+                                    ScrollView(showsIndicators: false) {
+                                        ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
+
+                                            HStack(alignment: .top, spacing: 12) {
+                                                Circle()
+                                                    .fill(.blue)
+                                                    .frame(width: 8, height: 8)
+                                                    .overlay(alignment: .top) {
+                                                        if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
+                                                            Rectangle()
+                                                                .fill(Color.blue.opacity(0.5))
+                                                                .frame(width: 2, height: 56)
+                                                        }
+                                                        else {
+                                                            Rectangle()
+                                                                .fill(Color.clear)
+                                                        }
+                                                    }
+                                                
+                                                VStack(alignment: .leading) {
+                                                    Text(String(convertDateToDateTime(date: run.startTime)))
+                                                        .font(.subheadline)
+                                                    
+                                                    Text("\(run.steps) steps")
+                                                        .font(.caption)
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                }
+                                                .offset(y: -4)
+                                                
+                                                Spacer()
+                                            }
+                                            .frame(height: 48)
+                                        }
+                                        .listRowBackground(Color.clear)
+                                        .listStyle(.plain)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .scrollContentBackground(.hidden)
+                                }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .padding(.top, 16)
+                                .presentationDetents(viewPinAssociatedRunsSheetDetents)
+                                .presentationBackground(.black)
+                                .presentationDragIndicator(.visible)
+                                .presentationBackgroundInteraction(.disabled)
+                            }
+                            .onAppear {
+                                if routeDestination != nil {
+                                    Task {
+                                        await fetchAssociatedRunsForPin(pin: routeDestination!)
+                                    }
+                                }
+                            }
+                            
+                            
+                            // Edit custom pin name sheet
+                            .sheet(isPresented: $editCustomPinNameSheetVisible) {
+                                ScrollView(showsIndicators: false) {
+
+                                    let oldName = String(routeDestination!.getName())
+                                    
+                                    VStack(alignment: .leading, spacing: 24) {
+                                        
+                                        HStack {
+                                            Text("Change pin name").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                            Spacer()
+                                            
+                                            // Custom dismiss button
+                                            Button {
+                                                editCustomPinNameSheetVisible = false
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.title)
+                                            }
+                                        }
+                                        .padding(.bottom, 16)
+                                        
+                                       
+                                        TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
+                                            .foregroundColor(.white)
+                                            .autocapitalization(.none)
+                                            .frame(height: 48)
+                                            .cornerRadius(12)
+                                            .padding(.leading)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                                            )
+                                    
+                                        
+                                        Button {
+                                           saveNewCustomPinName()
+                                        } label: {
+                                            HStack {
+                                                Text("Save")
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(TEXT_LIGHT_GREEN)
+                                            }
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(LIGHT_GREEN)
+                                            .cornerRadius(12)
+                                        }
+                                        .sensoryFeedback(.success, trigger: isCustomPinNewNameSaved)
+                                    }
+                                    .padding(.horizontal, 16)
+                                }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .padding(.top, 16)
+                                .presentationDetents(editCustomPinNameSheetDetents)
+                                .presentationBackground(.black)
+                                .presentationDragIndicator(.visible)
+                                .presentationBackgroundInteraction(.disabled)
+                                
+                            }
+        
                         }
                     }
 
+                                    
+                    
                     
                     // Run sheet
                     .sheet(isPresented: $runSheetVisible){
@@ -883,7 +1088,7 @@ struct RunView: View {
                                     // End run button
                                     EndRunButton(
                                         isFinishRunLoading: $isFinishRunLoading,
-                                        isShowingDeleteDialog: $isShowingDeleteDialog,
+                                        isShowingEndRunDialog: $isShowingEndRunDialog,
                                         searchPlaceSheetVisible: $searchPlaceSheetVisible,
                                         stepsSheetVisible: $stepsSheetVisible,
                                         routeSheetVisible: $routeSheetVisible,
@@ -1197,7 +1402,7 @@ struct RunView: View {
                                                 .font(.subheadline)
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                         }
-                                        .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
+                                        .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
                                     }
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
@@ -1272,7 +1477,7 @@ struct RunView: View {
  */
 struct EndRunButton: View {
     @Binding var isFinishRunLoading: Bool
-    @Binding var isShowingDeleteDialog: Bool
+    @Binding var isShowingEndRunDialog: Bool
     @Binding var searchPlaceSheetVisible: Bool
     @Binding var stepsSheetVisible: Bool
     @Binding var routeSheetVisible: Bool
@@ -1288,7 +1493,7 @@ struct EndRunButton: View {
         
         // End run button
         Button  {
-            isShowingDeleteDialog = true
+            isShowingEndRunDialog = true
         } label: {
             HStack {
                 if isFinishRunLoading {
@@ -1305,7 +1510,7 @@ struct EndRunButton: View {
             .background(.red)
             .cornerRadius(12)
         }
-        .confirmationDialog("Are you sure?", isPresented: $isShowingDeleteDialog) {
+        .confirmationDialog("Are you sure?", isPresented: $isShowingEndRunDialog) {
             Button("Yes", role: .destructive) {
                 Task {
                     isFinishRunLoading = true
