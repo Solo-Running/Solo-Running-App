@@ -127,6 +127,7 @@ struct RunHistoryView: View {
                         }
                     }
                     .listStyle(.sidebar)
+                    .scrollIndicators(.hidden)
                     .scrollContentBackground(.hidden)
                 }
                 else {
