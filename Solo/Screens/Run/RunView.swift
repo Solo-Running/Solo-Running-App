@@ -809,6 +809,8 @@ struct RunView: View {
                                             // Make the app stay awake during run session
                                             UIApplication.shared.isIdleTimerDisabled = true
                                             await activityManager.beginRunSession()
+                                            locationManager.beginTracking()
+                                            
                                             runStatus = .startedRun
                                             isStartRunLoading = false
                                             routeSheetVisible = false
@@ -881,12 +883,12 @@ struct RunView: View {
 
                                             HStack(alignment: .top, spacing: 12) {
                                                 Circle()
-                                                    .fill(.blue)
+                                                    .fill(BLUE)
                                                     .frame(width: 8, height: 8)
                                                     .overlay(alignment: .top) {
                                                         if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
                                                             Rectangle()
-                                                                .fill(Color.blue.opacity(0.5))
+                                                                .fill(BLUE.opacity(0.5))
                                                                 .frame(width: 2, height: 56)
                                                         }
                                                         else {
@@ -1529,6 +1531,8 @@ struct EndRunButton: View {
                             runSheetVisible = false
                             
                             locationManager.clearData()
+                            locationManager.terminateTracking()
+                            
                             activityManager.clearData()
                             
                             isFinishRunLoading = true

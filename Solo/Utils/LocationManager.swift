@@ -76,15 +76,20 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
     func startLocationServices() {
         if manager.authorizationStatus == .authorizedAlways || manager.authorizationStatus == .authorizedWhenInUse {
-            manager.startUpdatingLocation()
             isAuthorized = true
-//            manager.allowsBackgroundLocationUpdates = true
-
         } else {
             isAuthorized = false
             manager.requestWhenInUseAuthorization()
         }
         
+    }
+    
+    func beginTracking() {
+        manager.startUpdatingLocation()
+    }
+    
+    func terminateTracking() {
+        manager.stopUpdatingLocation()
     }
     
     func updateStepCoordinates(steps: [MKRoute.Step]) {
