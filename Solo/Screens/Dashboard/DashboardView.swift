@@ -63,10 +63,6 @@ struct DashboardView: View {
         return descriptor
     }
     @Query(descriptor) var recentRuns: [Run]
-//    @Query var customPins: [MTPlacemark]
-    
-//    @State var recentRuns: [Run] = []
-
     
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
@@ -239,8 +235,8 @@ struct DashboardView: View {
                                     Spacer()
                                     
                                     if (stepsPercentageChange != 0) {
-                                        Text("\(stepsPercentageChange)%")
-                                            .foregroundStyle(LIGHT_GREEN)
+                                        Text("\(stepsPercentageChange > 0 ? "+" : "")\(stepsPercentageChange)%")
+                                            .foregroundStyle(stepsPercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
                                             .fontWeight(.semibold)
                                     }
                                     
@@ -253,19 +249,6 @@ struct DashboardView: View {
                                         
                                         let stats = weeklyStats[day]!
                                         
-                                        // TODO: Render average line only if there are at least two days in the week with nonzero steps
-                                        if self.averageStepsInWeek > 0 && weeklyStats.count > 1 {
-                                            
-                                            // Display the average steps as a horizontal dashed line
-                                            RuleMark(y: .value("Average Steps", averageStepsInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
-                                                .annotation(position: .top, alignment: .leading) {
-                                                    Text(String(format: "Avg: %.2f", self.averageStepsInWeek))
-                                                        .font(.caption)
-                                                        .foregroundStyle(.white)
-                                                        .padding(4)
-                                                }
-                                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                        }
                                         // Show bars for steps per day if nonzero, otherwise display a default bar
                                         if stats.steps > 0{
                                             BarMark (
@@ -273,7 +256,7 @@ struct DashboardView: View {
                                                 y: .value("Steps", stats.steps)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
+                                            .foregroundStyle(day == days.last ? BLUE : BAR_GREY)
                                             .annotation {
                                                 if day == days.last {
                                                     Text("\(stats.steps)")
@@ -336,8 +319,8 @@ struct DashboardView: View {
                                     Spacer()
                                     
                                     if (timePercentageChange != 0) {
-                                        Text("\(timePercentageChange)%")
-                                            .foregroundStyle(LIGHT_GREEN)
+                                        Text("\(timePercentageChange > 0 ? "+" : "")\(timePercentageChange)%")
+                                            .foregroundStyle(timePercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
                                             .fontWeight(.semibold)
                                     }
                                     
@@ -349,45 +332,19 @@ struct DashboardView: View {
                                     Chart(days, id: \.self) { day in
                                         
                                         let statsForDay = weeklyStats[day]!
-                                        let minutesForDay =  Double(statsForDay.timeSeconds / 60) // secondsToMinutes(seconds: statsForDay.timeSeconds)
-                                        
-                                        if self.averageTimeInWeek >= 1  && weeklyStats.count > 1 {
-                                            // Display the average time as a horizontal dashed line
-                                            RuleMark(y: .value("Average Time", averageTimeInWeek)).lineStyle(StrokeStyle(lineWidth: 1, dash: [2,2]))
-                                                .annotation(position: .top, alignment: .leading) {
-                                                    Text(String(format:"Avg: %.2f min", self.averageTimeInWeek))
-                                                        .font(.caption)
-                                                        .foregroundStyle(.white)
-                                                        .padding(4)
-                                                }
-                                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                        }
-                                    
-                                        if totalTimeInWeek >= 1 {
+                                        let minutesForDay =  Double(statsForDay.timeSeconds) / 60.0
+
+
+                                        if minutesForDay > 0 {
                                             BarMark (
                                                 x: .value("Day", day),
                                                 y: .value("Time", minutesForDay)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
+                                            .foregroundStyle(day == days.last ? BLUE : BAR_GREY)
                                             .annotation {
                                                 if day == days.last {
                                                     Text(String(format: "%.2f", minutesForDay))
-                                                        .font(.caption)
-                                                        .foregroundStyle(.white)
-                                                }
-                                            }
-                                        }
-                                        else if statsForDay.timeSeconds > 0 && statsForDay.timeSeconds < 60 && totalTimeInWeek < 1 {
-                                            BarMark (
-                                                x: .value("Day", day),
-                                                y: .value("Time", statsForDay.timeSeconds)
-                                            )
-                                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? .yellow : BAR_GREY)
-                                            .annotation {
-                                                if day == days.last {
-                                                    Text("\(statsForDay.timeSeconds)s")
                                                         .font(.caption)
                                                         .foregroundStyle(.white)
                                                 }
@@ -398,10 +355,7 @@ struct DashboardView: View {
                                                 x: .value("Day", day),
                                                 y: .value("Steps", 0)
                                             )
-                                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(DARK_GREY)
                                         }
-                                        
                                     }
                                     .chartYAxis(.hidden)
                                     .chartXAxis {
