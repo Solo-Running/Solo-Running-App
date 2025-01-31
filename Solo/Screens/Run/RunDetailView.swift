@@ -137,11 +137,17 @@ struct RunDetailView: View {
                             }
                             
                             // Route start and end timeline
-                            VStack(spacing: 16) {
-                                HStack {
+                            VStack {
+                                
+                                HStack(alignment: .center) {
                                     Circle()
-                                        .fill(.white)
-                                        .frame(width: 12, height: 12)
+                                        .fill(BLUE)
+                                        .frame(width: 8, height: 8)
+                                        .overlay(alignment: .top) {
+                                            Rectangle()
+                                                .fill(BLUE.opacity(0.5))
+                                                .frame(width: 2, height: 36)
+                                        }
                                     
                                     if let startPlacemark = runData.startPlacemark {
                                         Text(startPlacemark.name)
@@ -149,31 +155,27 @@ struct RunDetailView: View {
                                     }
                                     Spacer()
                                 }
-                                .overlay(alignment: .topLeading){
-                                    Rectangle()
-                                        .fill(.white)
-                                        .frame(width: 1.5, height: 32)
-                                        .offset(y: 16)
-                                        .padding(.leading, 5.5)
-                                }
+                                .frame(height: 28)
                                 
-                                HStack(alignment: .top) {
+                                
+                                HStack(alignment: .center) {
                                     Circle()
-                                        .fill(.white)
-                                        .frame(width: 12, height: 12)
+                                        .fill(BLUE)
+                                        .frame(width: 8, height: 8)
                                     
                                     if let endPlacemark = runData.endPlacemark {
                                         Text(endPlacemark.name)
                                             .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .offset(y: -4)
                                     }
                                     Spacer()
                                 }
+                                .frame(height: 28)
                             }
+                            .padding(.bottom, 16)
+                            
                             
                             VStack(spacing: 16) {
-                                Spacer().frame(height: 32)
-                                
+
                                 HStack {
                                     Text("Distance (meters)")
                                         .font(.subheadline)
