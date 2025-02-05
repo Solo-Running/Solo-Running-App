@@ -30,6 +30,7 @@ class MTPlacemark {
     var latitude: Double = 0.0
     var isCustomLocation: Bool = false
     var timestamp: Date = Date()
+    var nameEditDate: Date?
     
     init(id: String = UUID().uuidString,
          name: String = "", 
@@ -45,7 +46,8 @@ class MTPlacemark {
          longitude: Double = 0.0,
          latitude: Double = 0.0,
          isCustomLocation: Bool = false,
-         timestamp: Date = Date()
+         timestamp: Date = Date(),
+         nameEditDate: Date?
     ) {
         self.id = id
         self.name = name
@@ -62,6 +64,7 @@ class MTPlacemark {
         self.latitude = latitude
         self.isCustomLocation = isCustomLocation
         self.timestamp = timestamp
+        self.nameEditDate = nameEditDate
     }
     
     // Method to get CLLocationCoordinate2D for start placemark
@@ -71,7 +74,7 @@ class MTPlacemark {
     
     // Returns a copy of the placemarks name
     func getName() -> String {
-        let copy = MTPlacemark()
+        let copy = MTPlacemark(nameEditDate: nil)
         copy.name = name
         return copy.name
     }        

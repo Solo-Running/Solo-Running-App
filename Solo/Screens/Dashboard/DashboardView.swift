@@ -38,7 +38,7 @@ struct DashboardView: View {
     @State var weeklyStats: [String: RunStatsPerDay] = [:]
 
     @State var totalStepsInWeek: Int = 0
-    @State var totalTimeInWeek: Int = 0
+    @State var totalTimeInWeek: Double = 0.0
     
     @State var averageStepsInWeek: Double = 0
     @State var averageTimeInWeek: Double = 0
@@ -310,7 +310,7 @@ struct DashboardView: View {
                                             .foregroundStyle(.white)
                                             .fontWeight(.bold)
                                         
-                                        Text("You logged a total of \(totalTimeInWeek) minutes")
+                                        Text(String(format: "You logged a total of %.2f minutes", totalTimeInWeek ))
                                             .font(.caption)
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .padding(.top, 2)
@@ -596,6 +596,8 @@ struct DashboardView: View {
                                     }
                                     
                                     VStack(alignment: .leading) {
+                                        
+                                        // Grab the abbreviated month and day
                                         Text(run.startTime.formatted(
                                             .dateTime
                                             .day()
@@ -606,7 +608,7 @@ struct DashboardView: View {
                                         .fontWeight(.bold)
                                         .padding(.bottom, 0)
                                         
-                                        Text("\(convertDateToString(date: run.startTime)) - \(convertDateToString(date: run.endTime))")
+                                        Text("\(convertDateToTime(date: run.startTime)) - \(convertDateToTime(date: run.endTime))")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .font(.subheadline)
                                         

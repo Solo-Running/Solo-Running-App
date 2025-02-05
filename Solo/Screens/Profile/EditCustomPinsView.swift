@@ -60,7 +60,8 @@ struct EditCustomPinsView: View {
                     isoCountryCode: customPlacemark.isoCountryCode ?? "",
                     longitude: customPlacemark.location!.coordinate.longitude,
                     latitude: customPlacemark.location!.coordinate.latitude,
-                    isCustomLocation: true
+                    isCustomLocation: true,
+                    nameEditDate: nil
                 )
                 
                 modelContext.insert(placemark)

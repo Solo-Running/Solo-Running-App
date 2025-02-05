@@ -38,7 +38,6 @@ final class Run: Identifiable{
     var avgPace: Int  = 0                   // minutes per mile
     @Attribute(.externalStorage) var routeImage: Data?
     var notes: String = ""
-
     
     init(id: String = UUID().uuidString, isDarkMode: Bool = false, postedDate:Date, startTime: Date, endTime: Date, elapsedTime: Int, distanceTraveled: Double, steps: Int, startPlacemark: MTPlacemark, endPlacemark: MTPlacemark,  avgSpeed: Double, avgPace: Int, routeImage: Data, notes: String = "") {
         self.id = id

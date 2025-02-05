@@ -158,7 +158,8 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
                             longitude: placemark.location!.coordinate.longitude,
                             latitude: placemark.location!.coordinate.latitude,
                             isCustomLocation: false,
-                            timestamp: Date()
+                            timestamp: Date(),
+                            nameEditDate: nil
                         )
                     })
                 })

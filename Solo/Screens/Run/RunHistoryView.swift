@@ -80,50 +80,55 @@ struct RunHistoryView: View {
                                         
                                         // Run preview content
                                         if let endPlacemark = run.endPlacemark {
-                                            HStack {
-                                                VStack(alignment: .leading) {
-                                                    Text(String(getDayAndTimeRange(startDate: run.startTime, endDate: run.endTime)))
-                                                        .font(.subheadline)
-                                                        .fontWeight(.semibold)
-                                                    
-                                                    HStack(alignment: .center) {
-                                                        if let data = run.routeImage {
-                                                            ZStack(alignment: .topTrailing) {
-                                                                Image(uiImage: UIImage(data: data)!)
-                                                                    .resizable()
-                                                                    .scaledToFill()
-                                                                    .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                                    .overlay {
-                                                                        
-                                                                        if endPlacemark.isCustomLocation {
-                                                                            Circle()
-                                                                                .strokeBorder(.black, lineWidth: 2)
-                                                                                .background(Circle().fill(.yellow))
-                                                                                .frame(width: 12, height: 12)
-                                                                                .offset(x: 10, y: -10)
-                                                                        }
-                                                                    }
+                                            
+                                            HStack(alignment: .top, spacing: 4) {
+                                                
+                                                if let data = run.routeImage {
+                                                    ZStack(alignment: .topTrailing) {
+                                                        Image(uiImage: UIImage(data: data)!)
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                                            .overlay {
+                                                                
+                                                                if endPlacemark.isCustomLocation {
+                                                                    Circle()
+                                                                        .strokeBorder(.black, lineWidth: 2)
+                                                                        .background(Circle().fill(.yellow))
+                                                                        .frame(width: 12, height: 12)
+                                                                        .offset(x: 10, y: -10)
+                                                                }
                                                             }
-                                                            .frame(width: 24, height: 24 )
-                                                            .padding(.trailing, 4)
-                                                        }
-                                                        
-                                                        Text(endPlacemark.name)
-                                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                                            .font(.subheadline)
-                                                    
-                                                        Spacer()
                                                     }
+                                                    .frame(width: 24, height: 24 )
+                                                    .padding(.trailing, 4)
+                                                }
+                                                
+                                                VStack(alignment: .leading) {
+                                                    Text(formattedDayAndTimeRange(startDate: run.startTime, endDate: run.endTime))
+                                                        .foregroundStyle(.white)
+                                                        .font(.caption)
+                                                    
+                                                    Text(endPlacemark.name)
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                        .font(.subheadline)
                                                 }
                                                 
                                                 Spacer()
                                             }
                                         }
                                     }
+                                    .padding(.vertical, 4)
+                                    
                                 }
                                 .onDelete(perform: deleteRuns)
                                 .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+//                                .alignmentGuide(.listRowSeparatorLeading) { _ in
+//                                    return 0
+//                                }
                             }
+                            .padding(0)
                         }
                     }
                     .listStyle(.sidebar)

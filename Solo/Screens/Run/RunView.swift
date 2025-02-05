@@ -148,6 +148,7 @@ struct RunView: View {
         isCustomPinNewNameSaved = false
         if !newCustomPinName.isEmpty {
             routeDestination!.name = newCustomPinName
+            routeDestination?.nameEditDate = Date.now
             isCustomPinNewNameSaved = true
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -384,7 +385,8 @@ struct RunView: View {
                             longitude: firstLocation.location!.coordinate.longitude,
                             latitude: firstLocation.location!.coordinate.latitude,
                             isCustomLocation: false,
-                            timestamp: Date()
+                            timestamp: Date(),
+                            nameEditDate: nil
                         )
                         completionHandler(placemark)
                     }
@@ -444,7 +446,8 @@ struct RunView: View {
                     longitude: customPlacemark.location!.coordinate.longitude,
                     latitude: customPlacemark.location!.coordinate.latitude,
                     isCustomLocation: true,
-                    timestamp: Date()
+                    timestamp: Date(),
+                    nameEditDate: nil
                 )
                 
                 modelContext.insert(placemark)
@@ -898,8 +901,18 @@ struct RunView: View {
                                                     }
                                                 
                                                 VStack(alignment: .leading) {
-                                                    Text(String(convertDateToDateTime(date: run.startTime)))
-                                                        .font(.subheadline)
+                                                    
+                                                    Text(run.startTime.formatted(
+                                                        .dateTime
+                                                            .weekday(.abbreviated)
+                                                            .month(.abbreviated)
+                                                            .day()
+                                                            .hour()
+                                                            .minute()
+                                                            .hour(.defaultDigits(amPM: .abbreviated))
+                                                    ))
+                                                    .font(.subheadline)
+                                                    
                                                     
                                                     Text("\(run.steps) steps")
                                                         .font(.caption)
@@ -934,7 +947,9 @@ struct RunView: View {
                             
                             
                             // Edit custom pin name sheet
-                            .sheet(isPresented: $editCustomPinNameSheetVisible) {
+                            .sheet(isPresented: $editCustomPinNameSheetVisible, onDismiss: {
+                                newCustomPinName = ""
+                            }) {
                                 ScrollView(showsIndicators: false) {
 
                                     let oldName = String(routeDestination!.getName())

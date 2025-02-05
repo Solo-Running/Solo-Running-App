@@ -10,8 +10,8 @@ import MapKit
 
 
 
-// Formats a Date to friendly format into 1:13am
-func convertDateToString(date: Date) -> String {
+// Formats a Date to friendly format into 1:13 AM
+func convertDateToTime(date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
 
@@ -19,6 +19,8 @@ func convertDateToString(date: Date) -> String {
     return timeString
 }
 
+
+// Formats a Date into a format like Mon 3, 1:20 PM
 func convertDateToDateTime(date: Date) -> String {
     let dayFormatter = DateFormatter()
     dayFormatter.dateFormat = "E d"
@@ -30,15 +32,17 @@ func convertDateToDateTime(date: Date) -> String {
     let timeString = timeFormatter.string(from: date)
     
     return "\(dayString), \(timeString)"
-    
 }
 
-func getDayAndTimeRange(startDate: Date, endDate: Date) -> String {
+
+// NOT USED
+// Formats a range of Dates into a format like Fri 30, 9:30 AM - 10:00 AM
+func formattedDayAndTimeRange(startDate: Date, endDate: Date) -> String {
     let dayFormatter = DateFormatter()
-    dayFormatter.dateFormat = "E d"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
+    dayFormatter.dateFormat = "E d"
     
     let timeFormatter = DateFormatter()
-    timeFormatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
+    timeFormatter.dateFormat = "h:mm a"
     
     let dayString = dayFormatter.string(from: startDate)
     let startTimeString = timeFormatter.string(from: startDate)
@@ -50,10 +54,10 @@ func getDayAndTimeRange(startDate: Date, endDate: Date) -> String {
 
 
 /**
- Converts a range of Dates into a presentable string.
- An example output would be 1:40 PM - 3:00 PM
+ Computes the duration of a range of Dates and presents it into a hierarchical format ordered by hour, minutes, and seconds
+ An example output would be 1hr 3min. If the difference is less than a minute, we use seconds
  */
-func timeDifference(from startDate: Date, to endDate: Date) -> String {
+func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
     let calendar = Calendar.current
        
        // Get the difference in hours, minutes, and seconds
@@ -119,8 +123,8 @@ func convertPace(secondsPerMeter: Double) -> Double {
 
 
 
-func secondsToMinutes(seconds: Int) -> Int {
-    return Int(floor(Double(seconds) / 60))
+func secondsToMinutes(seconds: Int) -> Double {
+    return Double(seconds) / 60.0
 }
 
 
