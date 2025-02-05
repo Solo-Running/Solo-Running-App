@@ -762,8 +762,8 @@ struct RunView: View {
                                     
                                     HStack(spacing: 16) {
                                         
-                                        CapsuleView(iconBackground: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
-                                        CapsuleView(iconBackground: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
+                                        CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
+                                        CapsuleView(background: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
                                         
                                         if routeDestination!.isCustomLocation {
                                             Menu {
@@ -1065,21 +1065,21 @@ struct RunView: View {
                                             
                                             Text("\(activityManager.formattedDuration)")
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
+                                                .monospacedDigit()
                                                 .transaction { transaction in
                                                     transaction.animation = nil
                                                 }
                                         }
-                                        .padding(.horizontal, 8)
+                                        .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(LIGHT_GREY)
+                                        .background(DARK_GREY)
                                         .clipShape(Capsule())
                                         
                                         Text("\(activityManager.steps) steps")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .background(LIGHT_GREY)
-                                            .padding(.horizontal, 8)
+                                            .padding(.horizontal, 12)
                                             .padding(.vertical, 6)
-                                            .background(Capsule().fill(LIGHT_GREY))
+                                            .background(Capsule().fill(DARK_GREY))
                                             .foregroundColor(.white)
                                         
                                         Spacer()
@@ -1103,7 +1103,7 @@ struct RunView: View {
                                         }
                                         .padding()
                                         .frame(maxWidth: .infinity) // Fills the entire width
-                                        .background(LIGHT_GREY)
+                                        .background(DARK_GREY)
                                         .cornerRadius(12) // Rounds the corners
                                     }
                                     

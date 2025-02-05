@@ -49,10 +49,34 @@ struct RunDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 0))
                     
                     
-                    HStack(alignment: .top) {
+                    HStack(alignment: .center) {
+                        
+                        Text("Details")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        CapsuleView(background: LIGHT_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
+                        
+                        // Share image button
+                        ZStack(alignment: .center) {
+                            Circle().fill(LIGHT_GREY).frame(width: 36, height: 36)
+                            
+                            ShareLink(item: imageForShare!, preview: SharePreview("Route Image", image: imageForShare!))
+                                .labelStyle(.iconOnly)
+                                .font(.subheadline)
+                                .offset(y: -2)
+                        }
+                        
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    
+                    
+                    VStack(alignment: .leading) {
                         // Route start and end timeline
                         VStack {
-                            
                             HStack(alignment: .top) {
                                 Circle()
                                     .fill(.white)
@@ -60,13 +84,14 @@ struct RunDetailView: View {
                                     .overlay(alignment: .top) {
                                         Rectangle()
                                             .fill(.white.opacity(0.5))
-                                            .frame(width: 2, height: 56)
+                                            .frame(width: 2, height: 50)
                                     }
                                 
                                 if let startPlacemark = runData.startPlacemark {
                                     VStack(alignment: .leading) {
                                         Text(startPlacemark.name)
                                             .foregroundStyle(.white)
+                                            .font(.subheadline)
                                         
                                         Text("\(startPlacemark.locality)")
                                             .font(.caption)
@@ -76,7 +101,7 @@ struct RunDetailView: View {
                                 }
                                 Spacer()
                             }
-                            .frame(height: 48)
+                            .frame(height: 40)
                             
                             
                             HStack(alignment: .top) {
@@ -88,37 +113,26 @@ struct RunDetailView: View {
                                     VStack(alignment: .leading) {
                                         Text(endPlacemark.name)
                                             .foregroundStyle(.white)
+                                            .font(.subheadline)
                                         
                                         Text("\(endPlacemark.thoroughfare), \(endPlacemark.locality)")
                                             .font(.caption)
                                             .foregroundStyle(.gray)
                                     }
-                                    .offset(y: -8)
+                                    .offset(y: -4)
                                 }
                                 Spacer()
                             }
-                            .frame(height: 48)
+                            .frame(height: 30)
                         }
-                        .padding(.bottom, 16)
-                        
-                        Spacer()
-                        
-                        ZStack(alignment: .center) {
-                            Circle().fill(DARK_GREY).frame(width: 36, height: 36)
-                            
-                            ShareLink(item: imageForShare!, preview: SharePreview("Route Image", image: imageForShare!))
-                                .labelStyle(.iconOnly)
-                                .offset(y: -2)
-                        }
-                        
+                        .frame(maxWidth: .infinity)
+                        .padding(20)
                     }
-                    .padding(16)
+                    .frame(maxWidth: .infinity)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                    .padding(.horizontal, 16)
+                 
                     
-                    Text("Details")
-                        .foregroundStyle(.white)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 16)
-
                     
                     VStack(spacing: 24) {
                         
@@ -127,17 +141,15 @@ struct RunDetailView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(LIGHT_GREEN)
                             
-                            Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime)) • \(formattedElapsedTime(from: runData.startTime, to: runData.endTime))")
+                            Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
                                 .foregroundStyle(.white)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
 
-                        
                         VStack(alignment: .leading) {
                             Text("Average Pace")
                                 .font(.subheadline)
@@ -150,14 +162,13 @@ struct RunDetailView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
-
-                        
+                    
                         VStack(alignment: .leading) {
                             Text("Distance Traveled")
                                 .font(.subheadline)
                                 .foregroundStyle(LIGHT_GREEN)
                             
-                            Text("\(runData!.steps) steps")
+                            Text("\(formattedSteps(runData!.steps)) steps")
                                 .foregroundStyle(.white)
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
@@ -173,6 +184,7 @@ struct RunDetailView: View {
                     .padding(.vertical, 8)
                     .padding(.horizontal, 16)
 
+                    
                     VStack {
                         TextField(
                             "",

@@ -29,7 +29,7 @@ struct MainView: View {
     @State private var showRunView: Bool = false  // Control visibility of RunView
     @State private var permissionsSheetDetents: Set<PresentationDetent> =  [.large]
     @Query var userData: [UserModel]
-    
+
     
     var body: some View {
         
@@ -61,17 +61,19 @@ struct MainView: View {
                             VStack{}.background(.black)
                                 .tabItem {
                                     Label("Add Run",systemImage: "plus.circle.fill")
-                                }.tag(Screen.Run)
+                                }
+                                .tag(Screen.Run)
                             
                             ProfileView().tabItem {
                                 Label("Profile",systemImage: "person.circle.fill")
                             }
                             .tag(Screen.Profile)
                         }
-                        
                         .toolbarColorScheme(.dark, for: .tabBar)
                         .toolbarBackground(.black, for: .tabBar)
                     }
+                    .sensoryFeedback(.impact, trigger: appState.screen)
+                  
                     .tint(.white)
                     .onChange(of: appState.screen, initial: false) { old, new in
                         // Try to remember what screen we were looking at previously

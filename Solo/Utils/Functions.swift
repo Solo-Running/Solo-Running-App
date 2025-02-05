@@ -35,6 +35,18 @@ func convertDateToDateTime(date: Date) -> String {
 }
 
 
+func formattedSteps(_ steps: Int) -> String {
+    if steps >= 1_000_000 {
+        return "\(steps / 1_000_000)M"
+    } else if steps >= 1_000 {
+        let formatted = Double(steps) / 1_000
+        return String(format: "%.2fk", formatted).replacingOccurrences(of: ".00", with: "")
+    } else {
+        return "\(steps)"
+    }
+}
+
+
 // NOT USED
 // Formats a range of Dates into a format like Fri 30, 9:30 AM - 10:00 AM
 func formattedDayAndTimeRange(startDate: Date, endDate: Date) -> String {

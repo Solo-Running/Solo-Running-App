@@ -32,54 +32,84 @@ struct SoloLiveWidgetAttributes: ActivityAttributes {
     var timerName: String
 }
 
+func formattedSteps(_ steps: Int) -> String {
+    if steps >= 1_000_000 {
+        return "\(steps / 1_000_000)M"
+    } else if steps >= 1_000 {
+        let formatted = Double(steps) / 1_000
+        return String(format: "%.2fk", formatted).replacingOccurrences(of: ".00", with: "")
+    } else {
+        return "\(steps)"
+    }
+}
+
 struct SoloLiveWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         
         ActivityConfiguration(for: SoloLiveWidgetAttributes.self) { context in
             
             VStack(alignment: .leading){
+                
                 HStack(alignment: .center) {
                     
                     Image("SoloLogo")
                         .resizable()
                         .frame(width: 30, height: 15)
-                    
-                    Text("Running")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color(hex: 0xD4D412))
-                    
+                                        
                     Spacer()
-                    
-                    Text("\(context.state.steps) steps")
-                        .foregroundStyle(Color(hex: 0xC2FF6D))
                 }
                 
-                HStack {
-                    Text("Elapsed Time")
-                        .foregroundStyle(.white)
-                        .fontWeight(.semibold)
+                HStack(alignment: .center) {
                     
-                    Spacer()
-                    
-                    Text(
-                        Duration.seconds(context.state.secondsElapsed).formatted(
-                           .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                       )
-                    )
-                    .contentTransition(.numericText())
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    
-                }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12).fill(Color(hex: 0x1E1E1E))
-                )
+                    VStack(alignment: .leading) {
+                        Text("\(formattedSteps(context.state.steps))")
+                            .foregroundStyle(Color(hex: 0x81D32A))
+                            .font(.largeTitle)
+                            .fontWeight(.heavy)
+                        
+                        Text("Steps")
+                            .foregroundStyle(Color(hex: 0x81D32A))
+                            .font(.subheadline)
+                            .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                    }
 
-                
+                    
+                    Spacer()
+
+                    
+                    Divider().frame(width: 2, height: 32).overlay(Color(hex: 0x868686))
+
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .leading) {
+                        
+                        Text(
+                            Duration.seconds(context.state.secondsElapsed).formatted(
+                               .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+                           )
+                        )
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .foregroundStyle(Color(hex: 0x868686 ))
+                        .font(.largeTitle)
+                        .fontWeight(.heavy)
+                        
+                        Text("Time")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color(hex: 0x868686))
+                        
+                    }
+                    .frame(maxWidth: 170)
+                    
+                }
+                .frame(height: 64)
+                             
             }
             .padding()
-            .activityBackgroundTint(Color(hex: 0x242424).opacity(0.8))
+            .activityBackgroundTint(Color(hex: 0x1E1E1E))
+//            .activityBackgroundTint(Color(hex: 0x242424).opacity(0.8))
             
             .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in

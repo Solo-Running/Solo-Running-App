@@ -182,13 +182,10 @@ struct EditCustomPinsView: View {
                     
                     .task(id: selectedPlaceMark) {
                         if selectedPlaceMark != nil {
-                            
-                            pinData = selectedPlaceMark
-
                             withAnimation(.easeOut) {
+                                pinData = selectedPlaceMark
                                 allPinsSheetVisible = false
                                 pinDetailsSheetVisible = true
-                            
                             }
                             
                             // move to the corresponding pin on the map if the user taps on a list entry
@@ -344,25 +341,10 @@ struct EditCustomPinsView: View {
                     ScrollView(showsIndicators: false){
                         VStack(alignment: .leading) {
                             
-                            HStack {
-                                Text("Pin Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
-                                Spacer()
-                                
-                                // Custom dismiss button
-                                Button {
-                                    selectedPlaceMark = nil
-                                    pinData = nil
-                                    pinDetailsSheetVisible = false
-                                    allPinsSheetVisible = true
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.gray)
-                                        .font(.title)
-                                }
-                            }
-                            
-                            if pinData != nil {
-                                VStack(spacing: 16) {
+                            HStack(alignment: .top) {
+//                                Text("Pin Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                               
+                                if pinData != nil {
                                     VStack(alignment: .leading) {
                                         Text(pinData?.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
                                         
@@ -381,8 +363,47 @@ struct EditCustomPinsView: View {
                                                 .foregroundStyle(.gray)
                                         }
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                                                        
+                                }
+                                
+                                
+                                Spacer()
+                                
+                                // Custom dismiss button
+                                Button {
+                                    selectedPlaceMark = nil
+                                    pinData = nil
+                                    pinDetailsSheetVisible = false
+                                    allPinsSheetVisible = true
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.gray)
+                                        .font(.title)
+                                }
+                            }
+                            .padding(.bottom, 16)
+                            
+                            if pinData != nil {
+                                VStack(spacing: 16) {
+//                                    VStack(alignment: .leading) {
+//                                        Text(pinData?.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+//                                        
+//                                        HStack(spacing: 3) {
+//                                            
+//                                            // Street
+//                                            Text(pinData?.thoroughfare ?? "")
+//                                                .foregroundStyle(.gray)
+//                                            
+//                                            // City
+//                                            Text(pinData?.locality ?? "")
+//                                                .foregroundStyle(.gray)
+//                                            
+//                                            // State
+//                                            Text(pinData?.administrativeArea ?? "")
+//                                                .foregroundStyle(.gray)
+//                                        }
+//                                    }
+//                                    .frame(maxWidth: .infinity, alignment: .leading)
+//                                                                        
                                     
                                     Button  {
                                         viewPinAssociatedRunsSheetVisible = true
@@ -455,6 +476,16 @@ struct EditCustomPinsView: View {
                                         
                                     }
                                     .padding(.top, 48)
+                                }
+                            }
+                            else {
+                                HStack {
+                                    Spacer()
+                                    Text("Could not load the pin data. Please retry")
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 32)
+                                    Spacer()
                                 }
                             }
                             

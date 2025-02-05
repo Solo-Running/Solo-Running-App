@@ -286,7 +286,7 @@ struct DashboardView: View {
                                 }
                             }
                             .padding()
-                            .background(LIGHT_GREY)
+                            .background(DARK_GREY)
                             .cornerRadius(16)
                             .frame(height: 200)
                             .containerRelativeFrame(.horizontal, count: 1, spacing: 0)
@@ -367,7 +367,7 @@ struct DashboardView: View {
                                 }
                             }
                             .padding()
-                            .background(LIGHT_GREY)
+                            .background(DARK_GREY)
                             .cornerRadius(16)
                             .frame(height: 200)
                             .containerRelativeFrame(.horizontal, count: 1, spacing: 0) // show one chart per scroll window
@@ -445,7 +445,7 @@ struct DashboardView: View {
 
                         }
                         .padding()
-                        .background(LIGHT_GREY)
+                        .background(DARK_GREY)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .frame(maxWidth: .infinity)
                                     
@@ -495,7 +495,7 @@ struct DashboardView: View {
                             Spacer()
                         }
                         .padding()
-                        .background(LIGHT_GREY)
+                        .background(DARK_GREY)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .frame(maxWidth: .infinity)
 
