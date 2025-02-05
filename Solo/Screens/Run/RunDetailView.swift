@@ -11,7 +11,6 @@ import SwiftData
 
 /**
  Displays a user's previous run session with statistics like time, steps, distance, and average pace.
- It utilizes the ParallaxHeader component to render the route image at the top of the screen.
  Users also have the ability to add notes for the run.
  */
 struct RunDetailView: View {
@@ -38,9 +37,7 @@ struct RunDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
-                
-
-                
+                                
                 // Run statistics section
                 VStack {
                     HStack(alignment: .center) {
@@ -52,10 +49,9 @@ struct RunDetailView: View {
                         
                         Spacer()
                         
-                        
                         CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
-                        
                     }
+                    .padding(.top, 24)
                     
                     // Average Pace Card
                     VStack(alignment: .leading) {
@@ -123,7 +119,7 @@ struct RunDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                    .padding(.vertical, 4)
+                    .padding(.top, 4)
                     
                     
                     // Total Distance Card
@@ -288,7 +284,6 @@ struct RunDetailView: View {
                 
             }
             .padding(.horizontal, 16)
-            .padding(.top)
             .frame(maxWidth: .infinity)
             .toolbarBackground(.clear, for: .navigationBar)
             .toolbar {
