@@ -93,7 +93,7 @@ func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
     
     // If the difference is less than 60 seconds, display seconds
     if seconds > 0 {
-        result = "\(seconds)s"
+        result += "\(seconds)s"
     }
     
     return result.isEmpty ? "0s" : result
