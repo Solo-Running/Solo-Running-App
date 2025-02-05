@@ -880,55 +880,65 @@ struct RunView: View {
                                     }
                                     .padding(.horizontal, 16)
                                     
-                                    // Timeline View of associated runs
-                                    ScrollView(showsIndicators: false) {
-                                        ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
-
-                                            HStack(alignment: .top, spacing: 12) {
-                                                Circle()
-                                                    .fill(BLUE)
-                                                    .frame(width: 8, height: 8)
-                                                    .overlay(alignment: .top) {
-                                                        if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
-                                                            Rectangle()
-                                                                .fill(BLUE.opacity(0.5))
-                                                                .frame(width: 2, height: 56)
+                                    if associatedRuns.count == 0 {
+                                        Spacer()
+                                        Text("You have not logged any runs for this location.")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .multilineTextAlignment(.center)
+                                            .padding(.horizontal, 32)
+                                        Spacer()
+                                    } else {
+                                        
+                                        // Timeline View of associated runs
+                                        ScrollView(showsIndicators: false) {
+                                            ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
+                                                
+                                                HStack(alignment: .top, spacing: 12) {
+                                                    Circle()
+                                                        .fill(BLUE)
+                                                        .frame(width: 8, height: 8)
+                                                        .overlay(alignment: .top) {
+                                                            if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
+                                                                Rectangle()
+                                                                    .fill(BLUE.opacity(0.5))
+                                                                    .frame(width: 2, height: 56)
+                                                            }
+                                                            else {
+                                                                Rectangle()
+                                                                    .fill(Color.clear)
+                                                            }
                                                         }
-                                                        else {
-                                                            Rectangle()
-                                                                .fill(Color.clear)
-                                                        }
+                                                    
+                                                    VStack(alignment: .leading) {
+                                                        
+                                                        Text(run.startTime.formatted(
+                                                            .dateTime
+                                                                .weekday(.abbreviated)
+                                                                .month(.abbreviated)
+                                                                .day()
+                                                                .hour()
+                                                                .minute()
+                                                                .hour(.defaultDigits(amPM: .abbreviated))
+                                                        ))
+                                                        .font(.subheadline)
+                                                        
+                                                        
+                                                        Text("\(run.steps) steps")
+                                                            .font(.caption)
+                                                            .foregroundStyle(TEXT_LIGHT_GREY)
                                                     }
-                                                
-                                                VStack(alignment: .leading) {
+                                                    .offset(y: -4)
                                                     
-                                                    Text(run.startTime.formatted(
-                                                        .dateTime
-                                                            .weekday(.abbreviated)
-                                                            .month(.abbreviated)
-                                                            .day()
-                                                            .hour()
-                                                            .minute()
-                                                            .hour(.defaultDigits(amPM: .abbreviated))
-                                                    ))
-                                                    .font(.subheadline)
-                                                    
-                                                    
-                                                    Text("\(run.steps) steps")
-                                                        .font(.caption)
-                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    Spacer()
                                                 }
-                                                .offset(y: -4)
-                                                
-                                                Spacer()
+                                                .frame(height: 48)
                                             }
-                                            .frame(height: 48)
+                                            .listRowBackground(Color.clear)
+                                            .listStyle(.plain)
                                         }
-                                        .listRowBackground(Color.clear)
-                                        .listStyle(.plain)
+                                        .padding(.horizontal, 16)
+                                        .scrollContentBackground(.hidden)
                                     }
-                                    .padding(.horizontal, 16)
-                                    .scrollContentBackground(.hidden)
                                 }
                                 .frame(maxHeight: .infinity, alignment: .top)
                                 .padding(.top, 16)
@@ -968,9 +978,7 @@ struct RunView: View {
                                                     .foregroundStyle(.gray)
                                                     .font(.title)
                                             }
-                                        }
-                                        .padding(.bottom, 16)
-                                        
+                                        }                                        
                                        
                                         TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
                                             .foregroundColor(.white)
@@ -1084,15 +1092,14 @@ struct RunView: View {
                                     Button{
                                         stepsSheetVisible = true
                                     } label: {
-                                        HStack {
+                                        HStack(spacing: 8) {
                                             Image(systemName: "map.fill")
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
-                                                .padding(.trailing, 4)
+
                                             Text("Route Details")
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                             
                                             Spacer()
-                                            
                                         }
                                         .padding()
                                         .frame(maxWidth: .infinity) // Fills the entire width
