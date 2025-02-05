@@ -30,7 +30,7 @@ struct CapsuleView: View {
                 .foregroundStyle(TEXT_LIGHT_GREY)
             
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
         .padding(.horizontal, 12)
         .background(Capsule().fill(background))
 

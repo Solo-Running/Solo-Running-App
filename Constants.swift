@@ -21,7 +21,7 @@ let NEON = Color(hex: 0xD4D412)
 let LIGHT_GREEN = Color(hex: 0x81D32A)
 let DARK_GREEN = Color(hex: 0x4B7A09)
 let DARK_GREY = Color(hex: 0x1E1E1E)
-let LIGHT_GREY = Color(hex: 0x242424)
+let LIGHT_GREY = Color(hex: 0x303030)
 let BAR_GREY = Color(hex: 0x303030)
 let RED = Color(hex: 0xED3023)
 

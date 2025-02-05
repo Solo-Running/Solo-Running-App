@@ -12,7 +12,6 @@
 import Foundation
 import SwiftUI
 import MapKit
-import BottomSheet
 import SwiftData
 import CoreHaptics
 

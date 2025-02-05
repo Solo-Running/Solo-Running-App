@@ -14,7 +14,7 @@ import MapKit
 func convertDateToTime(date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "h:mm a"  // 'h' is for hour in 12-hour format, 'a' is for AM/PM
-
+    
     let timeString = formatter.string(from: date)
     return timeString
 }
@@ -61,7 +61,7 @@ func formattedDayAndTimeRange(startDate: Date, endDate: Date) -> String {
     let endTimeString = timeFormatter.string(from: endDate)
     
     return  "\(dayString), \(startTimeString)-\(endTimeString)"
-
+    
 }
 
 
@@ -71,32 +71,32 @@ func formattedDayAndTimeRange(startDate: Date, endDate: Date) -> String {
  */
 func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
     let calendar = Calendar.current
-       
-       // Get the difference in hours, minutes, and seconds
-       let components = calendar.dateComponents([.hour, .minute, .second], from: startDate, to: endDate)
-       
-       // Extract the hours, minutes, and seconds
-       let hours = components.hour ?? 0
-       let minutes = components.minute ?? 0
-       let seconds = components.second ?? 0
-
-       // Create the formatted string
-       var result = ""
-       
-       if hours > 0 {
-           result += "\(hours)hr "
-       }
-       
-       if minutes > 0 {
-           result += "\(minutes)min "
-       }
-       
-       // If the difference is less than 60 seconds, display seconds
-       if hours == 0 && minutes == 0 && seconds > 0 {
-           result = "\(seconds)s"
-       }
-
-       return result.isEmpty ? "0s" : result
+    
+    // Get the difference in hours, minutes, and seconds
+    let components = calendar.dateComponents([.hour, .minute, .second], from: startDate, to: endDate)
+    
+    // Extract the hours, minutes, and seconds
+    let hours = components.hour ?? 0
+    let minutes = components.minute ?? 0
+    let seconds = components.second ?? 0
+    
+    // Create the formatted string
+    var result = ""
+    
+    if hours > 0 {
+        result += "\(hours)hr "
+    }
+    
+    if minutes > 0 {
+        result += "\(minutes)min "
+    }
+    
+    // If the difference is less than 60 seconds, display seconds
+    if seconds > 0 {
+        result = "\(seconds)s"
+    }
+    
+    return result.isEmpty ? "0s" : result
 }
 
 
@@ -145,7 +145,7 @@ func secondsToMinutes(seconds: Int) -> Double {
  solo_yearly_subscription which would become Yearly Subscription
  */
 func formatTransactionProductID(_ input: String) -> String {
-
+    
     let words = input.components(separatedBy: "_")
     
     let formattedWords = words
