@@ -342,7 +342,6 @@ struct EditCustomPinsView: View {
                         VStack(alignment: .leading) {
                             
                             HStack(alignment: .top) {
-//                                Text("Pin Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
                                
                                 if pinData != nil {
                                     VStack(alignment: .leading) {
@@ -384,29 +383,12 @@ struct EditCustomPinsView: View {
                             
                             if pinData != nil {
                                 VStack(spacing: 16) {
-//                                    VStack(alignment: .leading) {
-//                                        Text(pinData?.name ?? "").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-//                                        
-//                                        HStack(spacing: 3) {
-//                                            
-//                                            // Street
-//                                            Text(pinData?.thoroughfare ?? "")
-//                                                .foregroundStyle(.gray)
-//                                            
-//                                            // City
-//                                            Text(pinData?.locality ?? "")
-//                                                .foregroundStyle(.gray)
-//                                            
-//                                            // State
-//                                            Text(pinData?.administrativeArea ?? "")
-//                                                .foregroundStyle(.gray)
-//                                        }
-//                                    }
-//                                    .frame(maxWidth: .infinity, alignment: .leading)
-//                                                                        
                                     
                                     Button  {
-                                        viewPinAssociatedRunsSheetVisible = true
+                                        Task {
+                                            await fetchAssociatedRunsForPin(pin: pinData!)
+                                            viewPinAssociatedRunsSheetVisible = true
+                                        }
                                         
                                     } label: {
                                         HStack(spacing: 8) {
@@ -427,7 +409,6 @@ struct EditCustomPinsView: View {
                                     
                                     Button  {
                                         editCustomPinNameSheetVisible = true
-                                        
                                     } label: {
                                         HStack(spacing: 8) {
                                             Image(systemName: "pencil")
@@ -647,13 +628,7 @@ struct EditCustomPinsView: View {
                         .presentationDragIndicator(.visible)
                         .presentationBackgroundInteraction(.disabled)
                     }
-                    .onAppear {
-                        if pinData != nil {
-                            Task {
-                                await fetchAssociatedRunsForPin(pin: pinData!)
-                            }
-                        }
-                    }
+                   
                 }
                    
                 
@@ -666,9 +641,9 @@ struct EditCustomPinsView: View {
                         ZStack {
                             Circle()
                                 .frame(width: 32, height: 32)
-                                .foregroundStyle(.white)
-                            Image(systemName: "chevron.down")
                                 .foregroundStyle(.black)
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(.white)
                                 .frame(width: 16, height: 16)
                                 .fontWeight(.semibold)
                         }
