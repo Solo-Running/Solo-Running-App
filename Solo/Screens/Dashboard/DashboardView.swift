@@ -612,34 +612,20 @@ struct DashboardView: View {
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .font(.subheadline)
                                         
-                                        HStack  {
-                                            
-                                            // Custom pin
-                                            VStack {
-                                                ZStack {
-                                                    Circle()
-                                                        .fill(.white)
-                                                        .frame(width: 14, height: 14)
-                                                    Image(systemName: "mappin.circle.fill")
-                                                        .font(.title2)
-                                                        .foregroundStyle(run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
-                                                        .font(.system(size: 4))
-                                                }
-                                                
-                                                Image(systemName: "arrowtriangle.down.fill")
-                                                    .font(.caption)
-                                                    .foregroundStyle(run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
-                                                    .offset(x: 0, y: -8)
-                                            }
-                                                                                    
+                                        HStack(alignment: .center)  {
+                                            Image(systemName: "mappin.circle.fill")
+                                                .font(.title2)
+                                                .foregroundStyle(.white, run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
+                                                .font(.system(size: 4))
+                                             
                                             Text(run.endPlacemark!.name)
                                                 .foregroundStyle(.white)
-                                                .padding(.bottom, 4)
                                                 .font(.system(size: 14))
                                                 .multilineTextAlignment(.leading)
                                             
                                             Spacer()
                                         }
+                                        .padding(.top, 6)
                                         
                                     }
                                     
