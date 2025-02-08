@@ -19,7 +19,8 @@ struct LaunchView: View {
         VStack{
             
             Text("SOLO")
-                .font(Font.custom("Koulen-Regular", size: 48))
+//                .font(Font.custom("Koulen-Regular", size: 48))
+                .font(.largeTitle)
                 .fontWeight(.heavy)
                 .foregroundStyle(.white)
         }
