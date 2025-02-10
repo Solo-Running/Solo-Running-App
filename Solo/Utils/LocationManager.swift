@@ -138,6 +138,15 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         Task {
             do {
                 let request = MKLocalSearch.Request()
+                let region = MKCoordinateRegion(
+                    center: userLocation!.coordinate,
+                    span: .init(
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01
+                    )
+                )
+                
+                request.region = region
                 request.naturalLanguageQuery = search.lowercased()
                 
                 let response =  try await MKLocalSearch(request: request).start()
