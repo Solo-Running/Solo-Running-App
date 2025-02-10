@@ -21,9 +21,9 @@ struct RunHistoryView: View {
     @Query(sort: \Run.postedDate, order: .reverse) var runs: [Run]
     @State private var isExpanded: Set<String> = []
     var sectionedRuns: [(String, [Run])] { chunkRuns(runsToChunk: runs)}
-
+    
     private var sectionDateFormatter = DateFormatter()
-   
+    
     init() {
         sectionDateFormatter.dateFormat = "MMM yyyy"
     }
@@ -46,94 +46,132 @@ struct RunHistoryView: View {
             modelContext.delete(run)
         }
     }
-
+    
     var body: some View {
         
         NavigationStack {
             
             Spacer().frame(height: 16)
-
+            
             VStack {
                 if !runs.isEmpty {
                     List {
                         ForEach(sectionedRuns, id: \.self.0) { title, runs in
-                            Section(
-                                title,
-                                isExpanded: Binding<Bool> (
-                                   get: {
-                                       return isExpanded.contains(title)
-                                   },
-                                   set: { isExpanding in
-                                       if isExpanding {
-                                           isExpanded.insert(title)
-                                       } else {
-                                           isExpanded.remove(title)
-                                       }
-                                   })
-                            
-                            ) {
+                            Section {
                                 ForEach(runs) { run in
-                            
+                                    
                                     ZStack(alignment: .topLeading) {
                                         // Ovleray an empty view to hide the default navigation arrow icon
                                         NavigationLink(destination: RunDetailView(runData: run)) {EmptyView()}.opacity(0)
                                         
-                                        // Run preview content
-                                        if let endPlacemark = run.endPlacemark {
+                                        
+                                        // Rounded rectangle container
+                                        VStack {
                                             
-                                            HStack(alignment: .top, spacing: 4) {
+                                            // Run preview content
+                                            HStack(alignment: .top, spacing: 16) {
                                                 
                                                 if let data = run.routeImage {
-                                                    ZStack(alignment: .topTrailing) {
+                                                    VStack {
                                                         Image(uiImage: UIImage(data: data)!)
                                                             .resizable()
                                                             .scaledToFill()
-                                                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                                                            .overlay {
-                                                                
-                                                                if endPlacemark.isCustomLocation {
-                                                                    Circle()
-                                                                        .strokeBorder(.black, lineWidth: 2)
-                                                                        .background(Circle().fill(.yellow))
-                                                                        .frame(width: 12, height: 12)
-                                                                        .offset(x: 10, y: -10)
-                                                                }
-                                                            }
+                                                            .clipShape(RoundedRectangle(cornerRadius: 8))
                                                     }
-                                                    .frame(width: 24, height: 24 )
-                                                    .padding(.trailing, 4)
+                                                    .frame(width: 64, height: 64 )
                                                 }
                                                 
-                                                VStack(alignment: .leading) {
-                                                    Text(formattedDayAndTimeRange(startDate: run.startTime, endDate: run.endTime))
-                                                        .foregroundStyle(.white)
-                                                        .font(.caption)
+                                                                                                
+                                                VStack(alignment: .leading, spacing: 16) {
                                                     
-                                                    Text(endPlacemark.name)
-                                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                                        .font(.subheadline)
+                                                    // Date and elapse times
+                                                    HStack {
+                                                        HStack(spacing: 8) {
+                                                            
+                                                            Image(systemName: "calendar")
+                                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                            
+                                                            Text(run.startTime.formatted(
+                                                                .dateTime.weekday(.abbreviated).day()
+                                                            ))
+                                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                                            .fontWeight(.semibold)
+                                                        }
+                                                        
+                                                        Spacer()
+
+                                                        Text(formattedElapsedTime(from: run.startTime, to: run.endTime))
+                                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                                            .fontWeight(.semibold)
+                                                        
+                                                    }
+                                                    
+                                                    // Step count
+                                                    Text("\(run.steps) steps")
+                                                        .font(.title2)
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(.white)
                                                 }
+                                                .frame(maxWidth: .infinity)
                                                 
                                                 Spacer()
                                             }
+                                            .padding(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+                                            
+                                            
+                                            Divider()
+                                            
+                                            HStack(alignment: .center, spacing: 8) {
+                                                if let endPlacemark = run.endPlacemark {
+
+                                                    Group {
+                                                        if endPlacemark.isCustomLocation {
+                                                            Circle()
+                                                                .strokeBorder(DARK_GREY, lineWidth: 2)
+                                                                .background(Circle().fill(.yellow))
+                                                                .frame(width: 16, height: 16)
+                                                        }
+                                                        else {
+                                                            Circle()
+                                                                .strokeBorder(DARK_GREY, lineWidth: 2)
+                                                                .background(Circle().fill(LIGHT_GREY))
+                                                                .frame(width: 16, height: 16)
+                                                        }
+                                                    }
+
+
+                                                    Text(endPlacemark.name)
+                                                        .foregroundStyle(.white)
+                                                        .font(.subheadline)
+                                                        .fontWeight(.semibold)
+                                                    
+                                                    Spacer()
+                                                }
+
+
+                                            }
+                                            .padding(EdgeInsets(top: 8, leading: 16, bottom: 16, trailing: 16))
                                         }
+                                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                        
                                     }
-                                    .padding(.vertical, 4)
-                                    
                                 }
                                 .onDelete(perform: deleteRuns)
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
-//                                .alignmentGuide(.listRowSeparatorLeading) { _ in
-//                                    return 0
-//                                }
+                                .padding(0)
+                                
+                            } header: {
+                                Text(title).font(.subheadline).fontWeight(.semibold)
                             }
-                            .padding(0)
+                            
                         }
                     }
-                    .listStyle(.sidebar)
+                    .listStyle(.plain)
                     .scrollIndicators(.hidden)
                     .scrollContentBackground(.hidden)
+                    .padding(0)
+
                 }
                 else {
                     ContentUnavailableView(
