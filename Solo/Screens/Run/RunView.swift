@@ -88,7 +88,7 @@ struct RunView: View {
     @State var newCustomPinName: String = ""
     
     // Map variables to handle interactions and camera
-    @State var interactionModes: MapInteractionModes = [.zoom, .pan, .pitch, .rotate] // gestures for map view
+    @State var interactionModes: MapInteractionModes = [.all] // gestures for map view
     @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
     
     // Track which placemark the user selected on the map
@@ -103,6 +103,7 @@ struct RunView: View {
     @State var pinCoordinates: CLLocationCoordinate2D?
     @State var usePin: Bool = false
     
+
     // Variables that handle the type of annotations displayed on the map
     @State private var showRoute = false
     @State private var routeDisplaying = false
@@ -188,14 +189,16 @@ struct RunView: View {
                 travelInterval = route.expectedTravelTime
                 
                 let destinationLocation = CLLocation(latitude: routeDestination!.latitude, longitude: routeDestination!.longitude)
-                let distance = locationManager.userLocation!.distance(from: destinationLocation)
-                routeDistance = distance / 1609.34
+                routeDistance =  Double(route.distance) / 1609.34 //locationManager.userLocation!.distance(from: destinationLocation)
+//                routeDistance = distance / 1609.34
 
                 print("routeDisplaying set to true")
                 routeDisplaying = true
                 routeSheetVisible = true
             }
         }
+        
+        
     }
     
     
@@ -255,9 +258,9 @@ struct RunView: View {
         locationManager.routeSteps.removeAll()
         
         // Return back to user location if cancelled route
-        withAnimation {
-            cameraPosition = .userLocation(fallback: .automatic)
-        }
+//        withAnimation {
+//            cameraPosition = .userLocation(fallback: .automatic)
+//        }
     }
 
         
@@ -461,6 +464,21 @@ struct RunView: View {
         }
     }
     
+    func sfSymbolForDirection(instruction: String) -> String {
+        let lowercased = instruction.lowercased()
+        
+        switch lowercased {
+        case _ where lowercased.contains("left"):
+            return "arrow.turn.up.left"
+        case _ where lowercased.contains("right"):
+            return "arrow.turn.up.right"
+        case _ where lowercased.contains("straight"):
+            return "arrow.up"
+        default:
+            return "mapping.circle.fill" // otherwise display the destination symbol
+        }
+    }
+
     
     // Saves the run data to swift data
     func saveRunData(completion: @escaping (Result<Bool, Error>) -> Void) {
@@ -535,7 +553,16 @@ struct RunView: View {
                         
                             // Render the route on the map
                             if let route, routeDisplaying {
-                                MapPolyline(route.polyline).stroke(.blue, lineWidth: 6)
+//                                MapPolyline(route.polyline).stroke(.blue, lineWidth: 12).mapOverlayLevel(level: .aboveRoads)
+                                
+                                MapPolyline(route.polyline)
+                                    .mapOverlayLevel(level: .aboveRoads)
+                                    .stroke(Color.blue.opacity(0.8), style: StrokeStyle(lineWidth: 12, lineCap: .round)) // Light blue border
+                                               
+                               MapPolyline(route.polyline)
+                                    .mapOverlayLevel(level: .aboveRoads)
+                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                                
                             }
                             
                             // The routeDestination is used to persist the marker even when the user taps elsewhere on the screen
@@ -595,7 +622,7 @@ struct RunView: View {
                             }
                         }
                         .ignoresSafeArea(edges: [.leading, .trailing])
-                        .mapStyle(.standard)
+                        .mapStyle(.standard(elevation: .realistic, showsTraffic: true))
                         .mapControls {
                             MapCompass()
                             MapUserLocationButton()
@@ -1413,17 +1440,30 @@ struct RunView: View {
                                 .padding(.horizontal, 16)
                                 
                                 List {
-                                    ForEach(0..<locationManager.routeSteps.count, id: \.self) { idx in
+                                    let steps = locationManager.routeSteps
+                                    // The first route step using autombile transporation type is empty so we skip it
+                                    ForEach(1..<steps.count, id: \.self) { idx in
                                         
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("\(convertMetersToString(distance: locationManager.routeSteps[idx].distance))")
-                                                .font(.title2)
-                                                .fontWeight(.semibold)
+                                        HStack(alignment: .center, spacing: 16) {
+                                        
+                                            Image(systemName: sfSymbolForDirection(instruction: steps[idx].instructions))
+                                                .font(.largeTitle)
+                                                .fontWeight(.bold)
                                                 .foregroundStyle(.white)
+                                                
                                             
-                                            Text("\(locationManager.routeSteps[idx].instructions)")
-                                                .font(.subheadline)
-                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("\(convertMetersToString(distance: steps[idx].distance))")
+                                                    .font(.largeTitle)
+                                                    .fontWeight(.bold)
+                                                    .foregroundStyle(.white)
+                                                
+                                                Text("\(steps[idx].instructions)")
+                                                    .font(.title2)
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                            }
+                                            
+                                            Spacer()
                                         }
                                         .listRowInsets(EdgeInsets(top: idx == 0 ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
                                     }
@@ -1457,9 +1497,9 @@ struct RunView: View {
                                 ZStack {
                                     Circle()
                                         .frame(width: 32, height: 32)
-                                        .foregroundStyle(.white)
-                                    Image(systemName: "chevron.down")
                                         .foregroundStyle(.black)
+                                    Image(systemName: "chevron.down")
+                                        .foregroundStyle(.white)
                                         .frame(width: 16, height: 16)
                                         .fontWeight(.semibold)
                                 }
