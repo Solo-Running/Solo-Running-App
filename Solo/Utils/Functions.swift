@@ -91,8 +91,8 @@ func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
         result += "\(minutes)min "
     }
     
-    // If the difference is less than 60 seconds, display seconds
-    if seconds > 0 {
+    // If no hour is provided, display seconds as well
+    if hours == 0 && seconds > 0  {
         result += "\(seconds)s"
     }
     
