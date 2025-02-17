@@ -585,7 +585,10 @@ struct RunView: View {
                                 }
                             }
                         }
-                        
+                        .mapFeatureSelectionDisabled { _ in false}
+                        .mapFeatureSelectionContent { feature in
+                           Marker(feature.title ?? "", coordinate: feature.coordinate)
+                       }
                         // Run asynchronous task to fetch route when user selects new destination
                         .task(id: selectedPlaceMark) {
                             if selectedPlaceMark != nil  {
