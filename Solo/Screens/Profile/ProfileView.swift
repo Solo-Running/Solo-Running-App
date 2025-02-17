@@ -91,32 +91,40 @@ struct ProfileView: View {
                 
                 Spacer().frame(height: 48)
                 
-                VStack(alignment: .leading, spacing: 16) {
+                
+                
+                VStack(alignment: .leading, spacing: 8) {
                     
-                                
+                    
                     // Change map theme
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading){
-                            Text("Map Theme")
-                                .foregroundStyle(.white)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text("Toggle your map theme to light or dark mode")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                .font(.subheadline)
-                        }
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: Binding(
-                                get: { !isDarkMode }, // Invert the value for the toggle
-                                set: { isDarkMode = !$0 } // Invert the value when the toggle changes
-                        ))
+                    VStack(alignment: .leading) {
+                        Text("Features")
+                            .font(.subheadline)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                   
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading){
+                                Text("Map Theme")
+                                    .foregroundStyle(.white)
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                Text("Toggle your map theme to light or dark mode")
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .font(.subheadline)
+                            }
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: Binding(
+                                get: { !isDarkMode },       // Invert the value for the toggle
+                                set: { isDarkMode = !$0 }   // Invert the value when the toggle changes
+                            ))
                             .toggleStyle(SwitchToggleStyle(tint: TEXT_LIGHT_GREY))
                             .frame(maxWidth: 48)
+                        }
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     }
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     
                     // Navigation to edit custom pins
                     Button {
@@ -138,24 +146,35 @@ struct ProfileView: View {
                     }
                     
                     
-                    // Manage Subscriptions
-                    NavigationLink {
-                        SubscriptionEditView()
-                    } label: {
-                        HStack(alignment: .center) {
-                            Text("Subscription Details")
-                                .foregroundStyle(.white)
-                                .font(.subheadline)
+                    Spacer().frame(height: 16)
                     
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                .frame(width: 24, height: 24)
+                    
+                    
+                    // Manage Subscriptions
+                    VStack(alignment: .leading) {
+                        Text("Settings")
+                            .font(.subheadline)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                           
+                        NavigationLink {
+                            SubscriptionEditView()
+                        } label: {
+                            HStack(alignment: .center) {
+                                Text("Subscription Details")
+                                    .foregroundStyle(.white)
+                                    .font(.subheadline)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .frame(width: 24, height: 24)
+                            }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                         }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     }
+                    
                     
                     // Privacy Policy
                     Button {
@@ -177,6 +196,8 @@ struct ProfileView: View {
                         .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                     }
                     
+                    
+                    Spacer().frame(height: 24)
                     
                     // Delete all runs
                     Button {
@@ -255,7 +276,6 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.black)
         }
         
     }
