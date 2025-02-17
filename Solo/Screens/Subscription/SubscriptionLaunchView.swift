@@ -17,7 +17,7 @@ struct SubscriptionLaunchView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     var body: some View {
-        SubscriptionStoreView(groupID: "09C0271F", visibleRelationships: .all){
+        SubscriptionStoreView(groupID: "21636260", visibleRelationships: .all){
             VStack {
                 Image("SoloLogo")
                     .resizable()
@@ -46,6 +46,14 @@ struct SubscriptionLaunchView: View {
                 Task {
                     await subscriptionManager.getSubscriptionStatusAndEntitlement()
                 }
+                
+                /*
+                 * StoreKit automatically keeps up to date transaction information and subscription status available to your app. When users reinstall your app or download it on a new device,
+                 * the app automaticallyall transactions available to it upon initial launch. There’s no need for users to ask your app to restore transactions — your app can
+                 * immediately get the current entitlements using currentEntitlements and transaction history using all.
+                 */
+              
+                
             } else {
                 print("Something else happened")
             }
