@@ -36,6 +36,7 @@
 		E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = E49FC6382CE6D0CC0034D465 /* SpotifyiOS */; };
 		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
 		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
+		E4B7F43C2D606C61006AE328 /* Solo Running.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E4B7F43B2D606C61006AE328 /* Solo Running.storekit */; };
 		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
 		E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B02CC372BD00B23CFE /* WidgetKit.framework */; };
 		E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B22CC372BD00B23CFE /* SwiftUI.framework */; };
@@ -127,6 +128,7 @@
 		E49FC6362CE674EE0034D465 /* SpotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyManager.swift; sourceTree = "<group>"; };
 		E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionLaunchView.swift; sourceTree = "<group>"; };
 		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
+		E4B7F43B2D606C61006AE328 /* Solo Running.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Solo Running.storekit"; path = "Solo/Utils/Solo Running.storekit"; sourceTree = "<group>"; };
 		E4BB6EB62CDCA96000932C4C /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
 		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -139,7 +141,6 @@
 		E4C5091C2CC3762C00B23CFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E4D740062CD0B9A4001461B7 /* RunDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailView.swift; sourceTree = "<group>"; };
 		E4D7400A2CD0C718001461B7 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		E4F5324F2D4852BC0064CF02 /* Subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Subscription.storekit; sourceTree = "<group>"; };
 		E4F532502D485A050064CF02 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -192,13 +193,11 @@
 		E43AEBE52CBCAB7F00C7A322 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				E43C28852D631DAA00B3F0DC /* Main */,
 				E4A9C22E2D4AA17B00C35CA6 /* Dashboard */,
 				E457B80E2CD8448F00FD6D90 /* Profile */,
 				E4BE5D632CCE27C50016D85A /* Run */,
-				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
-				E4F532502D485A050064CF02 /* OnboardingView.swift */,
 				E4A9C2292D4A914F00C35CA6 /* Subscription */,
-				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -227,6 +226,16 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		E43C28852D631DAA00B3F0DC /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
+				E4F532502D485A050064CF02 /* OnboardingView.swift */,
+				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
 		E457B80E2CD8448F00FD6D90 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -241,7 +250,7 @@
 		E49160622CBC9341009294AA = {
 			isa = PBXGroup;
 			children = (
-				E4F5324F2D4852BC0064CF02 /* Subscription.storekit */,
+				E4B7F43B2D606C61006AE328 /* Solo Running.storekit */,
 				E45B969A2CE87C12001A4548 /* Config.xcconfig */,
 				E43AEBE82CBCAC8400C7A322 /* Constants.swift */,
 				E41733592CC2C78C00A7E9B8 /* gpxgenerator_path-3.gpx */,
@@ -505,6 +514,7 @@
 			files = (
 				E43AEBF42CBDACB400C7A322 /* Koulen-Regular.ttf in Resources */,
 				E49160782CBC9346009294AA /* Preview Assets.xcassets in Resources */,
+				E4B7F43C2D606C61006AE328 /* Solo Running.storekit in Resources */,
 				E49160752CBC9346009294AA /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

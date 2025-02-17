@@ -1,5 +1,5 @@
 {
-  "identifier" : "D87E2A59",
+  "identifier" : "CD7EBE19",
   "nonRenewingSubscriptions" : [
 
   ],
@@ -7,10 +7,11 @@
 
   ],
   "settings" : {
-    "_billingGracePeriodEnabled" : true,
+    "_applicationInternalID" : "6742040879",
+    "_developerTeamID" : "QTPR4BFDT4",
     "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 761293925.36447001,
     "_locale" : "en_US",
-    "_renewalBillingIssuesEnabled" : true,
     "_storefront" : "USA",
     "_storeKitErrors" : [
       {
@@ -62,7 +63,7 @@
   },
   "subscriptionGroups" : [
     {
-      "id" : "09C0271F",
+      "id" : "21636260",
       "localizations" : [
 
       ],
@@ -77,25 +78,25 @@
           ],
           "displayPrice" : "0.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "7681706B",
+          "groupNumber" : 2,
+          "internalID" : "6742043317",
           "introductoryOffer" : {
-            "displayPrice" : "0.99",
-            "internalID" : "CD052CC2",
+            "internalID" : "B948B63F",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P1W"
           },
           "localizations" : [
             {
-              "description" : "A monthly sub",
-              "displayName" : " Monthly Subscription",
+              "description" : "Full access for a month",
+              "displayName" : "Monthly Subscription",
               "locale" : "en_US"
             }
           ],
-          "productID" : "solo_monthly_subscription",
+          "productID" : "monthly_subscription",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly Subscription",
-          "subscriptionGroupID" : "09C0271F",
+          "subscriptionGroupID" : "21636260",
           "type" : "RecurringSubscription"
         },
         {
@@ -108,23 +109,24 @@
           "displayPrice" : "6.99",
           "familyShareable" : false,
           "groupNumber" : 1,
-          "internalID" : "45C0AB9D",
+          "internalID" : "6742043454",
           "introductoryOffer" : {
-            "internalID" : "296535CE",
+            "internalID" : "B9AE387C",
+            "numberOfPeriods" : 1,
             "paymentMode" : "free",
             "subscriptionPeriod" : "P1W"
           },
           "localizations" : [
             {
-              "description" : "A yearly sub",
+              "description" : "Full access for a year",
               "displayName" : "Yearly Subscription",
               "locale" : "en_US"
             }
           ],
-          "productID" : "solo_yearly_subscription",
+          "productID" : "yearly_subscription",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Yearly Subscription",
-          "subscriptionGroupID" : "09C0271F",
+          "subscriptionGroupID" : "21636260",
           "type" : "RecurringSubscription"
         }
       ]

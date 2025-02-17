@@ -76,7 +76,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../Subscription.storekit">
+         identifier = "../../Solo/Utils/Solo Running.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
