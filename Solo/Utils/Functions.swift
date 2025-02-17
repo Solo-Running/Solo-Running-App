@@ -142,16 +142,15 @@ func secondsToMinutes(seconds: Int) -> Double {
 
 /**
  Formats a transaction product id into a presentable string. An example input would be
- solo_yearly_subscription which would become Yearly Subscription
+ yearly_subscription which would become Yearly Subscription
  */
 func formatTransactionProductID(_ input: String) -> String {
     
     let words = input.components(separatedBy: "_")
     
     let formattedWords = words
-        .filter { $0.lowercased() != "solo"}
         .map { $0.capitalized }
-    
+
     return formattedWords.joined(separator: " ")
 }
 
