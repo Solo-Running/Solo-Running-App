@@ -12,14 +12,13 @@ import StoreKit
 @MainActor
 final class SubscriptionManager: NSObject, ObservableObject {
     
-    @Published var productIds: [String] = ["solo_monthly_subscription", "solo_yearly_subscription"]
+    @Published var productIds: [String] = ["monthly_subscription", "yearly_subscription"]
 
     @Published var isSubscribed: Bool = false
     
     @Published var currentTransaction: Transaction?
-    @Published var transactionPayload: Data? // used to get the price and offer discount type information
-    @Published var currentRenewalInfo: Product.SubscriptionInfo.RenewalInfo? // used to determine if the current subscription will expire or renew
-    @Published var nextRenewalInfo: Product.SubscriptionInfo.RenewalInfo?
+    @Published var transactionPayload: Data?                                    // used to get the price and offer discount type information
+    @Published var currentRenewalInfo: Product.SubscriptionInfo.RenewalInfo?    // used to determine if the current subscription will expire or renew
 
     @Published var recentPurchases: [Transaction] = []
     @Published var isLoadingPurchases: Bool = false
@@ -33,7 +32,7 @@ final class SubscriptionManager: NSObject, ObservableObject {
         }
     }
 
-    
+    // Listen for storekit updates
     func listenForTransactions() async {
         for await verificationResult in Transaction.updates {
             switch verificationResult {
@@ -44,20 +43,23 @@ final class SubscriptionManager: NSObject, ObservableObject {
             }
         }
     }
-        
+    
     private func handleTransaction(_ transaction: Transaction) async {
        switch transaction.revocationDate {
        case .some(_):
            print("Transaction revoked: \(transaction.id)")
+        
        case .none:
            print("Transaction successful: \(transaction.id)")
-           isSubscribed = true
+           
+           // NOTE: isSubscribed = true
            
            // Finish transaction to remove it from queue
            await transaction.finish()
        }
    }
     
+    // Fetches the user's purchase history of past subscriptions
     func getRecentPurchases() async {
         isLoadingPurchases = true
         recentPurchases.removeAll()
@@ -79,6 +81,7 @@ final class SubscriptionManager: NSObject, ObservableObject {
     }
     
     
+
     func getSubscriptionStatusAndEntitlement() async {
                         
         // Iterate through the user's purchased products.
@@ -96,8 +99,7 @@ final class SubscriptionManager: NSObject, ObservableObject {
                 transactionPayload = result.payloadData
             }
             
-            
-            // Get additional renewal information for the current active subscription
+            // Get the renewal information for the current subscription
             do {
                 let products = try await Product.products(for: [transaction.productID])
                 for product in products {
@@ -109,9 +111,9 @@ final class SubscriptionManager: NSObject, ObservableObject {
                                 if (prodStatus.currentProductID == transaction.productID) {
                                     currentRenewalInfo = prodStatus
                                 }
-                                if(prodStatus.autoRenewPreference != nil) && (prodStatus.autoRenewPreference != transaction.productID){
-                                    nextRenewalInfo = prodStatus
-                                }
+                                // if(prodStatus.autoRenewPreference != nil) && (prodStatus.autoRenewPreference != transaction.productID){
+                                //     nextRenewalInfo = prodStatus
+                                // }
                                 break
                             default:
                                 break
