@@ -44,13 +44,15 @@ struct EditProfileView: View {
                                 .aspectRatio(contentMode: .fill)
                                 .clipped()
                         }
-                        if let profileData = user?.profilePicture, !profileData.isEmpty && selectedPhoto == nil , let profileImage = UIImage(data: profileData) {
+                        else if let profileData = user?.profilePicture, !profileData.isEmpty && selectedPhoto == nil , let profileImage = UIImage(data: profileData) {
                             Image(uiImage: profileImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
                                 .clipped()
                         }
-                        if let profileData = user?.profilePicture, profileData.isEmpty && selectedPhoto == nil {
+                        
+//                        if let profileData = user?.profilePicture, profileData.isEmpty && selectedPhoto == nil {
+                        else {
                             Image(systemName: "person.fill")
                                 .resizable()
                                 .scaledToFit()
@@ -92,19 +94,27 @@ struct EditProfileView: View {
                     } 
                     else {
                         showErrorDialog = false
+                                                
+                        user?.fullName = fullname
+                        if selectedPhoto != nil {
+                            user?.profilePicture = selectedPhotoData
+                        }
                         
-                        let newUser: UserModel
-                        if selectedPhoto == nil {
-                            let photoData = (user?.profilePicture)!
-                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: photoData)
-                        }
-                        else {
-                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
-                        }
+                        try? modelContext.save()
+                        showSaveToast = true
+//
+//                        let newUser: UserModel
+//                        if selectedPhoto == nil {
+//                            let photoData = (user?.profilePicture)!
+//                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: photoData)
+//                        }
+//                        else {
+//                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
+//                        }
                     
-                        modelContext.delete(user!)
-                        modelContext.insert(newUser)
-                        showSaveToast = true                                            
+//                            modelContext.delete(user!)
+//                            modelContext.insert(newUser)
+                       
                     }
                 } label : {
                     Text("Save changes")
