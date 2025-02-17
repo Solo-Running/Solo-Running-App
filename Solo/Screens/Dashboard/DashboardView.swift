@@ -615,13 +615,14 @@ struct DashboardView: View {
                                         HStack(alignment: .center)  {
                                             Image(systemName: "mappin.circle.fill")
                                                 .font(.title2)
-                                                .foregroundStyle(.white, run.endPlacemark!.isCustomLocation ? .yellow : DARK_GREY)
+                                                .foregroundStyle(.white, run.endPlacemark!.isCustomLocation ? .yellow : .red) // background, foreground color 
                                                 .font(.system(size: 4))
                                              
                                             Text(run.endPlacemark!.name)
                                                 .foregroundStyle(.white)
                                                 .font(.system(size: 14))
-                                                .multilineTextAlignment(.leading)
+                                                .lineLimit(1)
+                                                .truncationMode(.tail)
                                             
                                             Spacer()
                                         }

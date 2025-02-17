@@ -78,32 +78,26 @@ struct RunHistoryView: View {
                                                             .scaledToFill()
                                                             .clipShape(RoundedRectangle(cornerRadius: 8))
                                                     }
-                                                    .frame(width: 64, height: 64 )
+                                                    .frame(width: 54, height: 54)
                                                 }
                                                 
                                                                                                 
-                                                VStack(alignment: .leading, spacing: 16) {
+                                                VStack(alignment: .leading, spacing: 8) {
                                                     
                                                     // Date and elapse times
                                                     HStack {
-                                                        HStack(spacing: 8) {
                                                             
-                                                            Image(systemName: "calendar")
-                                                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                                            
-                                                            Text(run.startTime.formatted(
-                                                                .dateTime.weekday(.abbreviated).day()
-                                                            ))
-                                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                                            .fontWeight(.semibold)
-                                                        }
+                                                        Text(run.startTime.formatted(
+                                                            .dateTime.weekday(.abbreviated).day()
+                                                        ))
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
                                                         
                                                         Spacer()
 
                                                         Text(formattedElapsedTime(from: run.startTime, to: run.endTime))
+                                                            .font(.subheadline)
                                                             .foregroundStyle(TEXT_LIGHT_GREY)
-                                                            .fontWeight(.semibold)
-                                                        
+                                                            .multilineTextAlignment(.trailing)
                                                     }
                                                     
                                                     // Step count
@@ -111,10 +105,10 @@ struct RunHistoryView: View {
                                                         .font(.title2)
                                                         .fontWeight(.semibold)
                                                         .foregroundStyle(.white)
+                                                    
                                                 }
                                                 .frame(maxWidth: .infinity)
                                                 
-                                                Spacer()
                                             }
                                             .padding(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
                                             
@@ -127,33 +121,32 @@ struct RunHistoryView: View {
                                                     Group {
                                                         if endPlacemark.isCustomLocation {
                                                             Circle()
-                                                                .strokeBorder(DARK_GREY, lineWidth: 2)
+                                                                .strokeBorder(.yellow, lineWidth: 2)
                                                                 .background(Circle().fill(.yellow))
-                                                                .frame(width: 16, height: 16)
+                                                                .frame(width: 12, height: 12)
                                                         }
                                                         else {
                                                             Circle()
-                                                                .strokeBorder(DARK_GREY, lineWidth: 2)
-                                                                .background(Circle().fill(LIGHT_GREY))
-                                                                .frame(width: 16, height: 16)
+                                                                .strokeBorder(.red, lineWidth: 2)
+                                                                .background(Circle().fill(.red))
+                                                                .frame(width: 12, height: 12)
                                                         }
                                                     }
 
 
                                                     Text(endPlacemark.name)
-                                                        .foregroundStyle(.white)
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
                                                         .font(.subheadline)
                                                         .fontWeight(.semibold)
+                                                        .lineLimit(1)
+                                                        .truncationMode(.tail)
                                                     
                                                     Spacer()
                                                 }
-
-
                                             }
                                             .padding(EdgeInsets(top: 8, leading: 16, bottom: 16, trailing: 16))
                                         }
                                         .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                                        
                                     }
                                 }
                                 .onDelete(perform: deleteRuns)
@@ -162,9 +155,8 @@ struct RunHistoryView: View {
                                 .padding(0)
                                 
                             } header: {
-                                Text(title).font(.subheadline).fontWeight(.semibold)
+                                Text(title).font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
                             }
-                            
                         }
                     }
                     .listStyle(.plain)
