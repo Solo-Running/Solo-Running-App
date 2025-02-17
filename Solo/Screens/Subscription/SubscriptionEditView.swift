@@ -156,11 +156,11 @@ struct SubscriptionEditView: View {
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                     }
                                     
-                                    if let transaction = subscriptionManager.currentTransaction, (transaction.productID == purchase.productID) && (purchase.revocationDate == nil) {
-                                        Text("Current")
-                                            .font(.caption)
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                    }
+//                                    if let transaction = subscriptionManager.currentTransaction, (transaction.productID == purchase.productID) && (purchase.revocationDate == nil) {
+//                                        Text("Current")
+//                                            .font(.caption)
+//                                            .foregroundStyle(TEXT_LIGHT_GREY)
+//                                    }
                                 }
                             }
                             .padding(.vertical, 8)
