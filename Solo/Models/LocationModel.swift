@@ -32,6 +32,11 @@ class MTPlacemark {
     var timestamp: Date = Date()
     var nameEditDate: Date?
     
+    // Cloudkit requires inverse relationships even if you don't use them
+    @Relationship(inverse: \Run.startPlacemark) var runsStartingHere: [Run]?
+    @Relationship(inverse: \Run.endPlacemark) var runsEndingHere: [Run]?
+    
+  
     init(id: String = UUID().uuidString,
          name: String = "", 
          thoroughfare: String = "",

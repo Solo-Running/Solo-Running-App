@@ -10,15 +10,6 @@ import SwiftData
 import SwiftUI
 import MapKit
 
-@Observable
-class RunData {
-    var runs: [Run] = []
-    
-    init(runs: [Run]) {
-        self.runs = runs
-    }
-}
-
 /**
  Model that holds all of a run's statistics
  */
