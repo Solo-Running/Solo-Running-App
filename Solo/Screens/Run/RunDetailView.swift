@@ -9,6 +9,61 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+
+struct ExportableImageCard: View {
+    var image: UIImage
+    var runData: Run
+    
+    var body: some View {
+        VStack {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 200, height: 200)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                
+                VStack(alignment: .leading) {
+                    Text(runData.endPlacemark!.name)
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                    
+                    Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
+                        .font(.caption)
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                }
+                
+                HStack(alignment: .center, spacing: 8){
+                    
+                    Text("\(runData.steps) steps")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(DARK_GREY))
+                        .foregroundColor(.white)
+                    
+                    Text(String(format:"%.2f mi", runData.distanceTraveled / 1609.344))
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(DARK_GREY))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                }
+                .padding(.bottom, 16)
+            }
+            .padding(8)
+        }
+        .frame(width: 200)
+        .background(RoundedRectangle(cornerRadius: 12).fill(.black))
+    }
+}
+
+
 /**
  Displays a user's previous run session with statistics like time, steps, distance, and average pace.
  Users also have the ability to add notes for the run.
@@ -34,6 +89,14 @@ struct RunDetailView: View {
             return nil
         }
         return Image(uiImage: uiImage)
+    }
+    
+    
+    @MainActor func exportedImage() -> Image {
+        let renderer = ImageRenderer(content: ExportableImageCard(image: imageData!, runData: runData))
+        renderer.scale = UIScreen.main.scale
+        return Image(uiImage: renderer.uiImage!.withCornerRadius(12).withBackground(color: .clear))
+
     }
     
     
@@ -250,10 +313,8 @@ struct RunDetailView: View {
                             
                             // Share image button
                             Button {
-                                
                             } label: {
-                                
-                                ShareLink(item: imageForShare!, preview: SharePreview("Route Image", image: imageForShare!)) {
+                                ShareLink(item: exportedImage(), preview: SharePreview("\(convertDateToDateTime(date: runData.startTime)) Run", image: exportedImage())) {
                                     HStack {
                                         Text("Share Route Photo")
                                             .fontWeight(.semibold)

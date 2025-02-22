@@ -89,4 +89,21 @@ public extension UIImage {
     }
 }
 
-
+extension UIImage {
+    func withCornerRadius(_ radius: CGFloat) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = self.scale
+        format.opaque = false // ✅ Maintain transparency
+        
+        let renderer = UIGraphicsImageRenderer(size: self.size, format: format)
+        return renderer.image { context in
+            let rect = CGRect(origin: .zero, size: self.size)
+            
+            // 🔹 Apply rounded corners
+            let path = UIBezierPath(roundedRect: rect, cornerRadius: radius)
+            path.addClip()
+            
+            self.draw(in: rect)
+        }
+    }
+}
