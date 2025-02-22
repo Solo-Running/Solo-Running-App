@@ -179,6 +179,9 @@ struct ProfileView: View {
                     // Privacy Policy
                     Button {
                         // TODO: Add link to website
+                        if let url = URL(string: "https://solo-running.netlify.app") {
+                              UIApplication.shared.open(url)
+                        }
                     } label: {
                         HStack(alignment: .center) {
                             
