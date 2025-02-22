@@ -190,7 +190,6 @@ struct RunView: View {
                 
                 let destinationLocation = CLLocation(latitude: routeDestination!.latitude, longitude: routeDestination!.longitude)
                 routeDistance =  Double(route.distance) / 1609.34 //locationManager.userLocation!.distance(from: destinationLocation)
-//                routeDistance = distance / 1609.34
 
                 print("routeDisplaying set to true")
                 routeDisplaying = true
@@ -257,10 +256,6 @@ struct RunView: View {
         locationManager.stepCoordinates.removeAll()
         locationManager.routeSteps.removeAll()
         
-        // Return back to user location if cancelled route
-//        withAnimation {
-//            cameraPosition = .userLocation(fallback: .automatic)
-//        }
     }
 
         
@@ -318,10 +313,10 @@ struct RunView: View {
             }
 
             // draw the route polyline on the map
-            context.setLineWidth(6)
-            context.setStrokeColor(UIColor.systemBlue.cgColor)
+            context.setLineWidth(10)
+            context.setLineCap(.round)
+            context.setStrokeColor(UIColor.systemBlue.withAlphaComponent(0.8).cgColor)
             context.strokePath()
-
             print("added mk route polyline")
 
             // Set up the start placemark annotation image
@@ -475,7 +470,7 @@ struct RunView: View {
         case _ where lowercased.contains("straight"):
             return "arrow.up"
         default:
-            return "mapping.circle.fill" // otherwise display the destination symbol
+            return "mappin.circle.fill" // otherwise display the destination symbol
         }
     }
 
@@ -553,7 +548,6 @@ struct RunView: View {
                         
                             // Render the route on the map
                             if let route, routeDisplaying {
-//                                MapPolyline(route.polyline).stroke(.blue, lineWidth: 12).mapOverlayLevel(level: .aboveRoads)
                                 
                                 MapPolyline(route.polyline)
                                     .mapOverlayLevel(level: .aboveRoads)
