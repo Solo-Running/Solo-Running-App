@@ -35,16 +35,17 @@ func convertDateToDateTime(date: Date) -> String {
 }
 
 
-func formattedSteps(_ steps: Int) -> String {
-    if steps >= 1_000_000 {
-        return "\(steps / 1_000_000)M"
-    } else if steps >= 1_000 {
-        let formatted = Double(steps) / 1_000
+func formattedNumber(_ num: Int) -> String {
+    if num >= 1000000 {
+        return "\(num / 1000000)M"
+    } else if num >= 1000 {
+        let formatted = Double(num) / 1000
         return String(format: "%.2fk", formatted).replacingOccurrences(of: ".00", with: "")
     } else {
-        return "\(steps)"
+        return "\(num)"
     }
 }
+
 
 
 // NOT USED
@@ -74,7 +75,7 @@ func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
     
     // Get the difference in hours, minutes, and seconds
     let components = calendar.dateComponents([.hour, .minute, .second], from: startDate, to: endDate)
-    
+        
     // Extract the hours, minutes, and seconds
     let hours = components.hour ?? 0
     let minutes = components.minute ?? 0
@@ -137,6 +138,20 @@ func convertPace(secondsPerMeter: Double) -> Double {
 
 func secondsToMinutes(seconds: Int) -> Double {
     return Double(seconds) / 60.0
+}
+
+func secondsToFormatedTime(seconds: Int) -> String {
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+    let seconds = seconds % 60
+
+    if hours > 0 {
+       return minutes > 0 ? "\(hours)hr \(minutes)min" : "\(hours)hr"
+    } else if minutes > 0 {
+       return seconds > 0 ? "\(minutes)min \(seconds)s" : "\(minutes)min"
+    } else {
+       return "\(seconds)s"
+    }
 }
 
 
