@@ -31,6 +31,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     
     @Published var startPlacemark: MTPlacemark?
     @Published var endPlacemark: MTPlacemark?
+    @Published var routeDistance: Double = 0.0
 
     
     var cancellable: AnyCancellable?
@@ -53,10 +54,11 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     }
     
     
-    func updateStartEndPlacemarks(start: MTPlacemark, end: MTPlacemark) {
+    func storeRouteDetails(start: MTPlacemark, end: MTPlacemark, distance: Double) {
         self.startPlacemark = start
         self.endPlacemark = end
-        print("saved start and end placemarks")
+        self.routeDistance = distance
+        print("saved route detaiils")
     }
     
     func clearData() {
@@ -170,10 +172,10 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
                             timestamp: Date(),
                             nameEditDate: nil
                         )
-                    })
+                    }).filter{$0.isoCountryCode == "US"}
                 })
             } catch {
-                
+                print(error.localizedDescription)
             }
         }
     }
