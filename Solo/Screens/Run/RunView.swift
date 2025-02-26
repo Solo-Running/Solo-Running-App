@@ -406,22 +406,24 @@ struct RunView: View {
             let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
                 $0.endPlacemark?.id == routeId
             })
-            do {
-                let runs = try modelContext.fetch(fetchDescriptor)
-                for run in runs {
-                    modelContext.delete(run)
+            
+           try? modelContext.transaction {
+                do {
+                    let runs = try modelContext.fetch(fetchDescriptor)
+                    for run in runs {
+                        modelContext.delete(run)
+                    }
+                } catch {
+                    print("could not fetch runs with custom pin")
                 }
-            } catch {
-                print("could not fetch runs with custom pin")
+                
+                modelContext.delete(routeDestination)
+                
+                // reset the route state
+                routeSheetVisible = false
+                searchPlaceSheetVisible = true
+                removeRoute()
             }
-            
-            modelContext.delete(routeDestination)
-            
-            // reset the route state
-            routeSheetVisible = false
-            searchPlaceSheetVisible = true
-            
-            removeRoute()
         }
     }
     
@@ -469,6 +471,8 @@ struct RunView: View {
             return "arrow.turn.up.right"
         case _ where lowercased.contains("straight"):
             return "arrow.up"
+        case _ where lowercased.contains("over"):
+            return "arrow.up"
         default:
             return "mappin.circle.fill" // otherwise display the destination symbol
         }
@@ -496,6 +500,7 @@ struct RunView: View {
                     endTime: activityManager.runEndTime!,
                     elapsedTime: activityManager.secondsElapsed,
                     distanceTraveled: activityManager.distanceTraveled,
+                    routeDistance: locationManager.routeDistance,
                     steps: activityManager.steps,
                     startPlacemark: locationManager.startPlacemark!,
                     endPlacemark: locationManager.endPlacemark!,
@@ -828,7 +833,7 @@ struct RunView: View {
                                                         print("could not reverse geo code user's location")
                                                         return
                                                     }
-                                                    locationManager.updateStartEndPlacemarks(start: startPlacemark!, end: routeDestination!)
+                                                    locationManager.storeRouteDetails(start: startPlacemark!, end: routeDestination!, distance: routeDistance)
                                                 }
                                             }
                                             

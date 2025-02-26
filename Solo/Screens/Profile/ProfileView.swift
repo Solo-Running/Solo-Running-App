@@ -232,10 +232,18 @@ struct ProfileView: View {
                                     showDeleteToast = true
                                     deleteStatus = .deleting
                                 
-                                    for run in runs {
-                                        modelContext.delete(run)
+                                    try? modelContext.transaction {
+                                        for run in runs {
+                                            modelContext.delete(run)
+                                        }
+                                        
+                                        do {
+                                            try modelContext.save()
+                                        } catch {
+                                            print(error.localizedDescription)
+                                        }
                                     }
-                                    
+                                   
                                 } catch {
                                     print("could not fetch runs with custom pin")
                                     deleteStatus = .failure

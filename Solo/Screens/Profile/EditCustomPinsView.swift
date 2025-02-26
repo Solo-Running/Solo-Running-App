@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 import SwiftData
 import MapKit
-import BottomSheet
 
 
 struct EditCustomPinsView: View {
@@ -142,22 +141,25 @@ struct EditCustomPinsView: View {
     func deleteCustomPin() {
         
         if let pinData, pinData.isCustomLocation {
-
+            
             let id = pinData.id
             let fetchDescriptor = FetchDescriptor<Run>(predicate: #Predicate<Run> {
                 $0.endPlacemark?.id == id
             })
-            do {
-                let runs = try modelContext.fetch(fetchDescriptor)
-                for run in runs {
-                    modelContext.delete(run)
-                }
-            } catch {
-                print("could not fetch runs with custom pin")
-            }
             
-            modelContext.delete(pinData)
-            selectedPlaceMark = nil
+            try? modelContext.transaction {
+                do {
+                    let runs = try modelContext.fetch(fetchDescriptor)
+                    for run in runs {
+                        modelContext.delete(run)
+                    }
+                } catch {
+                    print("Could not fetch runs with custom pin. Error: \(error)")
+                }
+                
+                modelContext.delete(pinData)
+                selectedPlaceMark = nil
+            }
         }
     }
 
@@ -461,7 +463,7 @@ struct EditCustomPinsView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
                         .frame(maxHeight: .infinity, alignment: .top)
-                        .interactiveDismissDisabled(false)
+                        .interactiveDismissDisabled(true)
                         .presentationDetents(pinDetailsSheetDetents)
                         .presentationBackground(.black)
                         .presentationDragIndicator(.visible)
