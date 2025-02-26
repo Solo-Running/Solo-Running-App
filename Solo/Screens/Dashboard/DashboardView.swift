@@ -38,7 +38,7 @@ struct DashboardView: View {
     @State var weeklyStats: [String: RunStatsPerDay] = [:]
 
     @State var totalStepsInWeek: Int = 0
-    @State var totalTimeInWeek: Double = 0.0
+    @State var totalTimeInWeek: String = ""
     
     @State var averageStepsInWeek: Double = 0
     @State var averageTimeInWeek: Double = 0
@@ -159,7 +159,8 @@ struct DashboardView: View {
         
         // Update the total steps and time
         self.totalStepsInWeek = totalSteps
-        self.totalTimeInWeek = secondsToMinutes(seconds: totalTime)
+        self.totalTimeInWeek = secondsToFormatedTime(seconds: totalTime)
+        //secondsToMinutes(seconds: totalTime)
         
         // Calculate the average steps for this week
         self.averageStepsInWeek = Double(totalSteps) / 7
@@ -235,7 +236,7 @@ struct DashboardView: View {
                                     Spacer()
                                     
                                     if (stepsPercentageChange != 0) {
-                                        Text("\(stepsPercentageChange > 0 ? "+" : "")\(stepsPercentageChange)%")
+                                        Text("\(stepsPercentageChange > 0 ? "+" : "")\(formattedNumber(stepsPercentageChange))%")
                                             .foregroundStyle(stepsPercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
                                             .fontWeight(.semibold)
                                     }
@@ -310,7 +311,7 @@ struct DashboardView: View {
                                             .foregroundStyle(.white)
                                             .fontWeight(.bold)
                                         
-                                        Text(String(format: "You logged a total of %.2f minutes", totalTimeInWeek ))
+                                        Text("You logged a total of \(totalTimeInWeek)")
                                             .font(.caption)
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .padding(.top, 2)
