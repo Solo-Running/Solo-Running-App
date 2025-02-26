@@ -27,14 +27,28 @@ struct SoloApp: App {
             Run.self
         ])
         
-        // tell swift data to persist data to disk instead of memory
+        // Handle changes in iCloud syncing
+        // https://www.youtube.com/watch?v=DlSPD9dl8Bc
         let modelConfiguration = ModelConfiguration(isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: modelConfiguration)
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+        let modelConfigurationOff = ModelConfiguration(isStoredInMemoryOnly: false, cloudKitDatabase: ModelConfiguration.CloudKitDatabase.none)
+        
+        let iCloudToken = FileManager.default.ubiquityIdentityToken
+        if iCloudToken == nil {
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfigurationOff])
+            } catch {
+                fatalError("Could not create model container: \(error)")
+            }
+            
+        } 
+        else {
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
+      
     }()
     
 
