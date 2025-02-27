@@ -105,7 +105,6 @@
 		E43AEBF82CBE268F00C7A322 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		E453FFB12CCF5D22008CE2F6 /* RunHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHistoryView.swift; sourceTree = "<group>"; };
 		E457B80F2CD8595400FD6D90 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
-		E45B969A2CE87C12001A4548 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		E461C9652CDF214800E3D69B /* EditCustomPinsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCustomPinsView.swift; sourceTree = "<group>"; };
 		E461C9672CDF355A00E3D69B /* DraggablePin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraggablePin.swift; sourceTree = "<group>"; };
 		E47E67212CCE084A006941B1 /* Functions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Functions.swift; sourceTree = "<group>"; };
@@ -248,7 +247,6 @@
 			isa = PBXGroup;
 			children = (
 				E4B7F43B2D606C61006AE328 /* Solo Running.storekit */,
-				E45B969A2CE87C12001A4548 /* Config.xcconfig */,
 				E43AEBE82CBCAC8400C7A322 /* Constants.swift */,
 				E41733592CC2C78C00A7E9B8 /* gpxgenerator_path-3.gpx */,
 				E4C509132CC3762900B23CFE /* SoloLiveWidget */,
@@ -625,7 +623,6 @@
 /* Begin XCBuildConfiguration section */
 		E491608F2CBC9347009294AA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E45B969A2CE87C12001A4548 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -689,7 +686,6 @@
 		};
 		E49160902CBC9347009294AA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E45B969A2CE87C12001A4548 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -746,7 +742,6 @@
 		};
 		E49160922CBC9347009294AA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E45B969A2CE87C12001A4548 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -789,7 +784,6 @@
 		};
 		E49160932CBC9347009294AA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E45B969A2CE87C12001A4548 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
