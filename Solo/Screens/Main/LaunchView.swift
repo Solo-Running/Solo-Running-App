@@ -17,12 +17,10 @@ struct LaunchView: View {
     var body: some View {
         
         VStack{
-            
-            Text("SOLO")
-//                .font(Font.custom("Koulen-Regular", size: 48))
-                .font(.largeTitle)
-                .fontWeight(.heavy)
-                .foregroundStyle(.white)
+            Image("SoloLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 240,height: 240)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black)       

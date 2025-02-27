@@ -12,7 +12,7 @@ import AlertToast
 
 
 enum SelectedTab: Int {
-    case Welcome = 0, Roam, Data, Spotify, Start
+    case Welcome = 0, Roam, Data, Start
 }
 
 struct OnboardingView: View {
@@ -30,7 +30,7 @@ struct OnboardingView: View {
                 TabView {
                     Group {
                         VStack(spacing: 8) {
-                            Image("SoloLogo")
+                            Image("AppIcon")
                                 .tint(.white)
                                 .frame(width: 64, height: 64)
                                 .padding(.bottom, 16)
@@ -83,25 +83,6 @@ struct OnboardingView: View {
                         }
                         .tag(SelectedTab.Data)
 
-                        
-                        VStack(spacing: 8)  {
-                            Image(systemName: "music.note")
-                                .tint(.white)
-                                .font(.system(size: 64))
-                                .padding(.bottom, 16)
-
-                            Text("Music In Your Hands")
-                                .font(.title)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.white)
-                            
-                            Text("Play Spotify directly from in the app while running!")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                .multilineTextAlignment(.center)
-                            
-                        }
-                        .tag(SelectedTab.Spotify)
-                        
                         
                         VStack(spacing: 8)  {
                             
