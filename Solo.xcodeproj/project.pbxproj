@@ -32,7 +32,6 @@
 		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E6A2CCB10E200C163EA /* CapsuleView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
-		E49FC6372CE674EE0034D465 /* SpotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49FC6362CE674EE0034D465 /* SpotifyManager.swift */; };
 		E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = E49FC6382CE6D0CC0034D465 /* SpotifyiOS */; };
 		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
 		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
@@ -125,7 +124,6 @@
 		E4922E672CC95D3B00C163EA /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		E4922E6A2CCB10E200C163EA /* CapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleView.swift; sourceTree = "<group>"; };
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
-		E49FC6362CE674EE0034D465 /* SpotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyManager.swift; sourceTree = "<group>"; };
 		E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionLaunchView.swift; sourceTree = "<group>"; };
 		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
 		E4B7F43B2D606C61006AE328 /* Solo Running.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Solo Running.storekit"; path = "Solo/Utils/Solo Running.storekit"; sourceTree = "<group>"; };
@@ -210,7 +208,6 @@
 				E493F03A2CBF950700D023AE /* LocationManager.swift */,
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
-				E49FC6362CE674EE0034D465 /* SpotifyManager.swift */,
 				E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */,
 			);
 			path = Utils;
@@ -563,7 +560,6 @@
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
-				E49FC6372CE674EE0034D465 /* SpotifyManager.swift in Sources */,
 				E47E67222CCE084A006941B1 /* Functions.swift in Sources */,
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
 				E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */,
