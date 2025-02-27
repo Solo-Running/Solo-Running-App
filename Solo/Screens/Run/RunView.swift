@@ -1153,6 +1153,7 @@ struct RunView: View {
                                     
                                     Spacer().frame(height: 24)
 
+                                    // Experimental code for Spotify SDK
                                     if !spotifyManager.canOpenSpotify() {
                                         HStack(spacing: 8){
                                             
