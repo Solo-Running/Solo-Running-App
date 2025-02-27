@@ -32,7 +32,6 @@
 		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E6A2CCB10E200C163EA /* CapsuleView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
-		E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */ = {isa = PBXBuildFile; productRef = E49FC6382CE6D0CC0034D465 /* SpotifyiOS */; };
 		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
 		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
 		E4B7F43C2D606C61006AE328 /* Solo Running.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E4B7F43B2D606C61006AE328 /* Solo Running.storekit */; };
@@ -149,7 +148,6 @@
 			files = (
 				E4F5324D2D46B9E30064CF02 /* AlertToast in Frameworks */,
 				E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */,
-				E49FC6392CE6D0CC0034D465 /* SpotifyiOS in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -389,7 +387,6 @@
 			name = Solo;
 			packageProductDependencies = (
 				E4D7400D2CD21BF1001461B7 /* Algorithms */,
-				E49FC6382CE6D0CC0034D465 /* SpotifyiOS */,
 				E4F5324C2D46B9E30064CF02 /* AlertToast */,
 			);
 			productName = Solo;
@@ -485,9 +482,7 @@
 			);
 			mainGroup = E49160622CBC9341009294AA;
 			packageReferences = (
-				E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */,
 				E4D7400C2CD217F8001461B7 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
-				E49FC6352CE674040034D465 /* XCRemoteSwiftPackageReference "ios-sdk" */,
 				E4F5324B2D46B9E30064CF02 /* XCRemoteSwiftPackageReference "AlertToast" */,
 			);
 			productRefGroup = E491606C2CBC9341009294AA /* Products */;
@@ -1007,22 +1002,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		E493F03C2CC07F0800D023AE /* XCRemoteSwiftPackageReference "BottomSheet" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/lucaszischka/BottomSheet";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.1.1;
-			};
-		};
-		E49FC6352CE674040034D465 /* XCRemoteSwiftPackageReference "ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/spotify/ios-sdk";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 		E4D7400C2CD217F8001461B7 /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-algorithms.git";
@@ -1042,11 +1021,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E49FC6382CE6D0CC0034D465 /* SpotifyiOS */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E49FC6352CE674040034D465 /* XCRemoteSwiftPackageReference "ios-sdk" */;
-			productName = SpotifyiOS;
-		};
 		E4D7400D2CD21BF1001461B7 /* Algorithms */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E4D7400C2CD217F8001461B7 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
