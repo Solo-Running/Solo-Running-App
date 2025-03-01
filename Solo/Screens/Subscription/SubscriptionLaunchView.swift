@@ -17,7 +17,7 @@ struct SubscriptionLaunchView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     var body: some View {
-        SubscriptionStoreView(groupID: "21636260", visibleRelationships: .all){
+        SubscriptionStoreView(productIDs: subscriptionManager.productIds){
             VStack {
                 Image("SoloLogo")
                     .resizable()
