@@ -29,20 +29,23 @@ struct OnboardingView: View {
             VStack {
                 TabView {
                     Group {
-                        VStack(spacing: 8) {
-                            Image("AppIcon")
-                                .tint(.white)
-                                .frame(width: 80, height: 80)
-                                .padding(.bottom, 16)
+                        VStack {
+                            Image("SoloLogo")
+                                .resizable()
+                                .frame(width: 140, height: 140)
 
                             Text("Welcome")
                                 .font(.title)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
+                                .padding(.bottom, 8)
                             
                             Text("Solo Running is an app that helps users track and record runs on the go.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
+                            
+                            
+                            Spacer().frame(height: 32)
                         }
                         .tag(SelectedTab.Welcome)
                         
