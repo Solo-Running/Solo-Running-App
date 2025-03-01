@@ -8,12 +8,19 @@
 import Foundation
 import StoreKit
 
+/**
+ Helpful Resources:
+ https://developer.apple.com/documentation/xcode/setting-up-storekit-testing-in-xcode#Disable-StoreKit-Testing-in-Xcode
+ https://medium.com/@mafz/how-to-enable-sandbox-in-app-purchases-for-ios-apps-71215c250595
+ */
+
 
 @MainActor
 final class SubscriptionManager: NSObject, ObservableObject {
     
-    @Published var productIds: [String] = ["monthly_subscription", "yearly_subscription"]
-
+    @Published var productIds: [Product.ID] = ["monthly_subscription", "yearly_subscription"]
+    private var groupID =  "21636260"
+    
     @Published var isSubscribed: Bool = false
     
     @Published var currentTransaction: Transaction?
