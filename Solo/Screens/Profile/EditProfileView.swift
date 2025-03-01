@@ -102,18 +102,6 @@ struct EditProfileView: View {
                         
                         try? modelContext.save()
                         showSaveToast = true
-//
-//                        let newUser: UserModel
-//                        if selectedPhoto == nil {
-//                            let photoData = (user?.profilePicture)!
-//                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: photoData)
-//                        }
-//                        else {
-//                            newUser = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
-//                        }
-                    
-//                            modelContext.delete(user!)
-//                            modelContext.insert(newUser)
                        
                     }
                 } label : {
