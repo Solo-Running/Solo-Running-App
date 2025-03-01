@@ -28,14 +28,13 @@ final class SubscriptionManager: NSObject, ObservableObject {
     @Published var currentRenewalInfo: Product.SubscriptionInfo.RenewalInfo?    // used to determine if the current subscription will expire or renew
 
     @Published var recentPurchases: [Transaction] = []
-    @Published var isLoadingPurchases: Bool = false
-
+    @Published var isLoadingPurchases: Bool = true
+    @Published var isLoadingEntitlement: Bool = true
     
     override init() {
         super.init()
         Task {
             await getSubscriptionStatusAndEntitlement()
-            await getRecentPurchases()
         }
     }
 
@@ -58,9 +57,7 @@ final class SubscriptionManager: NSObject, ObservableObject {
         
        case .none:
            print("Transaction successful: \(transaction.id)")
-           
-           // NOTE: isSubscribed = true
-           
+                
            // Finish transaction to remove it from queue
            await transaction.finish()
        }
@@ -68,8 +65,8 @@ final class SubscriptionManager: NSObject, ObservableObject {
     
     // Fetches the user's purchase history of past subscriptions
     func getRecentPurchases() async {
-        isLoadingPurchases = true
-        recentPurchases.removeAll()
+        self.isLoadingPurchases = true
+        self.recentPurchases.removeAll()
         
         for await verificationResult in Transaction.all {
             switch verificationResult {
@@ -82,15 +79,14 @@ final class SubscriptionManager: NSObject, ObservableObject {
             }
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.isLoadingPurchases = false
-        }
+        self.isLoadingPurchases = false
     }
     
     
 
     func getSubscriptionStatusAndEntitlement() async {
-                        
+        self.isLoadingEntitlement = true
+        
         // Iterate through the user's purchased products.
         for await result in Transaction.currentEntitlements {
             print("verification Result: \(result)")
@@ -100,31 +96,33 @@ final class SubscriptionManager: NSObject, ObservableObject {
             }
                         
             // Get the current subscription data
-            if productIds.contains(transaction.productID) {
-                await transaction.finish()
-                currentTransaction = transaction
-                transactionPayload = result.payloadData
-            }
-            
+//            if productIds.contains(transaction.productID) {
+//                currentTransaction = transaction
+//                transactionPayload = result.payloadData
+//            }
+//            
             // Get the renewal information for the current subscription
             do {
                 let products = try await Product.products(for: [transaction.productID])
                 for product in products {
                     do {
                         let productSubInfo = try await product.subscription?.status
+                        
                         for subInfo in productSubInfo! {
-                            switch subInfo.renewalInfo {
-                            case .verified(let prodStatus):
-                                if (prodStatus.currentProductID == transaction.productID) {
-                                    currentRenewalInfo = prodStatus
-                                }
-                                // if(prodStatus.autoRenewPreference != nil) && (prodStatus.autoRenewPreference != transaction.productID){
-                                //     nextRenewalInfo = prodStatus
-                                // }
-                                break
-                            default:
-                                break
-                            }
+                            if subInfo.state == .subscribed {
+                                
+                                currentTransaction = transaction
+                                transactionPayload = result.payloadData
+                                
+                                switch subInfo.renewalInfo {
+                                case .verified(let prodStatus):
+                                    if (prodStatus.currentProductID == transaction.productID) {
+                                        currentRenewalInfo = prodStatus
+                                    }
+                                    break
+                                default:
+                                    break
+                                }}
                         }
                     } catch {
                         print(error.localizedDescription)
@@ -134,6 +132,13 @@ final class SubscriptionManager: NSObject, ObservableObject {
                 print(error.localizedDescription)
             }
         }
-    }
+        
+        self.isLoadingEntitlement = false
 
+    }
 }
+
+
+// if(prodStatus.autoRenewPreference != nil) && (prodStatus.autoRenewPreference != transaction.productID){
+//     nextRenewalInfo = prodStatus
+// }
