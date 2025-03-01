@@ -89,20 +89,25 @@ struct EditProfileView: View {
                 
                 
                 Button {
-                    if let profileData = user?.profilePicture, (profileData.isEmpty && selectedPhoto == nil) || fullname.isEmpty {
-                        showErrorDialog = true
-                    } 
-                    else {
-                        showErrorDialog = false
-                                                
-                        user?.fullName = fullname
-                        if selectedPhoto != nil {
-                            user?.profilePicture = selectedPhotoData
+                    if user == nil {
+                        let user = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
+                        modelContext.insert(user)
+                    } else {
+                        if let profileData = user?.profilePicture, (profileData.isEmpty && selectedPhoto == nil) || fullname.isEmpty {
+                            showErrorDialog = true
                         }
-                        
-                        try? modelContext.save()
-                        showSaveToast = true
-                       
+                        else {
+                            showErrorDialog = false
+                            
+                            user?.fullName = fullname
+                            if selectedPhoto != nil {
+                                user?.profilePicture = selectedPhotoData
+                            }
+                            
+                            try? modelContext.save()
+                            showSaveToast = true
+                            
+                        }
                     }
                 } label : {
                     Text("Save changes")
