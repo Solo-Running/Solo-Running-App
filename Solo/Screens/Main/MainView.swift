@@ -40,10 +40,10 @@ struct MainView: View {
                 // This view also handles susbcription management
                 OnboardingView()
             }
-            else if user == nil {
-                ProvideCredentialsView()
-                    .environment(appState)
-            }
+//            else if user == nil {
+//                ProvideCredentialsView()
+//                    .environment(appState)
+//            }
             else {
                 
                 ZStack(alignment: .bottom) {
@@ -116,6 +116,11 @@ struct MainView: View {
                 }
             }
         }
+        // https://stackoverflow.com/questions/78845389/storekit-2-how-to-use-subscriptionstatustask-modifier-to-know-which-subscripti
+        // https://imgur.com/wrhNpbo
+        //
+        // If using test flight, auto renewable susbcriptions will expire after 12 renewals. See the link below
+        // https://www.revenuecat.com/blog/engineering/the-ultimate-guide-to-subscription-testing-on-ios/
         .subscriptionStatusTask(for: "21636260") { taskState in
             print("Checking status task")
             if let value = taskState.value {
