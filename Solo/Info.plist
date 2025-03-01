@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key></key>
+	<string></string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
@@ -17,20 +19,22 @@
 			<array>
 				<string>com.apple.maps.directionsrequest</string>
 			</array>
-			<key>UISupportsDocumentBrowser</key>
-			<false/>
-            <key>LSSupportsOpeningDocumentsInPlace</key>
-            <false/>
 		</dict>
 	</array>
+	<key>UISupportsDocumentBrowser</key>
+	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array>
 		<string>MKDirectionsModePedestrian</string>
 	</array>
-	<key>NSUserActivtyTypes</key>
-	<string>INSendMessageIntent</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+        <string>INSendMessageIntent</string>
+    </array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Koulen-Regular.ttf</string>
