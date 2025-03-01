@@ -32,7 +32,7 @@ struct OnboardingView: View {
                         VStack(spacing: 8) {
                             Image("AppIcon")
                                 .tint(.white)
-                                .frame(width: 64, height: 64)
+                                .frame(width: 80, height: 80)
                                 .padding(.bottom, 16)
 
                             Text("Welcome")
@@ -156,3 +156,6 @@ struct OnboardingView: View {
     }
 }
 
+#Preview {
+    return OnboardingView()
+}
