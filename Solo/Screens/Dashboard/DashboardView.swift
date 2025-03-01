@@ -459,7 +459,7 @@ struct DashboardView: View {
                                 .foregroundStyle(.white)
                                 .fontWeight(.bold)
                             
-                            switch user!.streak {
+                            switch user?.streak ?? 0 {
                             case 0:
                                 Text("Start logging runs!")
                                     .font(.caption)
@@ -486,7 +486,7 @@ struct DashboardView: View {
                             
                             HStack {
                                 Spacer()
-                                Text("\(user!.streak)")
+                                Text("\(user?.streak ?? 0)")
                                     .font(.largeTitle)
                                     .foregroundStyle(.white)
                                     .fontWeight(.heavy)
