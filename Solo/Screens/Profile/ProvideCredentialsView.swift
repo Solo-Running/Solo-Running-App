@@ -147,7 +147,7 @@ struct PermissionsView: View {
                 .fontWeight(.semibold)
                 .padding(.bottom, 16)
         
-            Text("In order to use certain features of the app, you need to enable the following permissions See descriptions for each permission.")
+            Text("In order to use certain features of the app, you need to enable the following permissions. See descriptions for each permission.")
                 .foregroundStyle(TEXT_LIGHT_GREY)
                 .padding(.bottom, 32)
                 .fixedSize(horizontal: false, vertical: /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/)
@@ -164,8 +164,10 @@ struct PermissionsView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                         .font(.subheadline)
                 }
-                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 24, trailing: 16))
+                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 16, trailing: 16))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Divider().padding(.horizontal, 16)
                 
                 VStack(alignment: .leading) {
                     Text("Core Motion")
@@ -177,7 +179,7 @@ struct PermissionsView: View {
                         .foregroundStyle(TEXT_LIGHT_GREY)
                         .font(.subheadline)
                 }
-                .padding(EdgeInsets(top: 24, leading: 16,  bottom: 24, trailing: 16))
+                .padding(EdgeInsets(top: 16, leading: 16,  bottom: 24, trailing: 16))
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(RoundedRectangle(cornerRadius: 12).fill(.black))
