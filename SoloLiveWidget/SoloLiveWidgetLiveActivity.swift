@@ -52,15 +52,6 @@ struct SoloLiveWidgetLiveActivity: Widget {
                 
                 HStack(alignment: .center) {
                     
-                    Image("SoloLogo")
-                        .resizable()
-                        .frame(width: 30, height: 15)
-                                        
-                    Spacer()
-                }
-                
-                HStack(alignment: .center) {
-                    
                     VStack(alignment: .leading) {
                         Text("\(formattedSteps(context.state.steps))")
                             .foregroundStyle(Color(hex: 0x81D32A))
