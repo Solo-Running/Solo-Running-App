@@ -1253,17 +1253,18 @@ struct RunView: View {
                             
                             Spacer()
                             
-                            Text("").frame(width: 32, height: 32)
                         }
                         .padding(.horizontal, 12)
                     }
 
                 }
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbar(.hidden, for: .navigationBar)
               
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .toolbar(.hidden)
+            
         }
     }
 }
