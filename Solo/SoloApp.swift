@@ -75,6 +75,7 @@ struct SoloApp: App {
             .environmentObject(subscriptionManager)
             .modelContainer(modelContainer)
             .onAppear {
+            
                 // set a timer for splash screen duration
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     withAnimation {

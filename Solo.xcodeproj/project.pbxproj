@@ -33,7 +33,7 @@
 		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E6A2CCB10E200C163EA /* CapsuleView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
-		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
+		E4A9C22B2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */; };
 		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
 		E4B7F43C2D606C61006AE328 /* Solo Running.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E4B7F43B2D606C61006AE328 /* Solo Running.storekit */; };
 		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
@@ -124,7 +124,7 @@
 		E4922E672CC95D3B00C163EA /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		E4922E6A2CCB10E200C163EA /* CapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleView.swift; sourceTree = "<group>"; };
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
-		E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionLaunchView.swift; sourceTree = "<group>"; };
+		E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionUpgradeView.swift; sourceTree = "<group>"; };
 		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
 		E4B7F43B2D606C61006AE328 /* Solo Running.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Solo Running.storekit"; path = "Solo/Utils/Solo Running.storekit"; sourceTree = "<group>"; };
 		E4BB6EB62CDCA96000932C4C /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
@@ -324,7 +324,7 @@
 		E4A9C2292D4A914F00C35CA6 /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
-				E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */,
+				E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */,
 				E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */,
 				E45A4D0E2D73A57E00245D90 /* RecentPurchasesView.swift */,
 			);
@@ -553,7 +553,7 @@
 				E461C9682CDF355A00E3D69B /* DraggablePin.swift in Sources */,
 				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
 				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
-				E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */,
+				E4A9C22B2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
