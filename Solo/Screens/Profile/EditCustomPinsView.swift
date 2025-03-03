@@ -9,11 +9,13 @@ import Foundation
 import SwiftUI
 import SwiftData
 import MapKit
-
+import AlertToast
 
 struct EditCustomPinsView: View {
     
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @Binding var showView: Bool
 
@@ -46,6 +48,8 @@ struct EditCustomPinsView: View {
         
     @State var associatedRuns: [Run] = []
     @State var isLoadingAssociatedRuns: Bool = false
+
+    @State private var showProAccessPinsDialog: Bool = false
 
     
     func fetchAssociatedRunsForPin(pin: MTPlacemark) async {
@@ -249,12 +253,18 @@ struct EditCustomPinsView: View {
                                     .font(.title)
                                 
                                 if(usePin) {
+                                    let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
+                                    
                                     Button {
-                                        // add pin location to route and show route info sheet
-                                        addCustomLocation()
+                                        if hasAccess {
+                                            addCustomLocation()
+                                        } else {
+                                            // show pro access dialog
+                                            showProAccessPinsDialog = true
+                                        }
                                         
                                     } label: {
-                                        Image(systemName: "plus.circle.fill")
+                                        Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
                                             .frame(width: 48, height: 48)
                                             .foregroundStyle(.white)
                                     }
@@ -477,7 +487,7 @@ struct EditCustomPinsView: View {
                     }) {
                         ScrollView(showsIndicators: false) {
 
-                            let oldName = String(pinData!.getName())
+                            let oldName = String(pinData?.getName() ?? "")
                             
                             VStack(alignment: .leading, spacing: 24) {
                                 
@@ -655,6 +665,9 @@ struct EditCustomPinsView: View {
                 }
                 .padding(.horizontal, 12)
                 
+            }
+            .toast(isPresenting: $showProAccessPinsDialog, tapToDismiss: true) {
+                AlertToast(type: .systemImage("lock", .white), title: "Get Pro Access to add more pins.")
             }
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(.hidden, for: .tabBar)
