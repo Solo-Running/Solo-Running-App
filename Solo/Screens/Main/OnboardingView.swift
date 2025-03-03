@@ -21,9 +21,10 @@ struct OnboardingView: View {
     @State private var isSubscribed: Bool = false
     @State var selectedTab: SelectedTab = .Welcome
 
-    @AppStorage("ignoreOnboarding") var ignoreOnboarding: Bool = false
+    @AppStorage("isFirstInApp") var isFirstInApp: Bool = false
     @State private var showIgnoreToast: Bool = false
   
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -34,18 +35,12 @@ struct OnboardingView: View {
                                 .resizable()
                                 .frame(width: 140, height: 140)
 
-                            Text("Welcome")
-                                .font(.title)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.white)
-                                .padding(.bottom, 8)
-                            
                             Text("Solo Running is an app that helps users track and record runs on the go.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
                             
                             
-                            Spacer().frame(height: 32)
+//                            Spacer().frame(height: 32)
                         }
                         .tag(SelectedTab.Welcome)
                         
@@ -79,7 +74,7 @@ struct OnboardingView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Text("All your information is stored locally on device and naver shared with anyone.")
+                            Text("All your information is stored locally on device and never shared with anyone.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
                             
@@ -100,20 +95,14 @@ struct OnboardingView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Text("An active trial or subscription is required to use the app.")
+                            Text("Free tier users enjoy 12 runs a month and up to 8 custom pins.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
 
-                            
                             Spacer().frame(height: 32)
                             
                             NavigationLink {
-                                // if user has subscription, go to dashboard
-                                if isSubscribed {
-                                    DashboardView()
-                                } else {
-                                    SubscriptionLaunchView()
-                                }
+                                DashboardView()
                             } label : {
                                 HStack {
                                     Text("Continue").foregroundStyle(.white)
@@ -122,12 +111,13 @@ struct OnboardingView: View {
                                 .frame(maxWidth: .infinity)
                                 .background(BLUE)
                                 .cornerRadius(12)
+                                .onTapGesture {
+                                    isFirstInApp = false
+                                }
                             }
-                            
                         }
                         .tag(SelectedTab.Start)
 
-                        
                     }
                     .frame(maxWidth: .infinity)
                     .padding(24)
@@ -142,16 +132,16 @@ struct OnboardingView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        if isSubscribed {
-                            DashboardView()
-                        } else {
-                            SubscriptionLaunchView()
-                        }
+                        DashboardView()
                     } label : {
                         Text("Skip")
                             .foregroundStyle(TEXT_LIGHT_GREY)
+                            .onTapGesture {
+                                isFirstInApp = false
+                            }
                     }
                 }
+                
             }
             .toolbarBackground(.black, for: .navigationBar)
             .preferredColorScheme(.dark)
