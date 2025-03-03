@@ -698,7 +698,6 @@ struct RunView: View {
                                 if(usePin) {
                                     let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
                                     Button {
-                                        // TODO
                                         if hasAccess {
                                             addCustomLocation()
                                         } else {
