@@ -56,14 +56,13 @@ struct RunHistoryView: View {
             VStack {
                 if !runs.isEmpty {
                     List {
-                        ForEach(sectionedRuns, id: \.self.0) { title, runs in
+                        ForEach(sectionedRuns, id: \.self.0) { title, runsThisMonth in
                             Section {
-                                ForEach(runs) { run in
+                                ForEach(runsThisMonth) { run in
                                     
                                     ZStack(alignment: .topLeading) {
                                         // Ovleray an empty view to hide the default navigation arrow icon
                                         NavigationLink(destination: RunDetailView(runData: run)) {EmptyView()}.opacity(0)
-                                        
                                         
                                         // Rounded rectangle container
                                         VStack {
@@ -155,7 +154,16 @@ struct RunHistoryView: View {
                                 .padding(0)
                                 
                             } header: {
-                                Text(title).font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+                                HStack {
+                                    Text(title)
+                                        .font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+
+                                    Spacer()
+                                    
+                                    Text("\(runsThisMonth.count) runs")
+                                        .font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+
+                                }
                             }
                         }
                     }
