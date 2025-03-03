@@ -90,7 +90,7 @@ struct EditProfileView: View {
                 
                 Button {
                     if user == nil {
-                        let user = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
+                        let user = UserModel(fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
                         modelContext.insert(user)
                     } else {
                         if let profileData = user?.profilePicture, (profileData.isEmpty && selectedPhoto == nil) || fullname.isEmpty {
