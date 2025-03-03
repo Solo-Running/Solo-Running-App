@@ -16,6 +16,7 @@ enum DeleteStatus {
 }
 
 let BLUE = Color(.blue)
+let LIGHT_BLUE = Color(hex: 0x83B6FF)
 let NEON = Color(hex: 0xD4D412)
 
 let LIGHT_GREEN = Color(hex: 0x81D32A)
@@ -32,3 +33,5 @@ let TEXT_LIGHT_RED = Color(hex: 0xFAB2B2)
 
 
 let MAP_SNAPSHOT_ICON_SIZE = 16
+let RUN_LIMIT = 16
+let PIN_LIMIT = 8
