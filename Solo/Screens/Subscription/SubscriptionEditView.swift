@@ -9,33 +9,6 @@ import Foundation
 import SwiftUI
 import StoreKit
 
-struct Payload: Codable {
-    let bundleId: String
-    let currency: String
-    let deviceVerification: String
-    let deviceVerificationNonce: String
-    let environment: String
-    let expiresDate: Int
-    let inAppOwnershipType: String
-    let isUpgraded: Bool?
-    let offerDiscountType: String?
-    let offerType: Int?
-    let originalPurchaseDate: Int
-    let originalTransactionId: String
-    let price: Int
-    let productId: String
-    let purchaseDate: Int
-    let quantity: Int
-    let signedDate: Int
-    let storefront: String
-    let storefrontId: String
-    let subscriptionGroupIdentifier: String
-    let transactionId: String
-    let transactionReason: String
-    let type: String
-    let webOrderLineItemId: String
-}
-
 /**
  Provides fine tuned access to  a user's active susbscription, renewal information, and past purchases.
  Comes with the ability to refund purchases as well althouugh this action will disable access to the app
@@ -48,8 +21,19 @@ struct SubscriptionEditView: View {
     @State private var payload: Payload?
     @State private var refundRequestTransactionID: UInt64 = 0
     @State private var isPresentingRefundRequestSheet: Bool = false
+    @State private var isPresentingUpgradeSheet: Bool = false
     
+    func refetchEntitlement() async {
+        await subscriptionManager.getSubscriptionStatusAndEntitlement()
+        if subscriptionManager.transactionPayload != nil {
+            do {
+                payload = try JSONDecoder().decode(Payload.self, from: subscriptionManager.transactionPayload!)
+            } catch {
+                print("Failed to decode JSON: \(error)")
+            }
+        }
     
+    }
     var body: some View {
         
         ScrollView {
@@ -59,9 +43,9 @@ struct SubscriptionEditView: View {
                 Spacer().frame(height: 16)
                 
                 
-                if let transaction = subscriptionManager.currentTransaction {
+                if let transaction = subscriptionManager.currentEntitlement, !subscriptionManager.hasSubscriptionExpired(){
                     VStack(alignment: .leading) {
-                        Text("Susbcription").foregroundStyle(.white).fontWeight(.semibold)
+                        Text("Subscription").foregroundStyle(.white).fontWeight(.semibold)
                         HStack {
                             Text(formatTransactionProductID(transaction.productID))
                             if (payload?.offerDiscountType != nil) && (Date() < transaction.expirationDate! ) {
@@ -72,6 +56,12 @@ struct SubscriptionEditView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
+                    VStack(alignment: .leading) {
+                        Text("Description").foregroundStyle(.white).fontWeight(.semibold)
+                        Text("Unlimited runs and custom pins.")
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     
                     VStack(alignment: .leading) {
                         Text("Plan Price").foregroundStyle(.white).fontWeight(.semibold)
@@ -88,20 +78,35 @@ struct SubscriptionEditView: View {
                         if let renewalInfo = subscriptionManager.currentRenewalInfo {
                             Text(renewalInfo.willAutoRenew ? "Renews" : "Expires").foregroundStyle(.white).fontWeight(.semibold)
                         }
+                        
                         Text(formatTransactionDate(transaction.expirationDate)).foregroundStyle(TEXT_LIGHT_GREY)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Button {
+                        isPresentingCancellationSheet = true
+                    } label: {
+                        Text("Manage your subscription")
+                            .foregroundStyle(BLUE)
+                            .font(.subheadline)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                } else {
+                    VStack(alignment: .leading) {
+                        Text("Subscription").foregroundStyle(.white).fontWeight(.semibold)
+                        Text("Free Tier")
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    VStack(alignment: .leading) {
+                        Text("Description").foregroundStyle(.white).fontWeight(.semibold)
+                        Text("\(RUN_LIMIT) runs per month. Up to \(PIN_LIMIT) total custom pins.")
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                
-                Button {
-                    isPresentingCancellationSheet = true
-                } label: {
-                    Text("Manage your subscription")
-                        .foregroundStyle(BLUE)
-                        .font(.subheadline)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
                 
                 Divider()
                 
@@ -117,6 +122,7 @@ struct SubscriptionEditView: View {
                                     .foregroundStyle(.white)
                                     .font(.title3)
                                     .fontWeight(.semibold)
+                                
                                 Text("View all past subscription transactions.")
                                     .foregroundStyle(TEXT_LIGHT_GREY)
                                     .font(.subheadline)
@@ -133,44 +139,62 @@ struct SubscriptionEditView: View {
                     }
                 }
                 
+                if subscriptionManager.hasSubscriptionExpired() {
+                    Button {
+                        isPresentingUpgradeSheet = true
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(alignment: .center) {
+                                Text("Join Pro")
+                                    .font(.title3)
+                                    .fontWeight(.heavy)
+                                    .foregroundStyle(.white)
+                                
+                                Spacer()
+                                
+                                Text("Upgrade")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 8)
+                                    .background(Capsule().fill(LIGHT_BLUE))
+                                }
+                            
+                                Text("Yearly or monthly subscription.")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(LIGHT_BLUE)
+                            }
+                            .frame(maxWidth: .infinity, alignment: Alignment.leading)
+                        }
+                        .padding(16)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(BLUE))
+                }
+                
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .preferredColorScheme(.dark)
             .manageSubscriptionsSheet(isPresented: $isPresentingCancellationSheet)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await subscriptionManager.getSubscriptionStatusAndEntitlement()
-                        }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundStyle(TEXT_LIGHT_GREY)
-                            .font(.subheadline)
-                    }
-                }
-            }
             
             Spacer()
             
         }
         .onAppear {
             Task {
-                await subscriptionManager.getSubscriptionStatusAndEntitlement()
-                if subscriptionManager.transactionPayload != nil {
-                    do {
-                        payload = try JSONDecoder().decode(Payload.self, from: subscriptionManager.transactionPayload!)
-                    } catch {
-                        print("Failed to decode JSON: \(error)")
-                    }
-                }
-                
-                print(payload)
+                await refetchEntitlement()
             }
         }
         .refreshable {
-            await subscriptionManager.getSubscriptionStatusAndEntitlement()
+            await refetchEntitlement()
+        }
+        .fullScreenCover(isPresented: $isPresentingUpgradeSheet, onDismiss: {
+            Task {
+                await refetchEntitlement()
+            }
+        }) {
+            SubscriptionUpgradeView()
         }
     }
     
