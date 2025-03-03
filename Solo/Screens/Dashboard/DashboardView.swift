@@ -168,7 +168,8 @@ struct DashboardView: View {
                 
         
         // update the user's streaks
-        if yesterdaySteps > 0 && todaySteps > 0{
+        if yesterdaySteps > 0 && todaySteps > 0 {
+
             if let lastDone = user?.streakLastDoneDate {
                 // As long as last done date is not today
                 if !calendar.isDateInToday(lastDone) {
@@ -506,6 +507,12 @@ struct DashboardView: View {
                 }
                 .padding(.horizontal, 16)
                 .onAppear {
+                    // The user may not
+                    if user == nil {
+                        let newUser = UserModel()
+                        modelContext.insert(newUser)
+                    }
+                    
                     generateWeeklyData()
                 }
                 .onChange(of: weeklyRuns) { _, _ in
