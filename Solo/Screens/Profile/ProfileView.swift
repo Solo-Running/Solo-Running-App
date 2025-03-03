@@ -21,6 +21,8 @@ struct ProfileView: View {
     var user: UserModel? {userData.first}
 
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
+    @AppStorage("isFirstInApp") var isFirstInApp: Bool = false
+
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
     @AppStorage("isSpotifyEnabled") var isSpotifyEnabled = false
     
@@ -201,6 +203,12 @@ struct ProfileView: View {
                     
                     
                     Spacer().frame(height: 24)
+                    
+                    //TODO: Remove this after done testing
+//                    Text("ShowOboarding")
+//                        .onTapGesture {
+//                            isFirstInApp = true
+//                        }
                     
                     // Delete all runs
                     Button {
