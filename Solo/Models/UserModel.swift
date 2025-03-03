@@ -20,13 +20,11 @@ public class UserModel {
     var streakLastDoneDate: Date?
     @Attribute(.externalStorage) var profilePicture: Data?
 
-    init(id: String, fullName: String, streak: Int = 0, streakLastDoneDate: Date? = Date(), profilePicture: Data?) {
-        self.id = id
-        self.fullName = fullName
-        self.streak = streak
+    init(fullName: String? = "User Name", streak: Int? = 0, streakLastDoneDate: Date? = Date(), profilePicture: Data? = nil) {
+        self.fullName = fullName ?? ""
+        self.streak = streak ?? 0
         self.streakLastDoneDate = streakLastDoneDate
         self.profilePicture = profilePicture
-
     }
 }
 
