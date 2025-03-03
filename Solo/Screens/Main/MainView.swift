@@ -29,22 +29,22 @@ struct MainView: View {
     @State private var showRunView: Bool = false  // Control visibility of RunView
     @State private var permissionsSheetDetents: Set<PresentationDetent> =  [.large]
     
+    // Determines if the user needs to onboard
+    @AppStorage("isFirstInApp") var isFirstInApp: Bool = true
+
     @Query var userData: [UserModel]
     var user: UserModel? {userData.first}
+    
+    
     
     
     var body: some View {
         
         ZStack {
-            if !subscriptionManager.isSubscribed  {
+            if isFirstInApp {
                 // This view also handles susbcription management
                 OnboardingView()
-            }
-//            else if user == nil {
-//                ProvideCredentialsView()
-//                    .environment(appState)
-//            }
-            else {
+            } else {
                 
                 ZStack(alignment: .bottom) {
                    
@@ -111,6 +111,13 @@ struct MainView: View {
                         }
                         else {
                             RunView(showRunView: $showRunView)
+                                .onAppear {
+                                    Task {
+                                        // We want to make sure the user accesses appropriate features
+                                        // based on their subscription status
+                                        await subscriptionManager.getSubscriptionStatusAndEntitlement()
+                                    }
+                                }
                         }
                     }
                 }
@@ -121,30 +128,30 @@ struct MainView: View {
         //
         // If using test flight, auto renewable susbcriptions will expire after 12 renewals. See the link below
         // https://www.revenuecat.com/blog/engineering/the-ultimate-guide-to-subscription-testing-on-ios/
-        .subscriptionStatusTask(for: "21636260") { taskState in
-            print("Checking status task")
-            if let value = taskState.value {
-                print("Task state: \(taskState.value as Any)")
-                subscriptionManager.isSubscribed = !value
-                    .filter { $0.state != .revoked && $0.state != .expired  }
-                    .isEmpty
-            } else {
-                subscriptionManager.isSubscribed = false
-            }
-        }
+//        .subscriptionStatusTask(for: "21636260") { taskState in
+//            print("Checking status task")
+//            if let value = taskState.value {
+//                print("Task state: \(taskState.value as Any)")
+//                subscriptionManager.isSubscribed = !value
+//                    .filter { $0.state != .revoked && $0.state != .expired  }
+//                    .isEmpty
+//            } else {
+//                subscriptionManager.isSubscribed = false
+//            }
+//        }
         .task {
             await subscriptionManager.listenForTransactions()
         }
-        .onAppear {
-            if !userData.isEmpty {
-                print("user info is not empty: \(userData)")
-                appState.hasCredentials = true
-                appState.screen = .Dashboard
-            }
-            if userData.isEmpty {
-                print("user data is empty")
-            }
-        }
+//        .onAppear {
+//            if !userData.isEmpty {
+//                print("user info is not empty: \(userData)")
+//                appState.hasCredentials = true
+//                appState.screen = .Dashboard
+//            }
+//            if userData.isEmpty {
+//                print("user data is empty")
+//            }
+//        }
         .edgesIgnoringSafeArea(.all)
     }
     
