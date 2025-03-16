@@ -74,12 +74,11 @@ func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
     let calendar = Calendar.current
     
     // Get the difference in hours, minutes, and seconds
-    let components = calendar.dateComponents([.hour, .minute, .second], from: startDate, to: endDate)
+    let components = calendar.dateComponents([.hour, .minute], from: startDate, to: endDate)
         
     // Extract the hours, minutes, and seconds
     let hours = components.hour ?? 0
     let minutes = components.minute ?? 0
-    let seconds = components.second ?? 0
     
     // Create the formatted string
     var result = ""
@@ -92,12 +91,8 @@ func formattedElapsedTime(from startDate: Date, to endDate: Date) -> String {
         result += "\(minutes)min "
     }
     
-    // If no hour is provided, display seconds as well
-    if hours == 0 && seconds > 0  {
-        result += "\(seconds)s"
-    }
     
-    return result.isEmpty ? "0s" : result
+    return result.isEmpty ? "0m" : result
 }
 
 
@@ -136,11 +131,11 @@ func convertPace(secondsPerMeter: Double) -> Double {
 
 
 
-func secondsToMinutes(seconds: Int) -> Double {
-    return Double(seconds) / 60.0
+func secondsToMinutes(seconds: Int) -> Int {
+    return Int((Double(seconds) / 60.0))
 }
 
-func secondsToFormatedTime(seconds: Int) -> String {
+func secondsToFormattedTime(seconds: Int) -> String {
     let hours = seconds / 3600
     let minutes = (seconds % 3600) / 60
     let seconds = seconds % 60
@@ -153,6 +148,18 @@ func secondsToFormatedTime(seconds: Int) -> String {
        return "\(seconds)s"
     }
 }
+
+
+func minutesToFormattedTime(minutes: Int) -> String {
+    let hours = Int(Double(minutes) / 60)
+    if hours > 0 {
+       return minutes > 0 ? "\(hours)hr \(minutes)min" : "\(hours)hr"
+    }
+    else {
+        return "\(minutes)min"
+    }
+}
+
 
 
 /**
