@@ -9,22 +9,15 @@ import Foundation
 import SwiftUI
 import SwiftData
 import Charts
+import TipKit
 
 
-
-struct StepsPerDay: Identifiable {
-    var id = UUID()
-    var day: String
-    var steps: Int
-}
-
-struct RunStatsPerDay {
+struct RunStatsInDay {
     var steps: Int
     var paceMinutesPerMile: Int // minutes per mile
-    var timeSeconds: Int        // minutes
+    var timeMinutes: Int        // minutes
     var contributedRuns: Int    // the number of runs that fell on this day
 }
-
 
 /**
  Displays a comprehensive overview of a user's statistics over the week as well as
@@ -33,54 +26,38 @@ struct RunStatsPerDay {
 struct DashboardView: View {
     
     @Environment(\.modelContext) private var modelContext
-    
-    // Stores the aggregated time, steps, and pace for each day in the past week
-    @State var weeklyStats: [String: RunStatsPerDay] = [:]
+    let dashboardChartTip = DashboardChartTip()
 
+    // Stores the aggregated time, steps, and pace for each day in the past week
+    @State var weeklyStats: [String: RunStatsInDay] = [:]
     @State var totalStepsInWeek: Int = 0
     @State var totalTimeInWeek: String = ""
-    
     @State var averageStepsInWeek: Double = 0
     @State var averageTimeInWeek: Double = 0
-    
     @State var stepsPercentageChange: Int = 0
     @State var timePercentageChange: Int = 0
-    
     @State var bestPaceInWeek: Int = 0
         
+    
     private static var weekAgoDate: Date {
-        return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
+//        return Calendar.current.dateInterval(of: .weekOfYear, for: Date())!.start
+         return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
     }
     
-    @Query(filter: #Predicate<Run> { run in
-        return run.postedDate >= weekAgoDate
-    }, sort: \Run.postedDate, order: .reverse) var weeklyRuns: [Run]
-        
-
     static var descriptor: FetchDescriptor<Run> {
         var descriptor = FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate, order: .reverse)])
         descriptor.fetchLimit = 5
         return descriptor
     }
+    
+    @Query(filter: #Predicate<Run> { run in
+        return run.postedDate >= weekAgoDate
+    }, sort: \Run.postedDate, order: .reverse) var weeklyRuns: [Run]
+    
     @Query(descriptor) var recentRuns: [Run]
-    
-    @Query var userData: [UserModel]
-    var user: UserModel? {userData.first}
+    @Query var userData: [User]
+    var user: User? {userData.first}
    
-    // Configures the gradient appearance underneath the average pace graph
-    var gradientColor: LinearGradient {
-        LinearGradient(
-            gradient: Gradient(
-                colors: [
-                    LIGHT_GREEN.opacity(0.8),
-                    LIGHT_GREEN.opacity(0.01),
-                ]
-            ),
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
-    
     
     // Creates an array of dates spanning the past week up until today
     let days: [String] = {
@@ -90,7 +67,7 @@ struct DashboardView: View {
         dateFormatter.dateFormat = "E"
         
         var weekDay = weekAgoDate
-        
+                
         while weekDay <= Date() {
             let day = dateFormatter.string(from: weekDay)
             dates.append(day)
@@ -108,8 +85,8 @@ struct DashboardView: View {
         dateFormatter.dateFormat = "E"
         
         // Create temporary dictionary for storing stats
-        var statsDictionary: [String: RunStatsPerDay] = Dictionary(uniqueKeysWithValues: days.map {
-            ($0, RunStatsPerDay(steps: 0, paceMinutesPerMile: 0, timeSeconds: 0, contributedRuns: 0 ))
+        var statsDictionary: [String: RunStatsInDay] = Dictionary(uniqueKeysWithValues: days.map {
+            ($0, RunStatsInDay(steps: 0, paceMinutesPerMile: 0, timeMinutes: 0, contributedRuns: 0 ))
         })
         
         var totalSteps = 0
@@ -130,7 +107,7 @@ struct DashboardView: View {
                 stats.steps += run.steps
                 stats.paceMinutesPerMile += run.avgPace // this needs to be fixed to take the correct average of average paces
                 stats.contributedRuns += 1
-                stats.timeSeconds += run.elapsedTime
+                stats.timeMinutes += secondsToMinutes(seconds: run.elapsedTime)
                 statsDictionary[dayAbbreviation] = stats
             }
                         
@@ -141,16 +118,16 @@ struct DashboardView: View {
             }
             
             // Update the total time and steps
-            totalTime += run.elapsedTime
+            totalTime += secondsToMinutes(seconds: run.elapsedTime)
             totalSteps += run.steps
             
             if calendar.isDateInToday(run.postedDate) {
                 todaySteps += run.steps
-                todayTime += run.elapsedTime
+                todayTime += secondsToMinutes(seconds: run.elapsedTime)
             }
             if calendar.isDateInYesterday(run.postedDate) {
                 yesterdaySteps += run.steps
-                yesterdayTime += run.elapsedTime
+                yesterdayTime += secondsToMinutes(seconds: run.elapsedTime)
             }
         }
         
@@ -159,8 +136,7 @@ struct DashboardView: View {
         
         // Update the total steps and time
         self.totalStepsInWeek = totalSteps
-        self.totalTimeInWeek = secondsToFormatedTime(seconds: totalTime)
-        //secondsToMinutes(seconds: totalTime)
+        self.totalTimeInWeek = minutesToFormattedTime(minutes: totalTime)
         
         // Calculate the average steps for this week
         self.averageStepsInWeek = Double(totalSteps) / 7
@@ -202,13 +178,18 @@ struct DashboardView: View {
     }
 
     
-    func getStats(day: String) -> RunStatsPerDay {
+    func getStats(day: String) -> RunStatsInDay {
         return weeklyStats[day]!
+    }
+    
+    init() {
+        try? Tips.configure()
     }
 
     
     var body: some View {
         NavigationStack {
+
             
             ScrollView(showsIndicators: false) {
                 
@@ -219,16 +200,19 @@ struct DashboardView: View {
                         
                         LazyHStack {
                             
+                            
                             // Chart to display steps per day
                             VStack {
                                 HStack(alignment: .center) {
-                                    VStack(alignment: .leading, spacing: -2) {
-                                        Text("Steps over last 7 days")
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        
+                                        Text("Steps")
                                             .font(.title3)
                                             .foregroundStyle(.white)
                                             .fontWeight(.bold)
-                                        
-                                        Text("You ran a total of \(totalStepsInWeek) steps")
+                                    
+                                    
+                                        Text("You ran \(totalStepsInWeek) steps this week")
                                             .font(.caption)
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .padding(.top, 2)
@@ -236,14 +220,22 @@ struct DashboardView: View {
                                     
                                     Spacer()
                                     
-                                    if (stepsPercentageChange != 0) {
-                                        Text("\(stepsPercentageChange > 0 ? "+" : "")\(formattedNumber(stepsPercentageChange))%")
-                                            .foregroundStyle(stepsPercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
-                                            .fontWeight(.semibold)
+                                    NavigationLink {
+                                        StepsChartsView()
+                                    } label: {
+                                        Image(systemName: "chevron.right")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
                                     }
+////                                    
+//                                    if (stepsPercentageChange != 0) {
+//                                        Text("\(stepsPercentageChange > 0 ? "+" : "")\(formattedNumber(stepsPercentageChange))%")
+//                                            .foregroundStyle(stepsPercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
+//                                            .fontWeight(.semibold)
+//                                    }
                                     
                                 }
                                 .padding(.bottom, 8)
+                                
                                 
                                 if !weeklyStats.isEmpty {
                                     
@@ -252,20 +244,13 @@ struct DashboardView: View {
                                         let stats = weeklyStats[day]!
                                         
                                         // Show bars for steps per day if nonzero, otherwise display a default bar
-                                        if stats.steps > 0{
+                                        if stats.steps > 0 {
                                             BarMark (
                                                 x: .value("Day", day),
                                                 y: .value("Steps", stats.steps)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? BLUE : BAR_GREY)
-                                            .annotation {
-                                                if day == days.last {
-                                                    Text("\(stats.steps)")
-                                                        .font(.caption)
-                                                        .foregroundStyle(.white)
-                                                }
-                                            }
+                                            .foregroundStyle(BAR_GREY)
                                         }
                                                                                 
                                         else{
@@ -273,11 +258,10 @@ struct DashboardView: View {
                                                 x: .value("Day", day),
                                                 y: .value("Steps", 0)
                                             )
-                                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(DARK_GREY)
                                         }
                                         
                                     }
+                                    .popoverTip(dashboardChartTip)
                                     .chartYAxis(.hidden)
                                     .chartXAxis {
                                         AxisMarks() {
@@ -286,6 +270,7 @@ struct DashboardView: View {
                                         }
                                     }
                                 }
+                                 
                             }
                             .padding()
                             .background(DARK_GREY)
@@ -306,13 +291,14 @@ struct DashboardView: View {
                             // Chart for displaying time
                             VStack {
                                 HStack(alignment: .center) {
-                                    VStack(alignment: .leading, spacing: -2) {
-                                        Text("Time over last 7 days")
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        
+                                        Text("Time")
                                             .font(.title3)
                                             .foregroundStyle(.white)
                                             .fontWeight(.bold)
-                                        
-                                        Text("You logged a total of \(totalTimeInWeek)")
+                                    
+                                        Text("You logged \(totalTimeInWeek) this week")
                                             .font(.caption)
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .padding(.top, 2)
@@ -320,11 +306,19 @@ struct DashboardView: View {
                                     
                                     Spacer()
                                     
-                                    if (timePercentageChange != 0) {
-                                        Text("\(timePercentageChange > 0 ? "+" : "")\(timePercentageChange)%")
-                                            .foregroundStyle(timePercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
-                                            .fontWeight(.semibold)
+                                    NavigationLink {
+                                        TimeChartsView()
+                                    } label: {
+                                        Image(systemName: "chevron.right")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
                                     }
+                                    
+                                    
+//                                    if (timePercentageChange != 0) {
+//                                        Text("\(timePercentageChange > 0 ? "+" : "")\(timePercentageChange)%")
+//                                            .foregroundStyle(timePercentageChange > 0 ? TEXT_LIGHT_GREEN : TEXT_LIGHT_RED)
+//                                            .fontWeight(.semibold)
+//                                    }
                                     
                                 }
                                 .padding(.bottom, 8)
@@ -334,8 +328,7 @@ struct DashboardView: View {
                                     Chart(days, id: \.self) { day in
                                         
                                         let statsForDay = weeklyStats[day]!
-                                        let minutesForDay =  Double(statsForDay.timeSeconds) / 60.0
-
+                                        let minutesForDay =  statsForDay.timeMinutes
 
                                         if minutesForDay > 0 {
                                             BarMark (
@@ -343,19 +336,12 @@ struct DashboardView: View {
                                                 y: .value("Time", minutesForDay)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                                            .foregroundStyle(day == days.last ? BLUE : BAR_GREY)
-                                            .annotation {
-                                                if day == days.last {
-                                                    Text(String(format: "%.2f", minutesForDay))
-                                                        .font(.caption)
-                                                        .foregroundStyle(.white)
-                                                }
-                                            }
+                                            .foregroundStyle(BAR_GREY)
                                         }
-                                        else if statsForDay.timeSeconds == 0 {
+                                        else {
                                             BarMark (
                                                 x: .value("Day", day),
-                                                y: .value("Steps", 0)
+                                                y: .value("Time", 0)
                                             )
                                         }
                                     }
@@ -405,7 +391,7 @@ struct DashboardView: View {
                                 .foregroundStyle(.white)
                                 .fontWeight(.bold)
                             
-                            Text("Last 7 days")
+                            Text("Weekly Avg")
                                 .font(.caption)
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                             
@@ -428,7 +414,7 @@ struct DashboardView: View {
                                             y: .value("Pace", stats.contributedRuns > 0 ? Int(stats.paceMinutesPerMile / stats.contributedRuns) : 0)
                                         )
                                         .interpolationMethod(.catmullRom)
-                                        .foregroundStyle(gradientColor)
+                                        .foregroundStyle(GREEN_GRADIENT)
                                    
                                 }
                                 .frame(height: 54)
@@ -507,12 +493,6 @@ struct DashboardView: View {
                 }
                 .padding(.horizontal, 16)
                 .onAppear {
-                    // The user may not
-                    if user == nil {
-                        let newUser = UserModel()
-                        modelContext.insert(newUser)
-                    }
-                    
                     generateWeeklyData()
                 }
                 .onChange(of: weeklyRuns) { _, _ in
@@ -531,7 +511,6 @@ struct DashboardView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         
                         Group{
-                            // Safely unwrap the user's profile picture and check if it's not empty
                             if let profileData = user?.profilePicture, !profileData.isEmpty, let profileImage = UIImage(data: profileData) {
                                 Image(uiImage: profileImage)
                                     .resizable()
@@ -586,7 +565,7 @@ struct DashboardView: View {
                         )
                     }
                     else {
-                        // Display past runs in a list. Limit to 5 items
+                        // Display past 5 runs in a list
                         ForEach(recentRuns) { run in
                             NavigationLink(destination: RunDetailView(runData: run)) {
                                 
@@ -620,24 +599,24 @@ struct DashboardView: View {
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .font(.subheadline)
                                         
-                                        HStack(alignment: .center)  {
-                                            Image(systemName: "mappin.circle.fill")
-                                                .font(.title2)
-                                                .foregroundStyle(.white, run.endPlacemark!.isCustomLocation ? .yellow : .red) // background, foreground color 
-                                                .font(.system(size: 4))
-                                             
-                                            Text(run.endPlacemark!.name)
-                                                .foregroundStyle(.white)
-                                                .font(.system(size: 14))
-                                                .lineLimit(1)
-                                                .truncationMode(.tail)
-                                            
-                                            Spacer()
+                                        if let endPlacemark = run.endPlacemark {
+                                            HStack(alignment: .center)  {
+                                                Image(systemName: "mappin.circle.fill")
+                                                    .font(.title2)
+                                                    .foregroundStyle(.white, endPlacemark.isCustomLocation ? .yellow : .red) // background, foreground color
+                                                    .font(.system(size: 4))
+                                                
+                                                Text(endPlacemark.name)
+                                                    .foregroundStyle(.white)
+                                                    .font(.system(size: 14))
+                                                    .lineLimit(1)
+                                                    .truncationMode(.tail)
+                                                
+                                                Spacer()
+                                            }
+                                            .padding(.top, 6)
                                         }
-                                        .padding(.top, 6)
-                                        
                                     }
-                                    
                                     Spacer()
                                 }
                                 .padding(.vertical, 8)
@@ -648,6 +627,9 @@ struct DashboardView: View {
                 .padding(.all, 16)
                 
                 Spacer()
+            }
+            .onTapGesture {
+                dashboardChartTip.invalidate(reason: .actionPerformed)
             }
             .background(.black)
             .toolbarBackground(.black, for: .navigationBar)
