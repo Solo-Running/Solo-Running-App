@@ -73,7 +73,7 @@ struct SubscriptionEditView: View {
                     
                     VStack(alignment: .leading) {
                         Text("Description").foregroundStyle(.white).fontWeight(.semibold)
-                        Text("Unlimited runs and custom pins.")
+                        Text("Unlimited runs and custom pins. Comprehensive statistics.")
                         .foregroundStyle(TEXT_LIGHT_GREY)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,7 +126,7 @@ struct SubscriptionEditView: View {
                     
                     VStack(alignment: .leading) {
                         Text("Description").foregroundStyle(.white).fontWeight(.semibold)
-                        Text("\(RUN_LIMIT) runs per month. Up to \(PIN_LIMIT) total custom pins.")
+                        Text("\(RUN_LIMIT) runs per month. Up to \(PIN_LIMIT) total custom pins. Limited statistics.")
                         .foregroundStyle(TEXT_LIGHT_GREY)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)

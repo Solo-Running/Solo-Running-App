@@ -72,14 +72,23 @@ struct ExportableImageCard: View {
 struct RunDetailView: View {
     
     var runData: Run!
-    
+    //var onDelete: () -> Void
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var isShowingExpanded: Bool = false
     @Namespace var namespace
+    
     @FocusState var notesIsFocused: Bool
+    
     @State private var paceInformationSheetDetents: Set<PresentationDetent> = [.fraction(0.35), .large]
     @State private var isShowingPaceInformationSheet: Bool = false
     @State private var selectedTime: Int?
+    
+    @State private var showDeleteDialog: Bool = false
+
     let numberOfPaceMarks: Int = 5
     
     var imageData: UIImage? {
@@ -109,8 +118,7 @@ struct RunDetailView: View {
         return Image(uiImage: renderer.uiImage!.withCornerRadius(12).withBackground(color: .clear))
 
     }
-    
-    
+ 
     var body: some View {
         
         ZStack {
@@ -119,21 +127,30 @@ struct RunDetailView: View {
                     ScrollView(showsIndicators: false) {
                         
                         // Run statistics section
-                        VStack {
+                        VStack(alignment: .leading) {
                             
                             HStack(alignment: .center) {
                                 
-                                Text("Statistics")
-                                    .font(.title3)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .fontWeight(.semibold)
+//                                Text("Statistics")
+//                                    .font(.title3)
+//                                    .foregroundStyle(TEXT_LIGHT_GREY)
+//                                    .fontWeight(.semibold)
+                               
+                                
+                                CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
                                 
                                 Spacer()
                                 
-                                CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
+                                Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.leading)
+                                
                             }
                             .padding(.top, 24)
-                                                        
+                                    
+                            
+                            
                             // Total Steps Card
                             VStack(alignment: .leading) {
                                 
@@ -226,7 +243,7 @@ struct RunDetailView: View {
                                             Button {
                                                 isShowingPaceInformationSheet = true
                                             } label: {
-                                                Image(systemName: "info.circle.fill")
+                                                Image(systemName: "eye.fill")
                                                     .font(.subheadline)
                                                     .foregroundStyle(TEXT_LIGHT_GREY)
                                             }
@@ -325,6 +342,7 @@ struct RunDetailView: View {
                                             }()
                                             
                                             Chart {
+                                                /*
                                                 if let pace = selectedPaceForTime {
                                                     RuleMark(x: .value("Selected Time", pace.timeSeconds))
                                                         .foregroundStyle(.secondary.opacity(0.3))
@@ -361,20 +379,21 @@ struct RunDetailView: View {
                                                             .background(RoundedRectangle(cornerRadius: 8).fill(DARK_GREY))
                                                         }
                                                 }
+                                                */
                                                     
                                                 ForEach(sortedPaceArray) { paceData in
                                                     LineMark(
                                                         x: .value("Time", paceData.timeSeconds),
                                                         y: .value("Pace", paceData.pace)
                                                     )
-                                                    .interpolationMethod(.catmullRom)
+                                                    //.interpolationMethod(.catmullRom)s
                                                     .foregroundStyle(Color.green)
                                                     
                                                     AreaMark(
                                                         x: .value("Day", paceData.timeSeconds),
                                                         y: .value("Pace", paceData.pace)
                                                     )
-                                                    .interpolationMethod(.catmullRom)
+                                                    //.interpolationMethod(.catmullRom)
                                                     .foregroundStyle(GREEN_GRADIENT)
                                                 }
                                             }
@@ -423,7 +442,7 @@ struct RunDetailView: View {
                                             .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                                         }
                                     }
-                                    .blur(radius: subscriptionManager.hasSubscriptionExpired() ? 4 : 0)
+                                    .blur(radius: subscriptionManager.hasSubscriptionExpired() ? 10 : 0)
                                     .disabled(subscriptionManager.hasSubscriptionExpired())
                                     
                                     Spacer()
@@ -569,7 +588,7 @@ struct RunDetailView: View {
                     }
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
-                    .toolbarBackground(.clear, for: .navigationBar)                  
+                    .toolbarBackground(.clear, for: .navigationBar)
                     .toolbar {
                         
                         ToolbarItem(placement: .principal) {
@@ -593,6 +612,36 @@ struct RunDetailView: View {
                                     notesIsFocused = false
                                 }
                                 .foregroundStyle(.white)
+                            } else {
+                                
+                                Menu {
+                                    Button {
+                                        showDeleteDialog = true
+                                    } label: {
+                                        
+                                        Button("Delete this run") {
+                                            showDeleteDialog = true
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
+                                        .padding(2)
+                                }
+                                .alert("Are you sure you want to delete this run?", isPresented: $showDeleteDialog) {
+                                    Button("Yes", role: .destructive){
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            modelContext.delete(runData)
+                                        }
+                                    
+                                        // Dimiss this view
+                                        dismiss()
+
+                                    }
+                                    Button("Cancel", role: .cancel){}
+                                }
                             }
                         }
                     }
@@ -634,69 +683,12 @@ struct RunDetailView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-//                .toolbar(.hidden, for: .navigationBar)
-//                .toolbar(.hidden, for: .tabBar)
-//                .safeAreaInset(edge: .top, content: { Color.clear.frame(height: 44) })
-//                .safeAreaInset(edge: .bottom, content: { Color.clear.frame(height: 64) })
             }
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 
 
 
 
-/*
- VStack(spacing: 24) {
- 
- VStack(alignment: .leading) {
- Text("Duration")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- .padding(.top, 16)
- 
- VStack(alignment: .leading) {
- Text("Average Pace")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(runData!.avgPace) min/mi")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- 
- VStack(alignment: .leading) {
- Text("Distance Traveled")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(formattedSteps(runData!.steps)) steps")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- .padding(.bottom, 16)
- 
- 
- }
- .frame(maxWidth: .infinity)
- .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
- .padding(.vertical, 8)
- .padding(.horizontal, 16)
- 
- 
- */

@@ -29,8 +29,8 @@ struct SubscriptionUpgradeView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 16)
                 
-                Text("Feeling adventurous? Pro members can unlock Solo with unlimited runs and custom pins.")
-                    .frame(maxWidth: 200, alignment: .center)
+                Text("Feeling adventurous? Pro members can unlock Solo with unlimited runs, custom pins, and comprehensive statistics.")
+                    .frame(maxWidth: 224, alignment: .center)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
             }

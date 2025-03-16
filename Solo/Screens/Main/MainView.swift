@@ -39,6 +39,7 @@ struct MainView: View {
     @Query var userData: [User]
     var user: User? {userData.first}
     
+
     var body: some View {
         
         ZStack {
@@ -164,29 +165,12 @@ struct MainView: View {
         .task {
             await subscriptionManager.listenForTransactions()
         }
-        .onAppear {
-            // TODO: might delete this
-//            if user == nil && importingData = false {
-//                let user = UserModel()
-//                modelContext.insert(user)
-//            }
-        }
         .edgesIgnoringSafeArea(.all)
     }
     
 }
 
 
-//        .onAppear {
-//            if !userData.isEmpty {
-//                print("user info is not empty: \(userData)")
-//                appState.hasCredentials = true
-//                appState.screen = .Dashboard
-//            }
-//            if userData.isEmpty {
-//                print("user data is empty")
-//            }
-//        }
 // https://stackoverflow.com/questions/78845389/storekit-2-how-to-use-subscriptionstatustask-modifier-to-know-which-subscripti
 // https://imgur.com/wrhNpbo
 //

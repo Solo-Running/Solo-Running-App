@@ -40,7 +40,6 @@ struct DashboardView: View {
         
     
     private static var weekAgoDate: Date {
-//        return Calendar.current.dateInterval(of: .weekOfYear, for: Date())!.start
          return Calendar.current.date(byAdding: .day, value: -6, to: Date())!
     }
     
@@ -621,6 +620,7 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 8)
                             }
+                            .transition(.move(edge: .trailing))
                         }
                     }
                 }

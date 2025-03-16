@@ -96,7 +96,7 @@ struct OnboardingView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Text("Free tier users enjoy \(RUN_LIMIT) runs a month and up to \(PIN_LIMIT) custom pins.")
+                            Text("Free tier users enjoy \(RUN_LIMIT) runs a month and up to \(PIN_LIMIT) custom pins. Limited run statistics available.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
 
