@@ -271,19 +271,19 @@ struct RunDetailView: View {
                             ScrollView {
                                 
                                 VStack(alignment: .leading, spacing: 16) {
-                                    Text("What is my average pace?")
+                                    Text("Pace Details")
                                         .font(.title2)
                                         .foregroundStyle(.white)
                                         .bold()
                                         .padding(.top, 16)
                                     
-                                    Text("Your average pace describes the time it takes to travel a given distance. Solo Running calculates this as soon as you complete a run. Pro users can also view their active pace over time down below for more details."
+                                    Text("Your average pace describes the time it takes to travel a given distance. Solo Running calculates this as soon as you complete a run. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
                                     )
                                     .foregroundStyle(TEXT_LIGHT_GREY)
                                     .font(.subheadline)
                                     
                                     
-                                    Spacer().frame(height: 32)
+                                    Spacer().frame(height: 24)
                                     
                                    
                                     VStack(alignment: .leading) {
@@ -317,7 +317,7 @@ struct RunDetailView: View {
                                     VStack(alignment: .leading) {
 
                                         
-                                        if let paceArray = runData.paceArray, !paceArray.isEmpty && !paceArray.allPaceAreZero {
+                                        if let paceArray = runData.paceArray, !paceArray.isEmpty  {
                                             
                                             let sortedPaceArray = paceArray.sorted { $0.timeSeconds < $1.timeSeconds }
 
