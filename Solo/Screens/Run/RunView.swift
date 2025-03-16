@@ -99,16 +99,21 @@ struct RunView: View {
     },sort: \MTPlacemark.name) var allCustomPinLocations: [MTPlacemark]
     
     
-    // Query the most recent 15 runs. Used to check if free tier users used up their run limit per month
-    static var descriptor: FetchDescriptor<Run> {
+    // Query the most recent 16 runs. Used to check if free tier users used up their run limit per month
+    static var recentRunsDescriptor: FetchDescriptor<Run> {
         var descriptor = FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate, order: .reverse)])
         descriptor.fetchLimit = RUN_LIMIT
         return descriptor
     }
     
 
-    @Query(descriptor) var recentRuns: [Run]
+    @Query(recentRunsDescriptor) var recentRuns: [Run]
     @State var runsThisMonth: [Run] = []
+    @State var allRunsCount: Int = 0
+    
+    @Query var userData: [User]
+    var user: User? {userData.first}
+    
     
     @State var isPinActive: Bool = false
     @State var pinCoordinates: CLLocationCoordinate2D?
@@ -538,6 +543,7 @@ struct RunView: View {
                     completion(.failure(error))
                 }
 
+                
                 let newRun = Run(
                     isDarkMode: isDarkMode,
                     postedDate: Date.now,
@@ -551,7 +557,8 @@ struct RunView: View {
                     endPlacemark: locationManager.endPlacemark!,
                     avgSpeed: activityManager.averageSpeed,
                     avgPace: activityManager.averagePace,
-                    routeImage: data!
+                    routeImage: data!,
+                    paceArray: activityManager.activePaceArray
                 )
 
                 // Save the data
@@ -562,7 +569,7 @@ struct RunView: View {
                 } catch {
                      completion(.failure(error))
                 }
-                
+              
             } else {
                 let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Map image wasn't created properly"])
                 completion(.failure(error))
