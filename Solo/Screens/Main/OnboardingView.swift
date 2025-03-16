@@ -23,7 +23,8 @@ struct OnboardingView: View {
 
     @AppStorage("isFirstInApp") var isFirstInApp: Bool = false
     @State private var showIgnoreToast: Bool = false
-  
+    
+    @Binding var importingData: Bool
     
     var body: some View {
         NavigationStack {
@@ -95,7 +96,7 @@ struct OnboardingView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                             
-                            Text("Free tier users enjoy 12 runs a month and up to 8 custom pins.")
+                            Text("Free tier users enjoy \(RUN_LIMIT) runs a month and up to \(PIN_LIMIT) custom pins.")
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                                 .multilineTextAlignment(.center)
 
@@ -150,5 +151,5 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    return OnboardingView()
+    return OnboardingView(importingData: .constant(false))
 }
