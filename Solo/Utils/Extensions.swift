@@ -10,6 +10,8 @@ import SwiftUI
 import AVFoundation
 import UIKit
 
+
+
 extension Color {
     init(hex: UInt, alpha: Double = 1) {
         self.init(
@@ -22,6 +24,23 @@ extension Color {
     }
 }
 
+extension Array where Element == Pace {
+    var allPaceAreZero: Bool {
+        allSatisfy { $0.pace == 0 }
+    }
+}
+
+extension Array where Element == StepsData {
+    var allStepsAreZero: Bool {
+        allSatisfy { $0.steps == 0 }
+    }
+}
+
+extension Array where Element == TimeData {
+    var allTimesAreZero: Bool {
+        allSatisfy { $0.timeMinutes == 0 }
+    }
+}
 
 class Debouncer {
     private let delay: TimeInterval
@@ -107,3 +126,4 @@ extension UIImage {
         }
     }
 }
+
