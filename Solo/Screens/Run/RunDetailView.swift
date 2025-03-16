@@ -270,22 +270,23 @@ struct RunDetailView: View {
                         .sheet(isPresented: $isShowingPaceInformationSheet ) {
                             ScrollView {
                                 
-                                VStack(alignment: .leading, spacing: 16) {
-                                    Text("Pace Details")
-                                        .font(.title2)
-                                        .foregroundStyle(.white)
-                                        .bold()
-                                        .padding(.top, 16)
+                                VStack(alignment: .leading, spacing: 32) {
                                     
-                                    Text("Your average pace describes the time it takes to travel a given distance. Solo Running calculates this as soon as you complete a run. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
-                                    )
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .font(.subheadline)
-                                    
-                                    
-                                    Spacer().frame(height: 24)
-                                    
+                                    VStack(alignment: .leading) {
+                                        Text("Pace Details")
+                                            .font(.title2)
+                                            .foregroundStyle(.white)
+                                            .bold()
+                                        
+                                        Text("Your average pace describes the time it takes to travel a unit of distance. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
+                                        )
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .font(.subheadline)
+                                    }
+                                    .padding(.top, 16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                                    
+                                    
                                     VStack(alignment: .leading) {
                                         HStack(alignment: .center) {
                                             
@@ -313,6 +314,7 @@ struct RunDetailView: View {
                                             .font(.subheadline)
                                     }
                                     .padding(.bottom, 16)
+                                    
                                     
                                     VStack(alignment: .leading) {
 
