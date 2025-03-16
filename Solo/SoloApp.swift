@@ -5,8 +5,11 @@
 //  Created by William Kim on 10/13/24.
 //
 
+
 import SwiftUI
 import SwiftData
+import MapKit
+
 
 
 @main
@@ -22,9 +25,10 @@ struct SoloApp: App {
     // Initialize the model container for persistent storage operations
     var modelContainer: ModelContainer = {
         let schema = Schema([
-            UserModel.self,
+            User.self,
             MTPlacemark.self,
-            Run.self
+            Run.self,
+            Pace.self
         ])
         
         // Handle changes in iCloud syncing
@@ -35,7 +39,11 @@ struct SoloApp: App {
         let iCloudToken = FileManager.default.ubiquityIdentityToken
         if iCloudToken == nil {
             do {
-                return try ModelContainer(for: schema, configurations: [modelConfigurationOff])
+                return try ModelContainer(
+                    for: schema, 
+                    migrationPlan: SoloSchemaMigrationPlan.self,
+                    configurations: [modelConfigurationOff]
+                )
             } catch {
                 fatalError("Could not create model container: \(error)")
             }
