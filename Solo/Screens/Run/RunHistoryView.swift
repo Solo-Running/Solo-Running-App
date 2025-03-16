@@ -160,8 +160,13 @@ struct RunHistoryView: View {
 
                                     Spacer()
                                     
-                                    Text("\(runsThisMonth.count) runs")
-                                        .font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+                                    if runsThisMonth.count != 1 {
+                                        Text("\(runsThisMonth.count) runs")
+                                            .font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+                                    } else {
+                                        Text("\(runsThisMonth.count) run")
+                                            .font(.subheadline).fontWeight(.semibold).padding(.vertical, 8)
+                                    }
 
                                 }
                             }
@@ -185,7 +190,7 @@ struct RunHistoryView: View {
                 ToolbarItem(placement: .principal) {
                     Text("Run History")
                         .font(.title2)
-                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                 }
             }
