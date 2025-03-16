@@ -14,17 +14,16 @@ import StoreKit
 
 struct ProfileView: View {
     
+    @Environment(AppState.self) private var appState
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var subscriptionManager: SubscriptionManager
 
-    @Query var userData: [UserModel]
-    var user: UserModel? {userData.first}
+    @Query var userData: [User]
+    var user: User? {userData.first}
 
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @AppStorage("isFirstInApp") var isFirstInApp: Bool = false
-
     @AppStorage("isLiveActivityEnabled") var isLiveActivityEnabled = true
-    @AppStorage("isSpotifyEnabled") var isSpotifyEnabled = false
     
     @State private var showEditCustomPinsView: Bool = false
     @State private var showSubscriptionsView: Bool = false
@@ -33,7 +32,7 @@ struct ProfileView: View {
     @State private var deleteStatus: DeleteStatus = .initial
     @State private var showDeleteToast: Bool = false
     @State private var showEmptyRunsToast: Bool = false
-
+    
     
     var body: some View {
 
@@ -81,7 +80,7 @@ struct ProfileView: View {
                 }
                 
                 
-                NavigationLink(destination:  EditProfileView()) {
+                NavigationLink(destination: EditProfileView()) {
                     Text("Edit Profile")
                         .foregroundStyle(.white)
                         .padding(8)
@@ -91,10 +90,9 @@ struct ProfileView: View {
                 .controlSize(.small)
                 .tint(DARK_GREY)
                 
+                
                 Spacer().frame(height: 48)
-                
-                
-                
+                                
                 VStack(alignment: .leading, spacing: 8) {
                     
                     
