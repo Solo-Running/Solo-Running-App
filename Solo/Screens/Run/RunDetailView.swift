@@ -589,6 +589,7 @@ struct RunDetailView: View {
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
                     .toolbarBackground(.clear, for: .navigationBar)
+                    .toolbar(.hidden, for: .tabBar)
                     .toolbar {
                         
                         ToolbarItem(placement: .principal) {
@@ -682,10 +683,11 @@ struct RunDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
+                .toolbar(.hidden, for: .tabBar)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .toolbar(.hidden, for: .tabBar)
+        
     }
 }
 
