@@ -32,8 +32,23 @@ struct SubscriptionEditView: View {
                 print("Failed to decode JSON: \(error)")
             }
         }
-    
     }
+    
+    func presentRefundRequest(transaction: StoreKit.Transaction) {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            print("No active scene found")
+            return
+        }
+        Task {
+            do {
+                try await transaction.beginRefundRequest(in: scene)
+                print("Refund request sheet presented successfully")
+            } catch {
+                print("Error presenting refund request: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     var body: some View {
         
         ScrollView {
@@ -88,6 +103,15 @@ struct SubscriptionEditView: View {
                     } label: {
                         Text("Manage your subscription")
                             .foregroundStyle(BLUE)
+                            .font(.subheadline)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Button {
+                        presentRefundRequest(transaction: transaction)
+                    } label: {
+                        Text("Request refund")
+                            .foregroundStyle(RED)
                             .font(.subheadline)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
