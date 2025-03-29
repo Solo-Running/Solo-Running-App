@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
-
+import Charts
 
 struct ExportableImageCard: View {
     var image: UIImage
@@ -64,6 +64,7 @@ struct ExportableImageCard: View {
 }
 
 
+
 /**
  Displays a user's previous run session with statistics like time, steps, distance, and average pace.
  Users also have the ability to add notes for the run.
@@ -71,11 +72,24 @@ struct ExportableImageCard: View {
 struct RunDetailView: View {
     
     var runData: Run!
-    
+    //var onDelete: () -> Void
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var isShowingExpanded: Bool = false
     @Namespace var namespace
+    
     @FocusState var notesIsFocused: Bool
     
+    @State private var paceInformationSheetDetents: Set<PresentationDetent> = [.fraction(0.35), .large]
+    @State private var isShowingPaceInformationSheet: Bool = false
+    @State private var selectedTime: Int?
+    
+    @State private var showDeleteDialog: Bool = false
+
+    let numberOfPaceMarks: Int = 5
     
     var imageData: UIImage? {
         guard let imageData = runData?.routeImage else {
@@ -91,6 +105,12 @@ struct RunDetailView: View {
         return Image(uiImage: uiImage)
     }
     
+    private var selectedPaceForTime: Pace? {
+        guard let selectedTime else { return nil }
+        return runData.paceArray?.first {
+            $0.timeSeconds == selectedTime
+        }
+    }
     
     @MainActor func exportedImage() -> Image {
         let renderer = ImageRenderer(content: ExportableImageCard(image: imageData!, runData: runData))
@@ -98,8 +118,7 @@ struct RunDetailView: View {
         return Image(uiImage: renderer.uiImage!.withCornerRadius(12).withBackground(color: .clear))
 
     }
-    
-    
+ 
     var body: some View {
         
         ZStack {
@@ -108,52 +127,28 @@ struct RunDetailView: View {
                     ScrollView(showsIndicators: false) {
                         
                         // Run statistics section
-                        VStack {
+                        VStack(alignment: .leading) {
+                            
                             HStack(alignment: .center) {
                                 
-                                Text("Statistics")
-                                    .font(.title3)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .fontWeight(.semibold)
+//                                Text("Statistics")
+//                                    .font(.title3)
+//                                    .foregroundStyle(TEXT_LIGHT_GREY)
+//                                    .fontWeight(.semibold)
+                               
+                                
+                                CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
                                 
                                 Spacer()
                                 
-                                CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
+                                Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
+                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.leading)
+                                
                             }
                             .padding(.top, 24)
-                            
-                            // Average Pace Card
-                            VStack(alignment: .leading) {
-                                
-                                HStack(alignment: .center, spacing: 16) {
                                     
-                                    // Icon Container
-                                    VStack {
-                                        Image(systemName: "figure.run")
-                                    }
-                                    .frame(width: 48, height: 48)
-                                    .background(RoundedRectangle(cornerRadius: 12).fill(LIGHT_GREY))
-                                    
-                                    VStack(alignment: .leading) {
-                                        Text("Average Pace")
-                                            .font(.subheadline)
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                        
-                                        Text("\(runData!.avgPace) min/mi")
-                                            .foregroundStyle(.white)
-                                            .font(.title2)
-                                            .fontWeight(.semibold)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    
-                                    Spacer()
-                                }
-                                .padding(16)
-                                
-                            }
-                            .frame(maxWidth: .infinity)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                            .padding(.vertical, 4)
                             
                             
                             // Total Steps Card
@@ -224,8 +219,246 @@ struct RunDetailView: View {
                             .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                             .padding(.vertical, 4)
                             
+                            // Average Pace Card
+                            VStack(alignment: .leading) {
+                                
+                                HStack(alignment: .center, spacing: 16) {
+                                    
+                                    // Icon Container
+                                    VStack {
+                                        Image(systemName: "figure.run")
+                                    }
+                                    .frame(width: 48, height: 48)
+                                    .background(RoundedRectangle(cornerRadius: 12).fill(LIGHT_GREY))
+                                    
+                                    VStack(alignment: .leading) {
+                                        
+                                        HStack(alignment: .center) {
+                                            Text("Average Pace")
+                                                .font(.subheadline)
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Spacer()
+                                            
+                                            Button {
+                                                isShowingPaceInformationSheet = true
+                                            } label: {
+                                                Image(systemName: "eye.fill")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                            }
+                                        }
+                                        
+                                        Text("\(runData!.avgPace) min/mi")
+                                            .foregroundStyle(.white)
+                                            .font(.title2)
+                                            .fontWeight(.semibold)
+                                        
+                                        
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    
+                                }
+                                .padding(16)
+                                
+                            }
+                            .frame(maxWidth: .infinity)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                            .padding(.vertical, 4)
+                            
                         }
-                        
+                        .sheet(isPresented: $isShowingPaceInformationSheet ) {
+                            ScrollView {
+                                
+                                VStack(alignment: .leading, spacing: 32) {
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text("Pace Details")
+                                            .font(.title2)
+                                            .foregroundStyle(.white)
+                                            .bold()
+                                        
+                                        Text("Your average pace describes the time it takes to travel a unit of distance. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
+                                        )
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .font(.subheadline)
+                                    }
+                                    .padding(.top, 16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                   
+                                    
+                                    VStack(alignment: .leading) {
+                                        HStack(alignment: .center) {
+                                            
+                                            Text("Your pace chart")
+                                                .font(.title2)
+                                                .foregroundStyle(.white)
+                                                .bold()
+                                            
+                                            
+                                            if subscriptionManager.hasSubscriptionExpired() {
+                                                Text("Pro")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(.white)
+                                                    .padding(.vertical, 4)
+                                                    .padding(.horizontal, 8)
+                                                    .background(RoundedRectangle(cornerRadius: 8).fill(BLUE))
+                                            }
+                                            
+                                            Spacer()
+                                        }
+                                        
+                                        Text("Data is displayed as seconds per meter")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .font(.subheadline)
+                                    }
+                                    .padding(.bottom, 16)
+                                    
+                                    
+                                    VStack(alignment: .leading) {
+
+                                        
+                                        if let paceArray = runData.paceArray, !paceArray.isEmpty  {
+                                            
+                                            let sortedPaceArray = paceArray.sorted { $0.timeSeconds < $1.timeSeconds }
+
+                                            let slowestPace = sortedPaceArray.max { item1, item2 in
+                                                return item2.pace > item1.pace
+                                            }?.pace ?? 0
+                                                                                        
+                                            
+                                            let visibleDomain: Int = {
+                                                let minutes = secondsToMinutes(seconds: runData.elapsedTime)
+
+                                                switch minutes {
+                                                case 0...10:
+                                                    return 90       // 1 minute
+                                                case 11...30:
+                                                    return 60 * 5   // 5 minutes
+                                                case 31...60:
+                                                    return 60 * 10  // 10 minutes
+                                                default:
+                                                    return 60 * 20  // 20 minutes
+                                                }
+                                            }()
+                                            
+                                            Chart {
+                                                /*
+                                                if let pace = selectedPaceForTime {
+                                                    RuleMark(x: .value("Selected Time", pace.timeSeconds))
+                                                        .foregroundStyle(.secondary.opacity(0.3))
+                                                        .annotation(position: .top, overflowResolution: .init(x: .fit(to: .chart), y: .disabled)) {
+                                                            VStack(alignment: .leading) {
+                                                                
+                                                                // Presents the time as 1:20 or 01:20:30
+                                                                let seconds = pace.timeSeconds
+                                                                let hour = pace.timeSeconds / 3600
+                                                                
+                                                                if hour > 0 {
+                                                                    let formattedDuration = Duration.seconds(seconds).formatted(
+                                                                        .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+                                                                    )
+                                                                    Text("\(formattedDuration)")
+                                                                        .font(.subheadline)
+                                                                        .bold()
+                                                                } else {
+                                                                    let formattedDuration = Duration.seconds(seconds).formatted(
+                                                                        .time(pattern: .minuteSecond)
+                                                                    )
+                                                                    Text("\(formattedDuration)")
+                                                                        .font(.subheadline)
+                                                                        .bold()
+                                                                }
+                                                                                                                                
+                                                                Text("\(pace.pace) s/m")
+                                                                    .font(.title3)
+                                                                    .bold()
+                                                                                                                           
+                                                            }
+                                                            .padding(8)
+                                                            .frame(width: 154, alignment: .leading)
+                                                            .background(RoundedRectangle(cornerRadius: 8).fill(DARK_GREY))
+                                                        }
+                                                }
+                                                */
+                                                    
+                                                ForEach(sortedPaceArray) { paceData in
+                                                    LineMark(
+                                                        x: .value("Time", paceData.timeSeconds),
+                                                        y: .value("Pace", paceData.pace)
+                                                    )
+                                                    //.interpolationMethod(.catmullRom)s
+                                                    .foregroundStyle(Color.green)
+                                                    
+                                                    AreaMark(
+                                                        x: .value("Day", paceData.timeSeconds),
+                                                        y: .value("Pace", paceData.pace)
+                                                    )
+                                                    //.interpolationMethod(.catmullRom)
+                                                    .foregroundStyle(GREEN_GRADIENT)
+                                                }
+                                            }
+                                            .frame(height: 280)
+                                            .chartXSelection(value: $selectedTime.animation(.spring))
+                                            .chartXAxis {
+                                                // Add marks every 30 seconds
+                                                AxisMarks(values: .stride(by: 30)) { value in
+                                                    if let seconds = value.as(Int.self) {
+                                                        AxisValueLabel {
+                                                            // Presents the time as 1:20 or 01:20:30
+                                                            let hour = seconds / 3600
+                                                            if hour > 0 {
+                                                                let formattedDuration = Duration.seconds(seconds).formatted(
+                                                                    .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+                                                                )
+                                                                Text("\(formattedDuration)")
+                                                            } else {
+                                                                let formattedDuration = Duration.seconds(seconds).formatted(
+                                                                    .time(pattern: .minuteSecond)
+                                                                )
+                                                                Text("\(formattedDuration)")
+                                                            }
+                                                            
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            .chartYScale(domain: 0...(slowestPace + 1))
+                                            .chartScrollableAxes(.horizontal)
+                                            .chartXVisibleDomain(length: visibleDomain)
+                                            .chartXSelection(value: $selectedTime.animation(.spring))
+
+                                        } else {
+                                            VStack(alignment: .center, spacing: 8) {
+                                                Image(systemName: "chart.bar.xaxis")
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                                
+                                                Text("No pace data was found")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    .fontWeight(.semibold)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 280)
+                                            .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                        }
+                                    }
+                                    .blur(radius: subscriptionManager.hasSubscriptionExpired() ? 10 : 0)
+                                    .disabled(subscriptionManager.hasSubscriptionExpired())
+                                    
+                                    Spacer()
+                                }
+                            }
+                            .scrollIndicators(.hidden)
+                            .padding(16)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .presentationDetents(paceInformationSheetDetents)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                        }
+
                         Spacer().frame(height: 48)
                         
                         // Route data section
@@ -330,7 +563,6 @@ struct RunDetailView: View {
                         
                         Spacer().frame(height: 48)
                         
-                        
                         // Notes section
                         VStack(alignment: .leading) {
                             
@@ -353,13 +585,13 @@ struct RunDetailView: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        
                         Spacer().frame(height: 100)
                         
                     }
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
                     .toolbarBackground(.clear, for: .navigationBar)
+                    .toolbar(.hidden, for: .tabBar)
                     .toolbar {
                         
                         ToolbarItem(placement: .principal) {
@@ -383,6 +615,36 @@ struct RunDetailView: View {
                                     notesIsFocused = false
                                 }
                                 .foregroundStyle(.white)
+                            } else {
+                                
+                                Menu {
+                                    Button {
+                                        showDeleteDialog = true
+                                    } label: {
+                                        
+                                        Button("Delete this run") {
+                                            showDeleteDialog = true
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
+                                        .padding(2)
+                                }
+                                .alert("Are you sure you want to delete this run?", isPresented: $showDeleteDialog) {
+                                    Button("Yes", role: .destructive){
+                                        
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            modelContext.delete(runData)
+                                        }
+                                    
+                                        // Dimiss this view
+                                        dismiss()
+
+                                    }
+                                    Button("Cancel", role: .cancel){}
+                                }
                             }
                         }
                     }
@@ -423,70 +685,14 @@ struct RunDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
+                .toolbar(.hidden, for: .tabBar)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-//                .toolbar(.hidden, for: .navigationBar)
-//                .toolbar(.hidden, for: .tabBar)
-//                .safeAreaInset(edge: .top, content: { Color.clear.frame(height: 44) })
-//                .safeAreaInset(edge: .bottom, content: { Color.clear.frame(height: 64) })
             }
         }
+        
     }
 }
 
 
 
 
-/*
- VStack(spacing: 24) {
- 
- VStack(alignment: .leading) {
- Text("Duration")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- .padding(.top, 16)
- 
- VStack(alignment: .leading) {
- Text("Average Pace")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(runData!.avgPace) min/mi")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- 
- VStack(alignment: .leading) {
- Text("Distance Traveled")
- .font(.subheadline)
- .foregroundStyle(LIGHT_GREEN)
- 
- Text("\(formattedSteps(runData!.steps)) steps")
- .foregroundStyle(.white)
- .font(.subheadline)
- .fontWeight(.semibold)
- }
- .frame(maxWidth: .infinity, alignment: .leading)
- .padding(.horizontal, 16)
- .padding(.bottom, 16)
- 
- 
- }
- .frame(maxWidth: .infinity)
- .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
- .padding(.vertical, 8)
- .padding(.horizontal, 16)
- 
- 
- */

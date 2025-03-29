@@ -14,6 +14,7 @@ import SwiftUI
 import MapKit
 import SwiftData
 import CoreHaptics
+import AlertToast
 
 enum RunStatus: String {
     case planningRoute = "planning route", startedRun = "started run", endedRun = "ended run"
@@ -41,10 +42,12 @@ struct RunView: View {
     // Environment objects to handle music, location, and activity monitoring
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var activityManager: ActivityManager
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    
     @Environment(\.modelContext) private var modelContext
-
+    
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
-
+    
     @State var startedRun: Bool = false
     @State var runStatus: RunStatus = .planningRoute
     @Binding var showRunView: Bool
@@ -59,22 +62,22 @@ struct RunView: View {
     @State var routeSheetVisible: Bool = false
     @State var editCustomPinNameSheetVisible: Bool = false
     @State var viewPinAssociatedRunsSheetVisible: Bool = false
-
+    
     @State var runSheetVisible: Bool = false
     @State var stepsSheetVisible: Bool = false
     @State var customPinSheetVisible: Bool = false
-
+    
     // Sheet position targets. The first two are designed to make their sheet positions dynamically change according to user specific requirements
     @State private var searchPlaceSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
     @State private var routeSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
-
+    
     @State private var searchPlaceSheetDetents: Set<PresentationDetent> = SheetPosition.detents
     @State private var routeSheetDetents: Set<PresentationDetent> =   SheetPosition.detents
     @State private var editCustomPinNameSheetDetents: Set<PresentationDetent> = [.medium, .large]
     @State private var viewPinAssociatedRunsSheetDetents: Set<PresentationDetent> = [.medium, .large]
     @State private var runSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
     @State private var stepsSheetDetents: Set<PresentationDetent> = [.medium, .large]
-
+    
     // Search text field and focus state
     @FocusState private var isTextFieldFocused: Bool
     @State var addressInput: String = ""
@@ -94,6 +97,23 @@ struct RunView: View {
     @Query(filter: #Predicate<MTPlacemark> { place in
         return place.isCustomLocation == true
     },sort: \MTPlacemark.name) var allCustomPinLocations: [MTPlacemark]
+    
+    
+    // Query the most recent 16 runs. Used to check if free tier users used up their run limit per month
+    static var recentRunsDescriptor: FetchDescriptor<Run> {
+        var descriptor = FetchDescriptor<Run>(sortBy: [SortDescriptor(\.postedDate, order: .reverse)])
+        descriptor.fetchLimit = RUN_LIMIT
+        return descriptor
+    }
+    
+
+    @Query(recentRunsDescriptor) var recentRuns: [Run]
+    @State var runsThisMonth: [Run] = []
+    @State var allRunsCount: Int = 0
+    
+    @Query var userData: [User]
+    var user: User? {userData.first}
+    
     
     @State var isPinActive: Bool = false
     @State var pinCoordinates: CLLocationCoordinate2D?
@@ -122,6 +142,10 @@ struct RunView: View {
     // Array that holds all the coordinates of each step along a given route
     @State private var stepCoordinates: [CLLocationCoordinate2D] = [CLLocationCoordinate2D()]
     
+    // Dialog when user acccesses a locked pro feature
+    @State private var showProAccessPinsDialog: Bool = false
+    @State private var showProAccessRunsDialog: Bool = false
+
     // Tracks if timer is paused or playing
     @State private var isPaused: Bool = false
     
@@ -192,27 +216,50 @@ struct RunView: View {
                 routeSheetVisible = true
             }
         }
-        
-        
     }
     
+    enum GeocodingError: Error {
+        case timeout
+        case failedToRetrieve
+        case noMatchingAddress
+    }
+
     
-    func fetchCustomPinLocation(completionHandler: @escaping (CLPlacemark?) -> Void){
+    func fetchCustomPinLocation(completionHandler: @escaping (Result<CLPlacemark, GeocodingError>) -> Void){
+        
         let geocoder = CLGeocoder()
         let location = CLLocation(latitude: pinCoordinates!.latitude, longitude: pinCoordinates!.longitude)
+        
+        var isCompleted = false // Track if request completes before timeout
+            
+        // Define a timeout work item
+        let timeoutWorkItem = DispatchWorkItem {
+            geocoder.cancelGeocode()
+            print("Geocoding request timed out")
+            completionHandler(.failure(.timeout))
+            return
+        }
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + 5.0, execute: timeoutWorkItem)
         
         geocoder.reverseGeocodeLocation(location, completionHandler: {(placemarks, error) -> Void in
             if error != nil {
                 print("Failed to retrieve address")
-                completionHandler(nil)
+                timeoutWorkItem.cancel()
+                completionHandler(.failure(.failedToRetrieve))
+                return
             }
             if let placemarks = placemarks, let placemark = placemarks.first {
                 print("Retrieved address")
-               completionHandler(placemark)
+                timeoutWorkItem.cancel()
+                completionHandler(.success(placemark))
+                return
             }
             else{
                 print("No Matching Address Found")
-                completionHandler(nil)
+                timeoutWorkItem.cancel()
+                completionHandler(.failure(.noMatchingAddress))
+                return
             }
         })
     }
@@ -235,10 +282,7 @@ struct RunView: View {
         
         isLoadingAssociatedRuns = false
     }
-    
-    func saveNewNameForPin() {
-        
-    }
+
     
     // Removes a route when user dismisses the details sheet
     func removeRoute() {
@@ -424,9 +468,9 @@ struct RunView: View {
     }
     
     func addCustomLocation() {
-        fetchCustomPinLocation() { customPlacemark in
-            if let customPlacemark {
-
+        fetchCustomPinLocation() { result in
+            switch result {
+            case .success(let customPlacemark):
                 let placemark = MTPlacemark(
                     name: customPlacemark.name ?? "",
                     thoroughfare: customPlacemark.thoroughfare ?? "",
@@ -453,7 +497,17 @@ struct RunView: View {
                     print(error)
                 }
                 usePin = false
+                
+            case .failure(.timeout):
+                print("request timed out")
+                
+            case .failure(.failedToRetrieve):
+                print("Failed to retrieve address.")
+                
+            case .failure(.noMatchingAddress):
+                print("No matching address found.")
             }
+ 
         }
     }
     
@@ -489,6 +543,7 @@ struct RunView: View {
                     completion(.failure(error))
                 }
 
+                
                 let newRun = Run(
                     isDarkMode: isDarkMode,
                     postedDate: Date.now,
@@ -502,7 +557,8 @@ struct RunView: View {
                     endPlacemark: locationManager.endPlacemark!,
                     avgSpeed: activityManager.averageSpeed,
                     avgPace: activityManager.averagePace,
-                    routeImage: data!
+                    routeImage: data!,
+                    paceArray: activityManager.activePaceArray
                 )
 
                 // Save the data
@@ -513,7 +569,7 @@ struct RunView: View {
                 } catch {
                      completion(.failure(error))
                 }
-                
+              
             } else {
                 let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Map image wasn't created properly"])
                 completion(.failure(error))
@@ -647,10 +703,17 @@ struct RunView: View {
                                     .font(.title)
                                 
                                 if(usePin) {
+                                    let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
                                     Button {
-                                        addCustomLocation()
+                                        if hasAccess {
+                                            addCustomLocation()
+                                        } else {
+                                            // show pro access dialog
+                                            showProAccessPinsDialog = true
+                                            
+                                        }
                                     } label: {
-                                        Image(systemName: "plus.circle.fill")
+                                        Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
                                             .frame(width: 48, height: 48)
                                             .foregroundStyle(.white)
                                     }
@@ -820,30 +883,38 @@ struct RunView: View {
                                     .padding(.vertical, 8)
                                     
                                     Button {
-                                        Task{
-                                            isStartRunLoading = true
-                                            // LocationManager will save the start and end locations
-                                            if let userLocation = locationManager.userLocation {
-                                                lookUpLocation(location: userLocation) { startPlacemark in
-                                                    if startPlacemark == nil {
-                                                        print("could not reverse geo code user's location")
-                                                        return
+                                        let hasAccess = (subscriptionManager.hasSubscriptionExpired() && runsThisMonth.count < RUN_LIMIT) ||
+                                            (!subscriptionManager.hasSubscriptionExpired())
+                                        
+                                        if hasAccess {
+                                            Task{
+                                                isStartRunLoading = true
+                                                // LocationManager will save the start and end locations
+                                                if let userLocation = locationManager.userLocation {
+                                                    lookUpLocation(location: userLocation) { startPlacemark in
+                                                        if startPlacemark == nil {
+                                                            print("could not reverse geo code user's location")
+                                                            return
+                                                        }
+                                                        locationManager.storeRouteDetails(start: startPlacemark!, end: routeDestination!, distance: routeDistance)
                                                     }
-                                                    locationManager.storeRouteDetails(start: startPlacemark!, end: routeDestination!, distance: routeDistance)
                                                 }
+                                                
+                                                // Make the app stay awake during run session
+                                                UIApplication.shared.isIdleTimerDisabled = true
+                                                await activityManager.beginRunSession()
+                                                locationManager.beginTracking()
+                                                
+                                                runStatus = .startedRun
+                                                isStartRunLoading = false
+                                                routeSheetVisible = false
+                                                runSheetVisible = true
+                                                
                                             }
-                                            
-                                            // Make the app stay awake during run session
-                                            UIApplication.shared.isIdleTimerDisabled = true
-                                            await activityManager.beginRunSession()
-                                            locationManager.beginTracking()
-                                            
-                                            runStatus = .startedRun
-                                            isStartRunLoading = false
-                                            routeSheetVisible = false
-                                            runSheetVisible = true
-                                            
+                                        } else {
+                                            showProAccessRunsDialog = true
                                         }
+                                        
                                     } label: {
                                         HStack {
                                             if isStartRunLoading {
@@ -1260,11 +1331,29 @@ struct RunView: View {
                 }
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar(.hidden, for: .navigationBar)
+                .toast(isPresenting: $showProAccessPinsDialog, tapToDismiss: true) {
+                    AlertToast(type: .systemImage("lock", .white), title: "Get Pro Access to add more pins.")
+                }
+                .toast(isPresenting: $showProAccessRunsDialog, tapToDismiss: true) {
+                    AlertToast(type: .systemImage("lock", .white), title: "Get Pro Access to add more runs.")
+                }
+                
               
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
+            .onAppear {
+                runsThisMonth = recentRuns.filter { run in
+                   let calendar = Calendar.current
+                   let currentDate = Date()
+                   let currentYear = calendar.component(.year, from: currentDate)
+                   let currentMonth = calendar.component(.month, from: currentDate)
+                   
+                   let runYear = calendar.component(.year, from: run.startTime)
+                   let runMonth = calendar.component(.month, from: run.startTime)
+                   return runYear == currentYear && runMonth == currentMonth
+               }
+            }
         }
     }
 }

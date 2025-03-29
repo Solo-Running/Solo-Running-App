@@ -21,8 +21,8 @@ struct EditProfileView: View {
     
     @State private var showSaveToast: Bool = false
 
-    @Query var userData: [UserModel]
-    var user: UserModel? {userData.first}
+    @Query var userData: [User]
+    var user: User? {userData.first}
     
     var body: some View {
         
@@ -50,8 +50,6 @@ struct EditProfileView: View {
                                 .aspectRatio(contentMode: .fill)
                                 .clipped()
                         }
-                        
-//                        if let profileData = user?.profilePicture, profileData.isEmpty && selectedPhoto == nil {
                         else {
                             Image(systemName: "person.fill")
                                 .resizable()
@@ -83,14 +81,12 @@ struct EditProfileView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
                     )
-                
             
                 Spacer()
                 
-                
                 Button {
                     if user == nil {
-                        let user = UserModel(id: UUID().uuidString, fullName: fullname, streak: 0, streakLastDoneDate: nil,  profilePicture: selectedPhotoData)
+                        let user = User(fullName: fullname, profilePicture: selectedPhotoData)
                         modelContext.insert(user)
                     } else {
                         if let profileData = user?.profilePicture, (profileData.isEmpty && selectedPhoto == nil) || fullname.isEmpty {
@@ -106,7 +102,6 @@ struct EditProfileView: View {
                             
                             try? modelContext.save()
                             showSaveToast = true
-                            
                         }
                     }
                 } label : {

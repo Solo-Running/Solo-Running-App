@@ -39,12 +39,13 @@ class ActivityManager: NSObject, ObservableObject {
     @Published var steps: Int = 0
     @Published var distanceTraveled: Double = 0 // estimated distance in meters
     @Published var averageSpeed: Double = 0     // speed in miles per hour
-    @Published var averagePace: Int = 0         // seconds per meter
+    @Published var averagePace: Int = 0         // minutes per mile
     
     @Published var runStartTime: Date?
     @Published var runEndTime: Date?
     @Published var secondsElapsed = 0
     @Published var formattedDuration: String = ""
+    @Published var activePaceArray: Array<Pace> = []
     
     private var timer: AnyCancellable?
     private var isPaused: Bool = false
@@ -129,6 +130,7 @@ class ActivityManager: NSObject, ObservableObject {
             self.distanceTraveled = 0
             self.steps = 0
             self.averagePace = 0
+            self.activePaceArray.removeAll()
         }
     }
         
@@ -172,6 +174,11 @@ class ActivityManager: NSObject, ObservableObject {
                         DispatchQueue.main.async {
                             self.steps = data.numberOfSteps.intValue
                             self.distanceTraveled = data.distance?.doubleValue ?? 0
+                            
+                            if let paceValue = data.averageActivePace {
+                                let newPace = Pace(pace: paceValue.intValue, timeSeconds: self.secondsElapsed)
+                                self.activePaceArray.append(newPace)
+                            }
                         }
                     }
                 }
@@ -207,6 +214,7 @@ class ActivityManager: NSObject, ObservableObject {
         }
         
         stopTimer()
+        
         await endLiveActivity()
         pedometer.stopUpdates()
         
@@ -219,6 +227,7 @@ class ActivityManager: NSObject, ObservableObject {
                     self.averageSpeed = distanceInMiles / (Double(self.secondsElapsed) / 3600)
                     
                     // Average pace in minutes/mile
+                    // && self.distanceTraveled >= 500
                     if self.averageSpeed > 0 {
                         self.averagePace = Int((1.0 / self.averageSpeed) * 60)
                     } else {

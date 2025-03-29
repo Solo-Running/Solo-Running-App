@@ -13,7 +13,7 @@ import StoreKit
 /**
  Renders a SubscriptionStoreView for onboarding users or users that don't have an active subscription.
  */
-struct SubscriptionLaunchView: View {
+struct SubscriptionUpgradeView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     var body: some View {
@@ -29,8 +29,8 @@ struct SubscriptionLaunchView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 16)
                 
-                Text("Experience Solo with unlimited access. Your support keeps this platform thriving!")
-                    .frame(maxWidth: 200, alignment: .center)
+                Text("Feeling adventurous? Pro members can unlock Solo with unlimited runs, custom pins, and comprehensive statistics.")
+                    .frame(maxWidth: 224, alignment: .center)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
             }

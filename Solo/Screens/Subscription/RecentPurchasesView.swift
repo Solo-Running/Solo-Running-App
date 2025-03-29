@@ -11,21 +11,7 @@ import StoreKit
 
 struct RecentPurchasesView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
-    
-    func presentRefundRequest(transaction: StoreKit.Transaction) {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-            print("No active scene found")
-            return
-        }
-        Task {
-            do {
-                try await transaction.beginRefundRequest(in: scene)
-                print("Refund request sheet presented successfully")
-            } catch {
-                print("Error presenting refund request: \(error.localizedDescription)")
-            }
-        }
-    }
+
     var body: some View {
         VStack {
             if subscriptionManager.isLoadingPurchases {
@@ -61,10 +47,8 @@ struct RecentPurchasesView: View {
                                 .padding()
                                 .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                             }
-                            .onTapGesture {
-                                presentRefundRequest(transaction: purchase)
-                            }
-                            .padding(.vertical, 8)
+                            .padding(.top, purchase == sortedPurchases.first ? 24 : 8)
+                            .padding(.bottom, 8)
                             .padding(.horizontal, 16)
                         }
                         .frame(maxWidth: .infinity)

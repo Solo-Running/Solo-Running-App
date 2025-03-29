@@ -10,7 +10,7 @@
 		E43AEBE92CBCAC8400C7A322 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBE82CBCAC8400C7A322 /* Constants.swift */; };
 		E43AEBEB2CBCCD6100C7A322 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */; };
 		E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */; };
-		E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBEF2CBCE94500C7A322 /* UserModel.swift */; };
+		E43AEBF02CBCE94500C7A322 /* SoloSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBEF2CBCE94500C7A322 /* SoloSchema.swift */; };
 		E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */; };
 		E43AEBF42CBDACB400C7A322 /* Koulen-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */; };
 		E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43AEBF62CBE1C4500C7A322 /* AppState.swift */; };
@@ -24,7 +24,6 @@
 		E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA1E2CBE3B7800EE1210 /* RunView.swift */; };
 		E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E480FA202CBE3B9E00EE1210 /* ProfileView.swift */; };
 		E491606F2CBC9341009294AA /* SoloApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E491606E2CBC9341009294AA /* SoloApp.swift */; };
-		E49160732CBC9341009294AA /* RunModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160722CBC9341009294AA /* RunModel.swift */; };
 		E49160752CBC9346009294AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160742CBC9346009294AA /* Assets.xcassets */; };
 		E49160782CBC9346009294AA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E49160772CBC9346009294AA /* Preview Assets.xcassets */; };
 		E49160822CBC9347009294AA /* SoloTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E49160812CBC9347009294AA /* SoloTests.swift */; };
@@ -33,10 +32,10 @@
 		E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E672CC95D3B00C163EA /* LaunchView.swift */; };
 		E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4922E6A2CCB10E200C163EA /* CapsuleView.swift */; };
 		E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E493F03A2CBF950700D023AE /* LocationManager.swift */; };
-		E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */; };
+		E4A9C22B2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */; };
 		E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */; };
+		E4AD21772D84005A004D1AB5 /* TimeChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4AD21762D84005A004D1AB5 /* TimeChartsView.swift */; };
 		E4B7F43C2D606C61006AE328 /* Solo Running.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E4B7F43B2D606C61006AE328 /* Solo Running.storekit */; };
-		E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BB6EB62CDCA96000932C4C /* LocationModel.swift */; };
 		E4C509112CC3762900B23CFE /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B02CC372BD00B23CFE /* WidgetKit.framework */; };
 		E4C509122CC3762900B23CFE /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4C508B22CC372BD00B23CFE /* SwiftUI.framework */; };
 		E4C509152CC3762900B23CFE /* SoloLiveWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509142CC3762900B23CFE /* SoloLiveWidgetBundle.swift */; };
@@ -45,6 +44,9 @@
 		E4C5091B2CC3762C00B23CFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E4C5091A2CC3762C00B23CFE /* Assets.xcassets */; };
 		E4C5091F2CC3762C00B23CFE /* SoloLiveWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */; };
+		E4D4694E2D7E176700223BD3 /* LoadDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D4694D2D7E176700223BD3 /* LoadDataView.swift */; };
+		E4D469502D7E800400223BD3 /* Tips.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D4694F2D7E800400223BD3 /* Tips.swift */; };
+		E4D469522D7E8EB500223BD3 /* StepsChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D469512D7E8EB500223BD3 /* StepsChartsView.swift */; };
 		E4D740072CD0B9A4001461B7 /* RunDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D740062CD0B9A4001461B7 /* RunDetailView.swift */; };
 		E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D7400A2CD0C718001461B7 /* Extensions.swift */; };
 		E4D7400E2CD21BF2001461B7 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = E4D7400D2CD21BF1001461B7 /* Algorithms */; };
@@ -98,7 +100,7 @@
 		E43AEBE82CBCAC8400C7A322 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchManager.swift; sourceTree = "<group>"; };
-		E43AEBEF2CBCE94500C7A322 /* UserModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModel.swift; sourceTree = "<group>"; };
+		E43AEBEF2CBCE94500C7A322 /* SoloSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloSchema.swift; sourceTree = "<group>"; };
 		E43AEBF12CBCEB1F00C7A322 /* ProvideCredentialsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvideCredentialsView.swift; sourceTree = "<group>"; };
 		E43AEBF32CBDACB400C7A322 /* Koulen-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Koulen-Regular.ttf"; sourceTree = "<group>"; };
 		E43AEBF62CBE1C4500C7A322 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -113,7 +115,6 @@
 		E480FA202CBE3B9E00EE1210 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		E491606B2CBC9341009294AA /* Solo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E491606E2CBC9341009294AA /* SoloApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloApp.swift; sourceTree = "<group>"; };
-		E49160722CBC9341009294AA /* RunModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunModel.swift; sourceTree = "<group>"; };
 		E49160742CBC9346009294AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E49160772CBC9346009294AA /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E491607D2CBC9347009294AA /* SoloTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoloTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,10 +125,10 @@
 		E4922E672CC95D3B00C163EA /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		E4922E6A2CCB10E200C163EA /* CapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleView.swift; sourceTree = "<group>"; };
 		E493F03A2CBF950700D023AE /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
-		E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionLaunchView.swift; sourceTree = "<group>"; };
+		E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionUpgradeView.swift; sourceTree = "<group>"; };
 		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
+		E4AD21762D84005A004D1AB5 /* TimeChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeChartsView.swift; sourceTree = "<group>"; };
 		E4B7F43B2D606C61006AE328 /* Solo Running.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Solo Running.storekit"; path = "Solo/Utils/Solo Running.storekit"; sourceTree = "<group>"; };
-		E4BB6EB62CDCA96000932C4C /* LocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationModel.swift; sourceTree = "<group>"; };
 		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
 		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E4C508B22CC372BD00B23CFE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -137,6 +138,9 @@
 		E4C509182CC3762900B23CFE /* SoloLiveWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloLiveWidget.swift; sourceTree = "<group>"; };
 		E4C5091A2CC3762C00B23CFE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E4C5091C2CC3762C00B23CFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E4D4694D2D7E176700223BD3 /* LoadDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDataView.swift; sourceTree = "<group>"; };
+		E4D4694F2D7E800400223BD3 /* Tips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tips.swift; sourceTree = "<group>"; };
+		E4D469512D7E8EB500223BD3 /* StepsChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepsChartsView.swift; sourceTree = "<group>"; };
 		E4D740062CD0B9A4001461B7 /* RunDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailView.swift; sourceTree = "<group>"; };
 		E4D7400A2CD0C718001461B7 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		E4F532502D485A050064CF02 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -208,6 +212,7 @@
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
 				E4F532522D485FFF0064CF02 /* SubscriptionManager.swift */,
+				E4D4694F2D7E800400223BD3 /* Tips.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -215,9 +220,7 @@
 		E43AEBF52CBDBC4D00C7A322 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				E43AEBEF2CBCE94500C7A322 /* UserModel.swift */,
-				E49160722CBC9341009294AA /* RunModel.swift */,
-				E4BB6EB62CDCA96000932C4C /* LocationModel.swift */,
+				E43AEBEF2CBCE94500C7A322 /* SoloSchema.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -227,6 +230,7 @@
 			children = (
 				E4922E672CC95D3B00C163EA /* LaunchView.swift */,
 				E4F532502D485A050064CF02 /* OnboardingView.swift */,
+				E4D4694D2D7E176700223BD3 /* LoadDataView.swift */,
 				E43AEBF82CBE268F00C7A322 /* MainView.swift */,
 			);
 			path = Main;
@@ -324,7 +328,7 @@
 		E4A9C2292D4A914F00C35CA6 /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
-				E4A9C22A2D4A917A00C35CA6 /* SubscriptionLaunchView.swift */,
+				E4A9C22A2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift */,
 				E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */,
 				E45A4D0E2D73A57E00245D90 /* RecentPurchasesView.swift */,
 			);
@@ -335,6 +339,8 @@
 			isa = PBXGroup;
 			children = (
 				E43AEBEA2CBCCD6100C7A322 /* DashboardView.swift */,
+				E4D469512D7E8EB500223BD3 /* StepsChartsView.swift */,
+				E4AD21762D84005A004D1AB5 /* TimeChartsView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -544,30 +550,32 @@
 				E4F532512D485A050064CF02 /* OnboardingView.swift in Sources */,
 				E43AEBE92CBCAC8400C7A322 /* Constants.swift in Sources */,
 				E43AEBEB2CBCCD6100C7A322 /* DashboardView.swift in Sources */,
-				E43AEBF02CBCE94500C7A322 /* UserModel.swift in Sources */,
+				E43AEBF02CBCE94500C7A322 /* SoloSchema.swift in Sources */,
 				E453FFB22CCF5D22008CE2F6 /* RunHistoryView.swift in Sources */,
 				E4922E6B2CCB10E200C163EA /* CapsuleView.swift in Sources */,
 				E45A4D0F2D73A57E00245D90 /* RecentPurchasesView.swift in Sources */,
 				E43AEBF92CBE268F00C7A322 /* MainView.swift in Sources */,
 				E480FA212CBE3B9E00EE1210 /* ProfileView.swift in Sources */,
 				E461C9682CDF355A00E3D69B /* DraggablePin.swift in Sources */,
+				E4D469522D7E8EB500223BD3 /* StepsChartsView.swift in Sources */,
 				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
+				E4D469502D7E800400223BD3 /* Tips.swift in Sources */,
 				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
-				E4A9C22B2D4A917A00C35CA6 /* SubscriptionLaunchView.swift in Sources */,
+				E4A9C22B2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
 				E43AEBF22CBCEB1F00C7A322 /* ProvideCredentialsView.swift in Sources */,
 				E47E67222CCE084A006941B1 /* Functions.swift in Sources */,
+				E4D4694E2D7E176700223BD3 /* LoadDataView.swift in Sources */,
 				E43AEBEE2CBCD5E400C7A322 /* LaunchManager.swift in Sources */,
-				E4BB6EB72CDCA96000932C4C /* LocationModel.swift in Sources */,
 				E480FA1F2CBE3B7800EE1210 /* RunView.swift in Sources */,
 				E4F532532D485FFF0064CF02 /* SubscriptionManager.swift in Sources */,
 				E461C9662CDF214800E3D69B /* EditCustomPinsView.swift in Sources */,
-				E49160732CBC9341009294AA /* RunModel.swift in Sources */,
 				E457B8102CD8595500FD6D90 /* EditProfileView.swift in Sources */,
 				E4D740072CD0B9A4001461B7 /* RunDetailView.swift in Sources */,
 				E4A9C22D2D4AA11200C35CA6 /* SubscriptionEditView.swift in Sources */,
 				E491606F2CBC9341009294AA /* SoloApp.swift in Sources */,
+				E4AD21772D84005A004D1AB5 /* TimeChartsView.swift in Sources */,
 				E493F03B2CBF950700D023AE /* LocationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
