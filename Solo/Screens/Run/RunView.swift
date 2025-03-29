@@ -1318,12 +1318,6 @@ struct RunView: View {
                             
                             Spacer()
                             
-                            Text("Add a run")
-                                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                .foregroundColor(isDarkMode ? .white : .black)
-                            
-                            Spacer()
-                            
                         }
                         .padding(.horizontal, 12)
                     }
