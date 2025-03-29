@@ -278,7 +278,7 @@ struct RunDetailView: View {
                                             .foregroundStyle(.white)
                                             .bold()
                                         
-                                        Text("Your average pace describes the time it takes to travel a unit of distance. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
+                                        Text("Your average pace describes the time it takes to travel a certain unit of distance. Solo calculates this as soon as you complete a run. This differs from your active pace, which pro users can view down below as a graph for more details. If your graph is flat, it could mean your movement wasn't active enough."
                                         )
                                         .foregroundStyle(TEXT_LIGHT_GREY)
                                         .font(.subheadline)
@@ -627,9 +627,9 @@ struct RunDetailView: View {
                                         }
                                     }
                                 } label: {
-                                    Image(systemName: "ellipsis.circle.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
+                                    Image(systemName: "ellipsis.circle")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white)
                                         .padding(2)
                                 }
                                 .alert("Are you sure you want to delete this run?", isPresented: $showDeleteDialog) {

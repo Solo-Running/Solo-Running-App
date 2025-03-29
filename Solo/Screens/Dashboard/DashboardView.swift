@@ -390,7 +390,7 @@ struct DashboardView: View {
                                 .foregroundStyle(.white)
                                 .fontWeight(.bold)
                             
-                            Text("Weekly Avg")
+                            Text("Avg this week")
                                 .font(.caption)
                                 .foregroundStyle(TEXT_LIGHT_GREY)
                             
