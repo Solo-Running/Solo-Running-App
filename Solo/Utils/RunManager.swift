@@ -17,12 +17,13 @@ import ActivityKit
 struct SoloLiveWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
-        var secondsElapsed: Int
         var steps: Int
     }
 
     // Fixed non-changing properties about your activity go here!
-    var timerName: String
+    var startTime: Date
+    var endTime: Date
+
 }
 
 
@@ -85,44 +86,6 @@ class ActivityManager: NSObject, ObservableObject {
         }
     }
         
-   func startTimer() {
-       // Create a timer that fires every second
-       timer = Timer.publish(every: 1, on: .main, in: .common)
-           .autoconnect()
-           .sink { [weak self] _ in
-               DispatchQueue.main.async {
-                   self?.secondsElapsed += 1
-                   self!.formattedDuration = Duration.seconds(self!.secondsElapsed).formatted(
-                      .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                  )
-                   self?.updateLiveActivity()
-               }
-           }
-   }
-    
-    func pauseTimer() {
-       timer?.cancel()
-       timer = nil
-       isPaused = true
-    }
-
-    func resumeTimer() {
-       if isPaused {
-           startTimer()
-           isPaused = false
-       }
-    }
-    
-    func stopTimer() {
-        // Stop the timer
-        timer?.cancel()
-        timer = nil
-    }
-    
-    func isTimerPaused() -> Bool {
-        return isPaused
-    }
-  
     
     func clearData() {
         DispatchQueue.main.async {
@@ -161,9 +124,9 @@ class ActivityManager: NSObject, ObservableObject {
         await startLiveActivity { _ in
 
             if self.runStartTime != nil && self.isPedometerAvailable {
-                self.startTimer()
+                // self.startTimer()
                 
-                // The pedometer will track distance and steps. I ignored CMPedometer pace for now since it's a bit inaccurate
+                // The pedometer will track distance and steps
                 self.pedometer.startUpdates(from: self.runStartTime!) { (data, error) in
                     if let error = error {
                         print("pedometer start updates  error: \(error)")
@@ -213,7 +176,7 @@ class ActivityManager: NSObject, ObservableObject {
             self.runEndTime = Date.now
         }
         
-        stopTimer()
+        //stopTimer()
         
         await endLiveActivity()
         pedometer.stopUpdates()
@@ -242,7 +205,7 @@ class ActivityManager: NSObject, ObservableObject {
     func startLiveActivity(completion: @escaping (Bool) -> Void) async {
         
         if ActivityAuthorizationInfo().areActivitiesEnabled {
-            let attributes = SoloLiveWidgetAttributes(timerName: "time elapsed")
+            let attributes = SoloLiveWidgetAttributes(startTime: runStartTime!, endTime: <#T##Date#>)
             let initialState = SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0)
             
             activity = try? Activity.request(
@@ -291,3 +254,42 @@ class ActivityManager: NSObject, ObservableObject {
     }
 }
     
+
+//   func startTimer() {
+//       // Create a timer that fires every second
+//       timer = Timer.publish(every: 1, on: .main, in: .common)
+//           .autoconnect()
+//           .sink { [weak self] _ in
+//               DispatchQueue.main.async {
+//                   self?.secondsElapsed += 1
+//                   self!.formattedDuration = Duration.seconds(self!.secondsElapsed).formatted(
+//                      .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+//                  )
+//                   self?.updateLiveActivity()
+//               }
+//           }
+//   }
+    
+//    func pauseTimer() {
+//       timer?.cancel()
+//       timer = nil
+//       isPaused = true
+//    }
+//
+//    func resumeTimer() {
+//       if isPaused {
+//           startTimer()
+//           isPaused = false
+//       }
+//    }
+//
+//    func stopTimer() {
+//        // Stop the timer
+//        timer?.cancel()
+//        timer = nil
+//    }
+    
+//    func isTimerPaused() -> Bool {
+//        return isPaused
+//    }
+//
