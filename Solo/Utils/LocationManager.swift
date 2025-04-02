@@ -82,8 +82,9 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
         } else {
             isAuthorized = false
             manager.requestWhenInUseAuthorization()
+            /// Enable the app to collect location updates while it's in the background.
+            manager.allowsBackgroundLocationUpdates = true
         }
-        
     }
     
     func beginTracking() {
@@ -108,6 +109,7 @@ class LocationManager: NSObject, ObservableObject, MKMapViewDelegate, CLLocation
     // Updates the user location which is reflected on the map 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         userLocation = locations.last
+        
     }
     
     

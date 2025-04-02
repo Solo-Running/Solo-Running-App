@@ -21,10 +21,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>UISupportsDocumentBrowser</key>
-	<false/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>MKDirectionsApplicationSupportedModes</key>
@@ -33,14 +29,15 @@
 	</array>
 	<key>NSUserActivityTypes</key>
 	<array>
-        <string>INSendMessageIntent</string>
-    </array>
+		<string>INSendMessageIntent</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Koulen-Regular.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>location</string>
 		<string>processing</string>
 		<string>remote-notification</string>
 	</array>

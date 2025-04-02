@@ -27,7 +27,7 @@ struct DraggablePin: View {
                 .font(.caption)
                 .foregroundStyle(.yellow)
                 .offset(x: 0, y: -6)
-    }
+        }
         .frame(width: 32, height: 32)
         .animation(.snappy, body:{ content in
             content.scaleEffect(isPinActive ? 1.2 : 1, anchor: .bottom)

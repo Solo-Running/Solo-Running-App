@@ -24,12 +24,12 @@ extension Color {
 struct SoloLiveWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
-        var secondsElapsed: Int
         var steps: Int
     }
 
     // Fixed non-changing properties about your activity go here!
-    var timerName: String
+    var startTime: Date
+    var endTime: Date
 }
 
 func formattedSteps(_ steps: Int) -> String {
@@ -75,16 +75,22 @@ struct SoloLiveWidgetLiveActivity: Widget {
                     
                     VStack(alignment: .leading) {
                         
-                        Text(
-                            Duration.seconds(context.state.secondsElapsed).formatted(
-                               .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                           )
-                        )
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .foregroundStyle(Color(hex: 0x868686 ))
-                        .font(.largeTitle)
-                        .fontWeight(.heavy)
+                        Text(timerInterval: context.attributes.startTime...context.attributes.endTime, countsDown: false, showsHours: true)
+                            .foregroundStyle(Color(hex: 0x868686 ))
+                            .font(.largeTitle)
+                            .fontWeight(.heavy)
+                            .monospacedDigit()
+                        
+//                        Text(
+//                            Duration.seconds(context.state.secondsElapsed).formatted(
+//                               .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
+//                           )
+//                        )
+//                        .monospacedDigit()
+//                        .contentTransition(.numericText())
+//                        .foregroundStyle(Color(hex: 0x868686 ))
+//                        .font(.largeTitle)
+//                        .fontWeight(.heavy)
                         
                         Text("Time")
                             .font(.subheadline)
@@ -162,17 +168,17 @@ struct SoloLiveWidgetLiveActivity: Widget {
 
 extension SoloLiveWidgetAttributes {
     fileprivate static var preview: SoloLiveWidgetAttributes {
-        SoloLiveWidgetAttributes(timerName: "timer")
+        SoloLiveWidgetAttributes(startTime: Date(), endTime: Date())
     }
 }
 
 extension SoloLiveWidgetAttributes.ContentState {
     fileprivate static var smiley: SoloLiveWidgetAttributes.ContentState {
-        SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0 )
+        SoloLiveWidgetAttributes.ContentState(steps: 0 )
      }
      
      fileprivate static var starEyes: SoloLiveWidgetAttributes.ContentState {
-         SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0)
+         SoloLiveWidgetAttributes.ContentState(steps: 0)
      }
 }
 

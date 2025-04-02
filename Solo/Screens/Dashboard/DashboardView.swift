@@ -37,6 +37,9 @@ struct DashboardView: View {
     @State var stepsPercentageChange: Int = 0
     @State var timePercentageChange: Int = 0
     @State var bestPaceInWeek: Int = 0
+    @State private var showRunDetailView: Bool = false  
+    @State private var selectedRun: Run?
+
         
     
     private static var weekAgoDate: Date {
@@ -497,6 +500,7 @@ struct DashboardView: View {
                 .onChange(of: weeklyRuns) { _, _ in
                     generateWeeklyData()
                 }
+                
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     
@@ -566,61 +570,82 @@ struct DashboardView: View {
                     else {
                         // Display past 5 runs in a list
                         ForEach(recentRuns) { run in
-                            NavigationLink(destination: RunDetailView(runData: run)) {
+                            HStack(alignment: .top) {
                                 
-                                HStack(alignment: .top) {
-                                    
-                                    if let data = run.routeImage {
-                                        VStack {
-                                            Image(uiImage: UIImage(data: data)!)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        }
-                                        .frame(width: 80, height: 80 )
-                                        .padding(.trailing, 8)
+                                if let routeImage = run.routeImage {
+                                    VStack {
+                                        Image(uiImage: UIImage(data: routeImage)!)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
                                     }
-                                    
-                                    VStack(alignment: .leading) {
-                                        
-                                        // Grab the abbreviated month and day
-                                        Text(run.startTime.formatted(
-                                            .dateTime
-                                            .day()
-                                            .month(.abbreviated)
-                                        ))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.white)
-                                        .fontWeight(.bold)
-                                        .padding(.bottom, 0)
-                                        
-                                        Text("\(convertDateToTime(date: run.startTime)) - \(convertDateToTime(date: run.endTime))")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .font(.subheadline)
-                                        
-                                        if let endPlacemark = run.endPlacemark {
-                                            HStack(alignment: .center)  {
-                                                Image(systemName: "mappin.circle.fill")
-                                                    .font(.title2)
-                                                    .foregroundStyle(.white, endPlacemark.isCustomLocation ? .yellow : .red) // background, foreground color
-                                                    .font(.system(size: 4))
-                                                
-                                                Text(endPlacemark.name)
-                                                    .foregroundStyle(.white)
-                                                    .font(.system(size: 14))
-                                                    .lineLimit(1)
-                                                    .truncationMode(.tail)
-                                                
-                                                Spacer()
-                                            }
-                                            .padding(.top, 6)
-                                        }
-                                    }
-                                    Spacer()
+                                    .frame(width: 80, height: 80 )
+                                    .padding(.trailing, 8)
                                 }
-                                .padding(.vertical, 8)
+                                
+                                else if let breadCrumbImage = run.breadCrumbImage {
+                                    VStack {
+                                        Image(uiImage: UIImage(data: breadCrumbImage)!)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                    .frame(width: 80, height: 80 )
+                                    .padding(.trailing, 8)
+                                }
+                                else {
+                                    VStack(alignment: .center) {
+                                        Image(systemName: "photo.fill")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .frame(width: 80, height: 80)
+                                            .background(RoundedRectangle(cornerRadius: 8).fill(DARK_GREY))
+                                    }
+                                    .frame(width: 80, height: 80)
+                                    .padding(.trailing, 8)
+                                }
+                                
+                                
+                                VStack(alignment: .leading) {
+                                    
+                                    // Grab the abbreviated month and day
+                                    Text(run.startTime.formatted(
+                                        .dateTime
+                                        .day()
+                                        .month(.abbreviated)
+                                    ))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .fontWeight(.bold)
+                                    .padding(.bottom, 0)
+                                    
+                                    Text("\(convertDateToTime(date: run.startTime)) - \(convertDateToTime(date: run.endTime))")
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .font(.subheadline)
+                                    
+                                    if let endPlacemark = run.endPlacemark {
+                                        HStack(alignment: .center)  {
+                                            Image(systemName: "mappin.circle.fill")
+                                                .font(.title2)
+                                                .foregroundStyle(.white, endPlacemark.isCustomLocation ? .yellow : .red) // background, foreground color
+                                                .font(.system(size: 4))
+                                            
+                                            Text(endPlacemark.name)
+                                                .foregroundStyle(.white)
+                                                .font(.system(size: 14))
+                                                .lineLimit(1)
+                                                .truncationMode(.tail)
+                                            
+                                            Spacer()
+                                        }
+                                        .padding(.top, 6)
+                                    }
+                                }
+                                Spacer()
                             }
-                            .transition(.move(edge: .trailing))
+                            .padding(.vertical, 8)
+                            .onTapGesture {
+                                selectedRun = run
+                            }                            
                         }
                     }
                 }
@@ -630,6 +655,16 @@ struct DashboardView: View {
             }
             .onTapGesture {
                 dashboardChartTip.invalidate(reason: .actionPerformed)
+            }
+            .onChange(of: selectedRun) {_, new in
+                if new != nil {
+                    showRunDetailView = true
+                }
+            }
+            .fullScreenCover(isPresented: $showRunDetailView, onDismiss: {
+                selectedRun = nil
+            }) {
+                RunDetailView(runData: selectedRun!, showRunDetailView: $showRunDetailView)
             }
             .background(.black)
             .toolbarBackground(.black, for: .navigationBar)

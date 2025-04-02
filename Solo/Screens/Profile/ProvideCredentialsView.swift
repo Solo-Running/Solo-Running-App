@@ -18,8 +18,7 @@ struct ProvideCredentialsView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
-    @EnvironmentObject var locationManager: LocationManager
-    @EnvironmentObject var activityManager: ActivityManager
+    @EnvironmentObject var runManager: RunManager
     
     @State private var fullname: String = ""
     @State private var selectedPhoto: PhotosPickerItem?
@@ -86,7 +85,7 @@ struct ProvideCredentialsView: View {
                 if (fullname.isEmpty || selectedPhoto == nil) {
                     showErrorDialog = true
                 }
-                else if !activityManager.isMotionAuthorized || !locationManager.isAuthorized {
+                else if !runManager.isMotionAuthorized || !runManager.isAuthorized {
                     showPermissionsSheet = true
                 }
                 else {
@@ -123,7 +122,7 @@ struct ProvideCredentialsView: View {
         }
         .sheet(isPresented: $showPermissionsSheet, onDismiss: {
             // Check if the user updated their permissions from the settings
-            activityManager.checkAuthorization()
+            runManager.checkPedometerAuthorization()
         }) {
             PermissionsView()
                 .presentationDetents(permissionsSheetDetents)

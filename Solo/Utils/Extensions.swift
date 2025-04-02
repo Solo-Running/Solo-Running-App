@@ -127,3 +127,17 @@ extension UIImage {
     }
 }
 
+
+struct MyLabelStyle: LabelStyle {
+    let isSelected: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            
+            if isSelected {
+                configuration.icon
+            }
+            configuration.title
+        }
+    }
+}
+

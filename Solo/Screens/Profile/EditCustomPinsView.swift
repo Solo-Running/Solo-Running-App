@@ -15,10 +15,10 @@ struct EditCustomPinsView: View {
     
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var subscriptionManager: SubscriptionManager
-
+    
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
     @Binding var showView: Bool
-
+    
     @Query(filter: #Predicate<MTPlacemark> { place in
         return place.isCustomLocation == true
     },sort: \MTPlacemark.timestamp, order: .reverse) var allCustomPinLocations: [MTPlacemark]
@@ -31,8 +31,9 @@ struct EditCustomPinsView: View {
     @State var pinDetailsSheetVisible: Bool = false
     @State var editCustomPinNameSheetVisible: Bool = false
     @State var viewPinAssociatedRunsSheetVisible: Bool = false
-
-    @State private var allPinsSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
+    
+    @State private var allPinsSheetSelectedDetent: PresentationDetent = SheetPosition.peek.detent
+    @State private var allPinsSheetDetents: Set<PresentationDetent> = SheetPosition.detents
     @State private var pinDetailsSheetDetents: Set<PresentationDetent> =  [.fraction(0.25), .medium, .large]
     @State private var editCustomPinNameSheetDetents: Set<PresentationDetent> = [.medium, .large]
     @State private var viewPinAssociatedRunsSheetDetents: Set<PresentationDetent> = [.medium, .large]
@@ -45,12 +46,12 @@ struct EditCustomPinsView: View {
     
     @State var newCustomPinName: String = ""
     @State private var isCustomPinNewNameSaved: Bool = false
-        
+    
     @State var associatedRuns: [Run] = []
     @State var isLoadingAssociatedRuns: Bool = false
-
+    
     @State private var showProAccessPinsDialog: Bool = false
-
+    
     
     func fetchAssociatedRunsForPin(pin: MTPlacemark) async {
         isLoadingAssociatedRuns = true
@@ -76,7 +77,7 @@ struct EditCustomPinsView: View {
     func addCustomLocation() {
         fetchCustomPinLocation() { customPlacemark in
             if let customPlacemark {
-
+                
                 let placemark = MTPlacemark(
                     name: customPlacemark.name ?? "",
                     thoroughfare: customPlacemark.thoroughfare ?? "",
@@ -118,7 +119,7 @@ struct EditCustomPinsView: View {
             }
             if let placemarks = placemarks, let placemark = placemarks.first {
                 print("Retrieved address")
-               completionHandler(placemark)
+                completionHandler(placemark)
             }
             else{
                 print("No Matching Address Found")
@@ -133,7 +134,7 @@ struct EditCustomPinsView: View {
         if !newCustomPinName.isEmpty {
             pinData!.name = newCustomPinName
             isCustomPinNewNameSaved = true
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 newCustomPinName = ""
                 isCustomPinNewNameSaved = false
@@ -166,7 +167,7 @@ struct EditCustomPinsView: View {
             }
         }
     }
-
+    
     
     var body: some View {
         NavigationStack {
@@ -192,17 +193,18 @@ struct EditCustomPinsView: View {
                     .task(id: selectedPlaceMark) {
                         if let selection = selectedPlaceMark  {
                             pinData = nil
-
+                            
                             withAnimation(.easeOut) {
                                 pinData = selection
-                                allPinsSheetVisible = false
+                                allPinsSheetSelectedDetent = SheetPosition.peek.detent
+                                pinDetailsSheetVisible = true
                             }
                             
                             // move to the corresponding pin on the map if the user taps on a list entry
                             withAnimation {
                                 cameraPosition = .region(MKCoordinateRegion(
                                     center: pinData!.getLocation(),
-                                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                                 ))
                             }
                         }
@@ -236,405 +238,405 @@ struct EditCustomPinsView: View {
                 
                 // List of all custom pins
                 .sheet(isPresented: $allPinsSheetVisible) {
-                        VStack {
-                            HStack {
-                                
-                                Text("All Locations")
-                                    .foregroundStyle(.white)
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                
-                                Spacer()
-                                
-                                Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
-                                    .tint(.yellow)
-                                    .toggleStyle(.button)
-                                    .labelStyle(.iconOnly)
-                                    .font(.title)
-                                
-                                if(usePin) {
-                                    let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
-                                    
-                                    Button {
-                                        if hasAccess {
-                                            addCustomLocation()
-                                        } else {
-                                            // show pro access dialog
-                                            showProAccessPinsDialog = true
-                                        }
-                                        
-                                    } label: {
-                                        Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
-                                            .frame(width: 48, height: 48)
-                                            .foregroundStyle(.white)
-                                    }
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .leading).combined(with: .opacity),
-                                        removal: .move(edge: .leading).combined(with: .opacity))
-                                    )
-                                    .animation(.easeOut(duration: 0.2), value: usePin)
-                                }
-                                
-                            }
-                            .padding([.leading], 16)
-                            .padding([.trailing], 8)
+                    VStack {
+                        HStack {
                             
+                            Text("All Locations")
+                                .foregroundStyle(.white)
+                                .font(.title2)
+                                .fontWeight(.semibold)
                             
-                            if !allCustomPinLocations.isEmpty {
-                                List {
-                                    ForEach(allCustomPinLocations, id: \.id) { pin in
-                                        VStack(alignment: .leading) {
-                                            Text(pin.name)
-                                                .font(.title3.bold())
-                                                .foregroundStyle(.white)
-                                            
-                                            HStack(spacing: 3) {
-                                                
-                                                // Street
-                                                Text(pin.thoroughfare)
-                                                    .foregroundStyle(.gray)
-                                                
-                                                // City
-                                                Text(pin.locality)
-                                                    .foregroundStyle(.gray)
-                                                
-                                                // State
-                                                Text(pin.administrativeArea)
-                                                    .foregroundStyle(.gray)
-                                            }
-                                        }
-                                        .onTapGesture {
-                                            
-                                            selectedPlaceMark = pin
-                                            pinData = pin
-                                            
-                                            withAnimation(.easeOut) {
-                                                allPinsSheetVisible = false
-                                                pinDetailsSheetVisible = true
-                                            }
-                                            
-                                            // move to the corresponding pin on the map if the user taps on a list entry
-                                            withAnimation {
-                                                cameraPosition = .region(MKCoordinateRegion(
-                                                    center: pinData!.getLocation(),
-                                                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                                                ))
-                                            }
-                                        }
-                                        .listRowInsets(EdgeInsets(top: pin == allCustomPinLocations.first ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
-                                        
-                                    }
-                                    .listRowBackground(Color.clear)
-                                    .listStyle(.plain)
-                                }
-                                .scrollContentBackground(.hidden)
-                            }
+                            Spacer()
                             
-                            else {
-                                ScrollView(showsIndicators: false) {
-                                    ContentUnavailableView(
-                                        "No pinned locations were found",
-                                        systemImage: "exclamationmark.magnifyingglass",
-                                        description: Text("You can add new pins using the pin icon above. ")
-                                    )
-                                    .padding(.horizontal, 8)
-                                }
-                            }
-                        }
-                        .padding(.top, 16)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .interactiveDismissDisabled(true)
-                        .presentationDetents(allPinsSheetDetents) //selection: $allPinsSheetSelectedDetent)
-                        .presentationBackground(.black)
-                        .presentationDragIndicator(.visible)
-                        .presentationBackgroundInteraction(.enabled)                    
-                             
-                }
-                
-                
-                // Selected pin details sheet
-                .sheet(item: $pinData) { pin in
-                    ScrollView(showsIndicators: false){
-                        VStack(alignment: .leading) {
+                            Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
+                                .tint(.yellow)
+                                .toggleStyle(.button)
+                                .labelStyle(.iconOnly)
+                                .font(.title)
                             
-                            HStack(alignment: .top) {
-                               
-                                VStack(alignment: .leading) {
-                                    Text(pin.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-                                    
-                                    HStack(spacing: 3) {
-                                        
-                                        // Street
-                                        Text(pin.thoroughfare)
-                                            .foregroundStyle(.gray)
-                                        
-                                        // City
-                                        Text(pin.locality)
-                                            .foregroundStyle(.gray)
-                                        
-                                        // State
-                                        Text(pin.administrativeArea)
-                                            .foregroundStyle(.gray)
-                                    }
-                                }
+                            if(usePin) {
+                                let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
                                 
-                                
-                                Spacer()
-                                
-                                // Custom dismiss button
                                 Button {
-                                    selectedPlaceMark = nil
-                                    pinData = nil
-                                    pinDetailsSheetVisible = false
-                                    allPinsSheetVisible = true
+                                    if hasAccess {
+                                        addCustomLocation()
+                                    } else {
+                                        // show pro access dialog
+                                        showProAccessPinsDialog = true
+                                    }
+                                    
                                 } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.gray)
-                                        .font(.title)
+                                    Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
+                                        .frame(width: 48, height: 48)
+                                        .foregroundStyle(.white)
                                 }
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .leading).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity))
+                                )
+                                .animation(.easeOut(duration: 0.2), value: usePin)
                             }
-                            .padding(.bottom, 16)
                             
-                            VStack(spacing: 16) {
-                                Button  {
-                                    Task {
-                                        viewPinAssociatedRunsSheetVisible = true
-                                    }
-                                    
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "clock.fill")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                        }
+                        .padding([.leading], 16)
+                        .padding([.trailing], 8)
+                        
+                        
+                        if !allCustomPinLocations.isEmpty {
+                            List {
+                                ForEach(allCustomPinLocations, id: \.id) { pin in
+                                    VStack(alignment: .leading) {
+                                        Text(pin.name)
+                                            .font(.title3.bold())
+                                            .foregroundStyle(.white)
                                         
-                                        Text("Past Runs")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                        
-                                        Spacer()
+                                        HStack(spacing: 3) {
+                                            
+                                            // Street
+                                            Text(pin.thoroughfare)
+                                                .foregroundStyle(.gray)
+                                            
+                                            // City
+                                            Text(pin.locality)
+                                                .foregroundStyle(.gray)
+                                            
+                                            // State
+                                            Text(pin.administrativeArea)
+                                                .foregroundStyle(.gray)
+                                        }
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(DARK_GREY)
-                                    .cornerRadius(12)
-                                }
-                                
-                                
-                                Button  {
-                                    editCustomPinNameSheetVisible = true
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "pencil")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                    .onTapGesture {
                                         
-                                        Text("Edit Name")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                        selectedPlaceMark = pin
+                                        pinData = pin
                                         
-                                        Spacer()
+                                        withAnimation(.easeOut) {
+                                            allPinsSheetSelectedDetent = SheetPosition.peek.detent
+                                            pinDetailsSheetVisible = true
+                                        }
+                                        
+                                        // move to the corresponding pin on the map if the user taps on a list entry
+                                        withAnimation {
+                                            cameraPosition = .region(MKCoordinateRegion(
+                                                center: pinData!.getLocation(),
+                                                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                            ))
+                                        }
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(DARK_GREY)
-                                    .cornerRadius(12)
-                                }
-                                
-                                
-                                
-                                Button  {
-                                    deleteCustomPin()
-                                    selectedPlaceMark = nil
-                                    pinData = nil
-                                    allPinsSheetVisible = true
-                                    pinDetailsSheetVisible = false
-                                    
-                                } label: {
-                                    HStack {
-                                        Text("Delete Pin")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_LIGHT_RED)
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(.red)
-                                    .cornerRadius(12)
-                                }
-                                
-                                
-                                VStack(alignment: .center) {
-                                    Image(systemName: "trash")
-                                        .padding(.vertical, 8)
-                                    
-                                    Text("Deleting a custom pin will also delete any runs that reference it.").foregroundStyle(TEXT_LIGHT_GREY)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 16)
+                                    .listRowInsets(EdgeInsets(top: pin == allCustomPinLocations.first ? 0 : 16, leading: 0, bottom: 16, trailing: 0))
                                     
                                 }
-                                .padding(.top, 48)
+                                .listRowBackground(Color.clear)
+                                .listStyle(.plain)
+                            }
+                            .scrollIndicators(.hidden)
+                            .scrollContentBackground(.hidden)
+                        }
+                        
+                        else {
+                            ScrollView(showsIndicators: false) {
+                                ContentUnavailableView(
+                                    "No pinned locations were found",
+                                    systemImage: "exclamationmark.magnifyingglass",
+                                    description: Text("You can add new pins using the pin icon above. ")
+                                )
+                                .padding(.horizontal, 8)
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .interactiveDismissDisabled(true)
-                        .presentationDetents(pinDetailsSheetDetents)
-                        .presentationBackground(.black)
-                        .presentationDragIndicator(.visible)
-                        .presentationBackgroundInteraction(.enabled)
                     }
+                    .padding(.top, 16)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .interactiveDismissDisabled(true)
+                    .presentationDetents(allPinsSheetDetents, selection: $allPinsSheetSelectedDetent)
+                    .presentationBackground(.black)
+                    .presentationDragIndicator(.visible)
+                    .presentationBackgroundInteraction(.enabled)
                     
                     
-                    // Edit custom pin name sheet
-                    .sheet(isPresented: $editCustomPinNameSheetVisible, onDismiss: {
-                        newCustomPinName = ""
-                    }) {
-                        ScrollView(showsIndicators: false) {
-
-                            let oldName = String(pinData?.getName() ?? "")
-                            
-                            VStack(alignment: .leading, spacing: 24) {
+                    
+                    // Selected pin details sheet
+                    .sheet(item: $pinData) { pin in
+                        ScrollView(showsIndicators: false){
+                            VStack(alignment: .leading) {
                                 
-                                HStack {
-                                    Text("Change pin name").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                HStack(alignment: .top) {
+                                    
+                                    VStack(alignment: .leading) {
+                                        Text(pin.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                        
+                                        HStack(spacing: 3) {
+                                            
+                                            // Street
+                                            Text(pin.thoroughfare)
+                                                .foregroundStyle(.gray)
+                                            
+                                            // City
+                                            Text(pin.locality)
+                                                .foregroundStyle(.gray)
+                                            
+                                            // State
+                                            Text(pin.administrativeArea)
+                                                .foregroundStyle(.gray)
+                                        }
+                                    }
+                                    
+                                    
                                     Spacer()
                                     
                                     // Custom dismiss button
                                     Button {
-                                        editCustomPinNameSheetVisible = false
+                                        selectedPlaceMark = nil
+                                        pinData = nil
+                                        pinDetailsSheetVisible = false
                                     } label: {
                                         Image(systemName: "xmark.circle.fill")
                                             .foregroundStyle(.gray)
                                             .font(.title)
                                     }
-                                }                                
-                               
-                                TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
-                                    .foregroundColor(.white)
-                                    .autocapitalization(.none)
-                                    .frame(height: 48)
-                                    .cornerRadius(12)
-                                    .padding(.leading)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
-                                    )
-                            
-                                
-                                Button {
-                                   saveNewCustomPinName()
-                                } label: {
-                                    HStack {
-                                        Text("Save")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_LIGHT_GREEN)
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(LIGHT_GREEN)
-                                    .cornerRadius(12)
                                 }
-                                .sensoryFeedback(.success, trigger: isCustomPinNewNameSaved)
-                            }
-                            .padding(.horizontal, 16)
-                        }
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .padding(.top, 16)
-                        .presentationDetents(editCustomPinNameSheetDetents)
-                        .presentationBackground(.black)
-                        .presentationDragIndicator(.visible)
-                        .presentationBackgroundInteraction(.disabled)
-                        
-                    }
-                    
-                    // Past runs for pin sheet
-                    .sheet(isPresented: $viewPinAssociatedRunsSheetVisible) {
-                        VStack {
-                            HStack {
-                                Text("Past Runs").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
-                                Spacer()
+                                .padding(.bottom, 16)
                                 
-                                // Custom dismiss button
-                                Button {
-                                    viewPinAssociatedRunsSheetVisible = false
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.gray)
-                                        .font(.title)
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            
-                            if associatedRuns.count == 0 {
-                                Spacer()
-                                Text("You have not logged any runs for this location.")
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 32)
-                                Spacer()
-                            } else {
-                                
-                                // Timeline View of associated runs
-                                ScrollView(showsIndicators: false) {
-                                    ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
+                                VStack(spacing: 16) {
+                                    Button  {
+                                        Task {
+                                            viewPinAssociatedRunsSheetVisible = true
+                                        }
                                         
-                                        HStack(alignment: .top, spacing: 12) {
-                                            Circle()
-                                                .fill(BLUE)
-                                                .frame(width: 8, height: 8)
-                                                .overlay(alignment: .top) {
-                                                    if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
-                                                        Rectangle()
-                                                            .fill(BLUE.opacity(0.5))
-                                                            .frame(width: 2, height: 56)
-                                                    }
-                                                    else {
-                                                        Rectangle()
-                                                            .fill(Color.clear)
-                                                    }
-                                                }
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "clock.fill")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
                                             
-                                            VStack(alignment: .leading) {
-                                                
-                                                Text(run.startTime.formatted(
-                                                    .dateTime
-                                                        .weekday(.abbreviated)
-                                                        .month(.abbreviated)
-                                                        .day()
-                                                        .hour()
-                                                        .minute()
-                                                        .hour(.defaultDigits(amPM: .abbreviated))
-                                                ))
-                                                .font(.subheadline)
-                                                
-                                                
-                                                Text("\(run.steps) steps")
-                                                    .font(.caption)
-                                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                            }
-                                            .offset(y: -4)
+                                            Text("Past Runs")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
                                             
                                             Spacer()
                                         }
-                                        .frame(height: 48)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(DARK_GREY)
+                                        .cornerRadius(12)
                                     }
-                                    .listRowBackground(Color.clear)
-                                    .listStyle(.plain)
+                                    
+                                    
+                                    Button  {
+                                        editCustomPinNameSheetVisible = true
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "pencil")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Text("Edit Name")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                            
+                                            Spacer()
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(DARK_GREY)
+                                        .cornerRadius(12)
+                                    }
+                                    
+                                    
+                                    
+                                    Button  {
+                                        deleteCustomPin()
+                                        selectedPlaceMark = nil
+                                        pinData = nil
+                                        allPinsSheetVisible = true
+                                        pinDetailsSheetVisible = false
+                                        
+                                    } label: {
+                                        HStack {
+                                            Text("Delete Pin")
+                                                .fontWeight(.semibold)
+                                                .foregroundStyle(TEXT_LIGHT_RED)
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(.red)
+                                        .cornerRadius(12)
+                                    }
+                                    
+                                    
+                                    VStack(alignment: .center) {
+                                        Image(systemName: "trash")
+                                            .padding(.vertical, 8)
+                                        
+                                        Text("Deleting a custom pin will also delete any runs that reference it.").foregroundStyle(TEXT_LIGHT_GREY)
+                                            .multilineTextAlignment(.center)
+                                            .padding(.horizontal, 16)
+                                        
+                                    }
+                                    .padding(.top, 48)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .interactiveDismissDisabled(true)
+                            .presentationDetents(pinDetailsSheetDetents)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                            .presentationBackgroundInteraction(.enabled)
+                        }
+                        
+                        
+                        // Edit custom pin name sheet
+                        .sheet(isPresented: $editCustomPinNameSheetVisible, onDismiss: {
+                            newCustomPinName = ""
+                        }) {
+                            ScrollView(showsIndicators: false) {
+                                
+                                let oldName = String(pinData?.getName() ?? "")
+                                
+                                VStack(alignment: .leading, spacing: 24) {
+                                    
+                                    HStack {
+                                        Text("Change pin name").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                        Spacer()
+                                        
+                                        // Custom dismiss button
+                                        Button {
+                                            editCustomPinNameSheetVisible = false
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundStyle(.gray)
+                                                .font(.title)
+                                        }
+                                    }
+                                    
+                                    TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
+                                        .foregroundColor(.white)
+                                        .autocapitalization(.none)
+                                        .frame(height: 48)
+                                        .cornerRadius(12)
+                                        .padding(.leading)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                                        )
+                                    
+                                    
+                                    Button {
+                                        saveNewCustomPinName()
+                                    } label: {
+                                        HStack {
+                                            Text("Save")
+                                                .fontWeight(.semibold)
+                                                .foregroundStyle(TEXT_LIGHT_GREEN)
+                                        }
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(LIGHT_GREEN)
+                                        .cornerRadius(12)
+                                    }
+                                    .sensoryFeedback(.success, trigger: isCustomPinNewNameSaved)
                                 }
                                 .padding(.horizontal, 16)
-                                .scrollContentBackground(.hidden)
+                            }
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .padding(.top, 16)
+                            .presentationDetents(editCustomPinNameSheetDetents)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                            .presentationBackgroundInteraction(.disabled)
+                            
+                        }
+                        
+                        // Past runs for pin sheet
+                        .sheet(isPresented: $viewPinAssociatedRunsSheetVisible) {
+                            VStack {
+                                HStack {
+                                    Text("Past Runs").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                    Spacer()
+                                    
+                                    // Custom dismiss button
+                                    Button {
+                                        viewPinAssociatedRunsSheetVisible = false
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.gray)
+                                            .font(.title)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                
+                                if associatedRuns.count == 0 {
+                                    Spacer()
+                                    Text("You have not logged any runs for this location.")
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 32)
+                                    Spacer()
+                                } else {
+                                    
+                                    // Timeline View of associated runs
+                                    ScrollView(showsIndicators: false) {
+                                        ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
+                                            
+                                            HStack(alignment: .top, spacing: 12) {
+                                                Circle()
+                                                    .fill(BLUE)
+                                                    .frame(width: 8, height: 8)
+                                                    .overlay(alignment: .top) {
+                                                        if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
+                                                            Rectangle()
+                                                                .fill(BLUE.opacity(0.5))
+                                                                .frame(width: 2, height: 56)
+                                                        }
+                                                        else {
+                                                            Rectangle()
+                                                                .fill(Color.clear)
+                                                        }
+                                                    }
+                                                
+                                                VStack(alignment: .leading) {
+                                                    
+                                                    Text(run.startTime.formatted(
+                                                        .dateTime
+                                                            .weekday(.abbreviated)
+                                                            .month(.abbreviated)
+                                                            .day()
+                                                            .hour()
+                                                            .minute()
+                                                            .hour(.defaultDigits(amPM: .abbreviated))
+                                                    ))
+                                                    .font(.subheadline)
+                                                    
+                                                    
+                                                    Text("\(run.steps) steps")
+                                                        .font(.caption)
+                                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                                }
+                                                .offset(y: -4)
+                                                
+                                                Spacer()
+                                            }
+                                            .frame(height: 48)
+                                        }
+                                        .listRowBackground(Color.clear)
+                                        .listStyle(.plain)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .scrollContentBackground(.hidden)
+                                }
+                            }
+                            .frame(maxHeight: .infinity, alignment: .top)
+                            .padding(.top, 16)
+                            .presentationDetents(viewPinAssociatedRunsSheetDetents)
+                            .presentationBackground(.black)
+                            .presentationDragIndicator(.visible)
+                            .presentationBackgroundInteraction(.disabled)
+                            .onAppear {
+                                Task {
+                                    await fetchAssociatedRunsForPin(pin: pinData!)
+                                }
                             }
                         }
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .padding(.top, 16)
-                        .presentationDetents(viewPinAssociatedRunsSheetDetents)
-                        .presentationBackground(.black)
-                        .presentationDragIndicator(.visible)
-                        .presentationBackgroundInteraction(.disabled)
-                        .onAppear {
-                            Task {
-                                await fetchAssociatedRunsForPin(pin: pinData!)
-                            }
-                        }
+                        
                     }
-                   
+                    
                 }
-                   
                 
                 
                 HStack {

@@ -18,8 +18,7 @@ struct SoloApp: App {
     @State var appState = AppState()
     @State var isLoading = false
     @State var launchManager = LaunchStateManager()
-    @StateObject var locationManager = LocationManager()
-    @StateObject var activityManager = ActivityManager()
+    @StateObject var runManager = RunManager()
     @StateObject var subscriptionManager = SubscriptionManager()
     
     // Initialize the model container for persistent storage operations
@@ -78,8 +77,7 @@ struct SoloApp: App {
 
             }
             .environment(launchManager)
-            .environmentObject(locationManager)
-            .environmentObject(activityManager)
+            .environmentObject(runManager)
             .environmentObject(subscriptionManager)
             .modelContainer(modelContainer)
             .onAppear {

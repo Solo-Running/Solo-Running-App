@@ -11,55 +11,99 @@ import SwiftData
 import Charts
 
 struct ExportableImageCard: View {
-    var image: UIImage
+    var image: UIImage?
     var runData: Run
     
     var body: some View {
+        
+        
         VStack {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 200, height: 200)
             
-            VStack(alignment: .leading, spacing: 8) {
-                
-                VStack(alignment: .leading) {
-                    Text(runData.endPlacemark!.name)
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                    
-                    Text("\(convertDateToTime(date: runData.startTime)) - \(convertDateToTime(date: runData.endTime))")
-                        .font(.caption)
-                        .foregroundStyle(TEXT_LIGHT_GREY)
+            ZStack(alignment: .topTrailing) {
+                if let routeImage = image {
+                    Image(uiImage: routeImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 600, height: 600)
+                }
+                else {
+                    VStack(alignment: .center, spacing: 8) {
+                        Image(systemName: "photo.fill")
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                        
+                        Text("No image was found")
+                            .font(.subheadline)
+                            .foregroundStyle(TEXT_LIGHT_GREY)
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 600)
                 }
                 
-                HStack(alignment: .center, spacing: 8){
+                HStack {
+                    Spacer()
                     
-                    Text("\(runData.steps) steps")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(DARK_GREY))
-                        .foregroundColor(.white)
+                    if runData.isDarkMode {
+                        Image("SoloText")
+                            .resizable()
+                            .frame(width: 120, height: 28)
+                    } else {
+                        Image("SoloText")
+                            .resizable()
+                            .frame(width: 120, height: 28)
+                            .colorInvert()
+                    }
+                }
+                .padding(16)
+            }
+            
+            
+            HStack(alignment: .center) {
+                                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Time")
+                        .font(.subheadline)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
+                    
+                    Text(formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
+                        .font(.title)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Steps")
+                        .font(.subheadline)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
+                    
+                    Text("\(runData.steps)")
+                        .font(.title)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
+                        .fontWeight(.semibold)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Miles")
+                        .font(.subheadline)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
                     
                     Text(String(format:"%.2f mi", runData.distanceTraveled / 1609.344))
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(DARK_GREY))
-                        .foregroundColor(.white)
-                    
-                    Spacer()
+                        .font(.title)
+                        .foregroundStyle(runData.isDarkMode ? .white : .black)
+                        .fontWeight(.semibold)
                 }
-                .padding(.bottom, 16)
+                
+                Spacer()
             }
-            .padding(8)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
         }
-        .frame(width: 200)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.black))
+        .frame(width: 600)
+        .background(Rectangle().fill(runData.isDarkMode ? .black : .white))
     }
 }
 
@@ -72,34 +116,39 @@ struct ExportableImageCard: View {
 struct RunDetailView: View {
     
     var runData: Run!
-    //var onDelete: () -> Void
 
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
-
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @State private var isShowingExpanded: Bool = false
     @Namespace var namespace
     
-    @FocusState var notesIsFocused: Bool
-    
+    @FocusState private var notesIsFocused: Bool
     @State private var paceInformationSheetDetents: Set<PresentationDetent> = [.fraction(0.35), .large]
     @State private var isShowingPaceInformationSheet: Bool = false
     @State private var selectedTime: Int?
     
+    @State private var routeTabItems: [String] = []
     @State private var showDeleteDialog: Bool = false
-
+    @Binding var showRunDetailView: Bool
+    
     let numberOfPaceMarks: Int = 5
     
-    var imageData: UIImage? {
+    var routeImageData: UIImage? {
         guard let imageData = runData?.routeImage else {
             return nil
         }
         return UIImage(data: imageData)
     }
     
-    var imageForShare: Image? {
-        guard let uiImage = imageData else {
+    var breadCrumbImageData: UIImage? {
+        guard let imageData = runData?.breadCrumbImage else {
+            return nil
+        }
+        return UIImage(data: imageData)
+    }
+    
+    var routeImageForShare: Image? {
+        guard let uiImage = routeImageData else {
             return nil
         }
         return Image(uiImage: uiImage)
@@ -112,30 +161,28 @@ struct RunDetailView: View {
         }
     }
     
-    @MainActor func exportedImage() -> Image {
-        let renderer = ImageRenderer(content: ExportableImageCard(image: imageData!, runData: runData))
+    @MainActor func exportedRouteImage() -> Image {
+        let renderer = ImageRenderer(content: ExportableImageCard(image: routeImageData, runData: runData))
         renderer.scale = UIScreen.main.scale
-        return Image(uiImage: renderer.uiImage!.withCornerRadius(12).withBackground(color: .clear))
-
+        return Image(uiImage: renderer.uiImage!.withBackground(color: .clear))
     }
  
+    @MainActor func exportedBreadCrumbImage() -> Image {
+        let renderer = ImageRenderer(content: ExportableImageCard(image: breadCrumbImageData, runData: runData))
+        renderer.scale = UIScreen.main.scale
+        return Image(uiImage: renderer.uiImage!.withBackground(color: .clear))
+    }
+    
     var body: some View {
-        
-        ZStack {
-            if !isShowingExpanded {
-                NavigationStack {
+        NavigationStack {
+            ZStack {
+                if !isShowingExpanded {
                     ScrollView(showsIndicators: false) {
                         
                         // Run statistics section
                         VStack(alignment: .leading) {
                             
                             HStack(alignment: .center) {
-                                
-//                                Text("Statistics")
-//                                    .font(.title3)
-//                                    .foregroundStyle(TEXT_LIGHT_GREY)
-//                                    .fontWeight(.semibold)
-                               
                                 
                                 CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: formattedElapsedTime(from: runData.startTime, to: runData.endTime) )
                                 
@@ -145,10 +192,8 @@ struct RunDetailView: View {
                                     .foregroundStyle(TEXT_LIGHT_GREY)
                                     .font(.subheadline)
                                     .multilineTextAlignment(.leading)
-                                
                             }
-                            .padding(.top, 24)
-                                    
+                            
                             
                             
                             // Total Steps Card
@@ -285,7 +330,7 @@ struct RunDetailView: View {
                                     }
                                     .padding(.top, 16)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                   
+                                    
                                     
                                     VStack(alignment: .leading) {
                                         HStack(alignment: .center) {
@@ -317,20 +362,20 @@ struct RunDetailView: View {
                                     
                                     
                                     VStack(alignment: .leading) {
-
+                                        
                                         
                                         if let paceArray = runData.paceArray, !paceArray.isEmpty  {
                                             
                                             let sortedPaceArray = paceArray.sorted { $0.timeSeconds < $1.timeSeconds }
-
+                                            
                                             let slowestPace = sortedPaceArray.max { item1, item2 in
                                                 return item2.pace > item1.pace
                                             }?.pace ?? 0
-                                                                                        
+                                            
                                             
                                             let visibleDomain: Int = {
                                                 let minutes = secondsToMinutes(seconds: runData.elapsedTime)
-
+                                                
                                                 switch minutes {
                                                 case 0...10:
                                                     return 90       // 1 minute
@@ -344,59 +389,12 @@ struct RunDetailView: View {
                                             }()
                                             
                                             Chart {
-                                                /*
-                                                if let pace = selectedPaceForTime {
-                                                    RuleMark(x: .value("Selected Time", pace.timeSeconds))
-                                                        .foregroundStyle(.secondary.opacity(0.3))
-                                                        .annotation(position: .top, overflowResolution: .init(x: .fit(to: .chart), y: .disabled)) {
-                                                            VStack(alignment: .leading) {
-                                                                
-                                                                // Presents the time as 1:20 or 01:20:30
-                                                                let seconds = pace.timeSeconds
-                                                                let hour = pace.timeSeconds / 3600
-                                                                
-                                                                if hour > 0 {
-                                                                    let formattedDuration = Duration.seconds(seconds).formatted(
-                                                                        .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                                                                    )
-                                                                    Text("\(formattedDuration)")
-                                                                        .font(.subheadline)
-                                                                        .bold()
-                                                                } else {
-                                                                    let formattedDuration = Duration.seconds(seconds).formatted(
-                                                                        .time(pattern: .minuteSecond)
-                                                                    )
-                                                                    Text("\(formattedDuration)")
-                                                                        .font(.subheadline)
-                                                                        .bold()
-                                                                }
-                                                                                                                                
-                                                                Text("\(pace.pace) s/m")
-                                                                    .font(.title3)
-                                                                    .bold()
-                                                                                                                           
-                                                            }
-                                                            .padding(8)
-                                                            .frame(width: 154, alignment: .leading)
-                                                            .background(RoundedRectangle(cornerRadius: 8).fill(DARK_GREY))
-                                                        }
-                                                }
-                                                */
-                                                    
                                                 ForEach(sortedPaceArray) { paceData in
                                                     LineMark(
                                                         x: .value("Time", paceData.timeSeconds),
                                                         y: .value("Pace", paceData.pace)
                                                     )
-                                                    //.interpolationMethod(.catmullRom)s
                                                     .foregroundStyle(Color.green)
-                                                    
-                                                    AreaMark(
-                                                        x: .value("Day", paceData.timeSeconds),
-                                                        y: .value("Pace", paceData.pace)
-                                                    )
-                                                    //.interpolationMethod(.catmullRom)
-                                                    .foregroundStyle(GREEN_GRADIENT)
                                                 }
                                             }
                                             .frame(height: 280)
@@ -428,7 +426,7 @@ struct RunDetailView: View {
                                             .chartScrollableAxes(.horizontal)
                                             .chartXVisibleDomain(length: visibleDomain)
                                             .chartXSelection(value: $selectedTime.animation(.spring))
-
+                                            
                                         } else {
                                             VStack(alignment: .center, spacing: 8) {
                                                 Image(systemName: "chart.bar.xaxis")
@@ -458,34 +456,17 @@ struct RunDetailView: View {
                             .presentationBackground(.black)
                             .presentationDragIndicator(.visible)
                         }
-
+                        
                         Spacer().frame(height: 48)
                         
                         // Route data section
-                        VStack(spacing: 16) {
-                            
-                            VStack(alignment: .leading) {
-                                
-                                Text("Route")
-                                    .font(.title3)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .fontWeight(.semibold)
-                                
-                                
-                                Image(uiImage: imageData!)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(height: 340)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .matchedGeometryEffect(id: "image", in: namespace)
-                                    .onTapGesture {
-                                        withAnimation  {
-                                            isShowingExpanded = true
-                                        }
-                                    }
-                                
-                            }
-                            .frame(maxWidth: .infinity)
+                        VStack(alignment: .leading) {
+                         
+                            Text("Route")
+                                .font(.title3)
+                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                .fontWeight(.semibold)
+                                .padding(.bottom, 16)
                             
                             
                             // Route start and end timeline
@@ -512,6 +493,7 @@ struct RunDetailView: View {
                                             
                                         }
                                     }
+                                    
                                     
                                     Divider()
                                     
@@ -542,26 +524,79 @@ struct RunDetailView: View {
                             .frame(maxWidth: .infinity)
                             .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                             
-                            
-                            
-                            // Share image button
-                            Button {
-                            } label: {
-                                ShareLink(item: exportedImage(), preview: SharePreview("\(convertDateToDateTime(date: runData.startTime)) Run", image: exportedImage())) {
-                                    HStack {
-                                        Text("Share Route Photo")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(.white)
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(BLUE)
-                                    .cornerRadius(12)
+                            if routeTabItems.isEmpty  {
+                                Spacer().frame(height: 16)
+                                
+                                VStack(alignment: .center, spacing: 8) {
+                                    Image(systemName: "photo.fill")
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .font(.title)
+                                    
+                                    Text("No route image was found")
+                                        .font(.subheadline)
+                                        .foregroundStyle(TEXT_LIGHT_GREY)
+                                        .fontWeight(.semibold)
                                 }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 360)
+                                .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
                             }
+                            else {
+                                TabView {
+                                    
+                                    ForEach(routeTabItems, id: \.self) { item in
+                                        
+                                        ZStack(alignment: .topLeading) {
+                                            
+                                            Image(uiImage: (item == "route" ? routeImageData : breadCrumbImageData)!)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 360)
+                                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                            
+                                            VStack(alignment: .leading, spacing: 16) {
+                                                
+                                                Text((item == "route") ? "route" : "breadcrumb")
+                                                    .font(.subheadline)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundStyle(item == "route" ? .white : TEXT_LIGHT_GREEN)
+                                                    .padding(8)
+                                                    .background(RoundedRectangle(cornerRadius: 8).fill((item == "route") ? BLUE : DARK_GREEN).opacity(0.8))
+                                            
+                                                
+                                                ShareLink(
+                                                    item: (item == "route" ? exportedRouteImage() : exportedBreadCrumbImage()),
+                                                    preview: SharePreview("\(convertDateToDateTime(date: runData.startTime)) Run", image: (item == "route" ? exportedRouteImage() : exportedBreadCrumbImage())))
+                                                {
+                                                    
+                                                    Circle()
+                                                        .frame(width: 36, height: 36)
+                                                        .foregroundStyle(.ultraThinMaterial)
+                                                        .opacity(0.8)
+                                                        .overlay(
+                                                            Image(systemName: "square.and.arrow.up")
+                                                                .foregroundStyle(.white)
+                                                                .fontWeight(.bold)
+                                                                .offset(y: -2)
+                                                        )
+                                                        
+                                                }
+                                            }
+                                            .padding(16)
+                                        }
+                                    }
+                                }
+                                .tabViewStyle(.page(indexDisplayMode: (routeTabItems.count > 1) ? .always : .never))
+                                .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+                                .frame(height: 450)
+                                .offset(y:-16)
+                                .frame(maxWidth: .infinity)
+                                
+                            }
+                            
                         }
                         
-                        Spacer().frame(height: 48)
+                        Spacer().frame(height: 32)
                         
                         // Notes section
                         VStack(alignment: .leading) {
@@ -591,8 +626,18 @@ struct RunDetailView: View {
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
                     .toolbarBackground(.clear, for: .navigationBar)
-                    .toolbar(.hidden, for: .tabBar)
                     .toolbar {
+                        
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                showRunDetailView = false
+                            } label: {
+                                Image(systemName: "chevron.down")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .padding(2)
+                            }
+                        }
                         
                         ToolbarItem(placement: .principal) {
                             VStack(alignment: .center) {
@@ -638,58 +683,70 @@ struct RunDetailView: View {
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                             modelContext.delete(runData)
                                         }
-                                    
+                                        
                                         // Dimiss this view
-                                        dismiss()
-
+                                        showRunDetailView = false
+                                        //dismiss()
+                                        
                                     }
                                     Button("Cancel", role: .cancel){}
                                 }
                             }
                         }
                     }
+                    
+                }
+                
+                // Showing the expanded route image view
+                else {
+                    
+                    VStack {
+                        
+                        HStack {
+                            Spacer()
+                            
+                            // Custom dismiss button
+                            Button {
+                                withAnimation {
+                                    isShowingExpanded = false
+                                }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.gray)
+                                    .font(.title)
+                            }
+                        }
+                        .padding(16)
+                        
+                        
+                        VStack {
+                            Spacer()
+                            
+                            if let routeImage = routeImageData {
+                                Image(uiImage: routeImage)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .matchedGeometryEffect(id: "image", in: namespace)
+                            }
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .onAppear {
+                if routeImageData != nil {
+                    routeTabItems.append("route")
+                }
+                if breadCrumbImageData != nil {
+                    routeTabItems.append("breadcrumb")
                 }
             }
             
-            // Showing the expanded route image view
-            else {
-                
-                VStack {
-                    
-                    HStack {
-                        Spacer()
-                        
-                        // Custom dismiss button
-                        Button {
-                            withAnimation {
-                                isShowingExpanded = false
-                            }
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.gray)
-                                .font(.title)
-                        }
-                    }
-                    .padding(16)
-                    
-                    
-                    VStack {
-                        Spacer()
-                        
-                        Image(uiImage: imageData!)
-                            .resizable()
-                            .scaledToFit()
-                            .matchedGeometryEffect(id: "image", in: namespace)
-                        
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .toolbar(.hidden, for: .tabBar)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
         }
-        
+        .background(.black)
+        .preferredColorScheme(.dark)
     }
 }
 
