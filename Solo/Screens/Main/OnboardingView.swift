@@ -41,7 +41,6 @@ struct OnboardingView: View {
                                 .multilineTextAlignment(.center)
                             
                             
-//                            Spacer().frame(height: 32)
                         }
                         .tag(SelectedTab.Welcome)
                         

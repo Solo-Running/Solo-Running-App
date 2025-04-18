@@ -24,12 +24,12 @@ extension Color {
 struct SoloLiveWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
-        var secondsElapsed: Int
         var steps: Int
     }
 
     // Fixed non-changing properties about your activity go here!
-    var timerName: String
+    var startTime: Date
+    var endTime: Date
 }
 
 func formattedSteps(_ steps: Int) -> String {
@@ -75,16 +75,11 @@ struct SoloLiveWidgetLiveActivity: Widget {
                     
                     VStack(alignment: .leading) {
                         
-                        Text(
-                            Duration.seconds(context.state.secondsElapsed).formatted(
-                               .time(pattern: .hourMinuteSecond(padHourToLength: 2, fractionalSecondsLength: 0))
-                           )
-                        )
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .foregroundStyle(Color(hex: 0x868686 ))
-                        .font(.largeTitle)
-                        .fontWeight(.heavy)
+                        Text(timerInterval: context.attributes.startTime...context.attributes.endTime, countsDown: false, showsHours: true)
+                            .foregroundStyle(Color(hex: 0x868686 ))
+                            .font(.largeTitle)
+                            .fontWeight(.heavy)
+                            .monospacedDigit()
                         
                         Text("Time")
                             .font(.subheadline)
@@ -100,79 +95,76 @@ struct SoloLiveWidgetLiveActivity: Widget {
             }
             .padding()
             .activityBackgroundTint(Color(hex: 0x1E1E1E))
-//            .activityBackgroundTint(Color(hex: 0x242424).opacity(0.8))
-            
             .activitySystemActionForegroundColor(.white)
+            
         } dynamicIsland: { context in
-            DynamicIsland {
-                    // Expanded Regions
-                    DynamicIslandExpandedRegion(.leading) {
-                        EmptyView() // No visible content
-                    }
-                    DynamicIslandExpandedRegion(.trailing) {
-                        EmptyView() // No visible content
-                    }
-                    DynamicIslandExpandedRegion(.bottom) {
-                        EmptyView() // No visible content
-                    }
-                } compactLeading: {
-                    // Compact leading view content
-                    Text("Compact")
-                } compactTrailing: {
-                    // Compact trailing view content
-                    Text("View")
-                } minimal: {
-                    // Minimal view content
-                    Text("Min")
-                }
-                .keylineTint(Color.clear)
+            
               // Create the presentations that appear in the Dynamic Island.
-//              DynamicIsland {
-//                  
-//                  DynamicIslandExpandedRegion(.leading) {
-//                     Image(systemName: "figure.walk.motion")
-//                          .foregroundStyle(.black)
-//                       .font(.title2)
-//                   }
-//                  
-//                    DynamicIslandExpandedRegion(.trailing) {
-//                      Label {
-//                          Text("\(context.state.secondsElapsed)")
-//                            .multilineTextAlignment(.trailing)
-//                            .frame(width: 50)
-//                            .monospacedDigit()
-//                      } icon: {
-//                          Image(systemName: "timer")
-//                              .foregroundColor(.indigo)
-//                      }
-//                      .font(.title2)
-//                    }
-//              } compactLeading: {
-//                  // Create the compact leading presentation.
-//                  Text(context.attributes.timerName)
-//              } compactTrailing: {
-//                  // Create the compact trailing presentation.
-//                  Text("\(context.state.secondsElapsed)")
-//              } minimal: {
-//                  Text("\(context.state.secondsElapsed)")
-//              }
+              DynamicIsland {
+                  
+                  DynamicIslandExpandedRegion(.leading) {
+                      VStack(alignment: .leading) {
+                          Text("\(formattedSteps(context.state.steps))")
+                              .foregroundStyle(Color(hex: 0x81D32A))
+                              .font(.largeTitle)
+                              .fontWeight(.heavy)
+                          
+                          Text("Steps")
+                              .foregroundStyle(Color(hex: 0x81D32A))
+                              .font(.subheadline)
+                              .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                      }
+                   }
+                  
+                  DynamicIslandExpandedRegion(.trailing) {
+                      VStack(alignment: .leading) {
+                          
+                          Text(timerInterval: context.attributes.startTime...context.attributes.endTime, countsDown: false, showsHours: true)
+                              .foregroundStyle(Color(hex: 0x868686 ))
+                              .font(.largeTitle)
+                              .fontWeight(.heavy)
+                              .monospacedDigit()
+                          
+                          Text("Time")
+                              .font(.subheadline)
+                              .fontWeight(.bold)
+                              .foregroundStyle(Color(hex: 0x868686))
+                          
+                      }
+                  }
+                  
+              } compactLeading: {
+                  // Create the compact leading presentation.
+                  Image(systemName: "timer")
+                      .foregroundStyle(Color(hex: 0x868686))
+              } compactTrailing: {
+                  // Create the compact trailing presentation.
+                  Text(timerInterval: context.attributes.startTime...context.attributes.endTime, countsDown: false, showsHours: true)
+                      .foregroundStyle(Color(hex: 0x868686 ))
+                      .font(.largeTitle)
+                      .fontWeight(.heavy)
+                      .monospacedDigit()
+              } minimal: {
+                  Image(systemName: "timer")
+                      .foregroundStyle(Color(hex: 0x868686))
+              }
           }
     }
 }
 
 extension SoloLiveWidgetAttributes {
     fileprivate static var preview: SoloLiveWidgetAttributes {
-        SoloLiveWidgetAttributes(timerName: "timer")
+        SoloLiveWidgetAttributes(startTime: Date(), endTime: Date())
     }
 }
 
 extension SoloLiveWidgetAttributes.ContentState {
     fileprivate static var smiley: SoloLiveWidgetAttributes.ContentState {
-        SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0 )
+        SoloLiveWidgetAttributes.ContentState(steps: 0 )
      }
      
      fileprivate static var starEyes: SoloLiveWidgetAttributes.ContentState {
-         SoloLiveWidgetAttributes.ContentState(secondsElapsed: 0, steps: 0)
+         SoloLiveWidgetAttributes.ContentState(steps: 0)
      }
 }
 

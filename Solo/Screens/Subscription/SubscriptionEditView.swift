@@ -132,36 +132,36 @@ struct SubscriptionEditView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                Divider()
-                
-                VStack(alignment: .leading) {
-                    
-                    NavigationLink {
-                        RecentPurchasesView()
-                    } label: {
-                        HStack(alignment: .center) {
-                            
-                            VStack(alignment: .leading){
-                                Text("All Purchases")
-                                    .foregroundStyle(.white)
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                
-                                Text("View all past subscription transactions.")
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                    .font(.subheadline)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                .frame(width: 24, height: 24)
-                        }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                    }
-                }
+//                Divider()
+//                
+//                VStack(alignment: .leading) {
+//                    
+//                    NavigationLink {
+//                        RecentPurchasesView()
+//                    } label: {
+//                        HStack(alignment: .center) {
+//                            
+//                            VStack(alignment: .leading){
+//                                Text("All Purchases")
+//                                    .foregroundStyle(.white)
+//                                    .font(.title3)
+//                                    .fontWeight(.semibold)
+//                                
+//                                Text("View all past subscription transactions.")
+//                                    .foregroundStyle(TEXT_LIGHT_GREY)
+//                                    .font(.subheadline)
+//                            }
+//                            
+//                            Spacer()
+//                            
+//                            Image(systemName: "chevron.right")
+//                                .foregroundStyle(TEXT_LIGHT_GREY)
+//                                .frame(width: 24, height: 24)
+//                        }
+//                        .padding()
+//                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+//                    }
+//                }
                 
                 if subscriptionManager.hasSubscriptionExpired() {
                     Button {

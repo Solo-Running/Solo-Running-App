@@ -23,12 +23,26 @@ enum RunStatus: String {
 enum SheetPosition: CGFloat, CaseIterable {
     case peek = 0.25
     case detailed = 0.50
-    case full = 1.0
+    case full = 0.95
 
     var detent: PresentationDetent {
         .fraction(rawValue)
     }
     static let detents = Set(SheetPosition.allCases.map { $0.detent })
+}
+
+enum GeocodingError: Error {
+    case timeout
+    case failedToRetrieve
+    case noMatchingAddress
+}
+
+
+enum BreadCrumbAccuracyOption: Int, CaseIterable {
+    case tenMeters = 10
+    case fiftyMeters = 50
+    case hundredMeters = 100
+    case fiveHundredMeters = 500
 }
 
 /**
@@ -40,8 +54,7 @@ enum SheetPosition: CGFloat, CaseIterable {
 struct RunView: View {
     
     // Environment objects to handle music, location, and activity monitoring
-    @EnvironmentObject var locationManager: LocationManager
-    @EnvironmentObject var activityManager: ActivityManager
+    @EnvironmentObject var runManager: RunManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     @Environment(\.modelContext) private var modelContext
@@ -149,6 +162,9 @@ struct RunView: View {
     // Tracks if timer is paused or playing
     @State private var isPaused: Bool = false
     
+    // Toggle visibility of breadcrumb path
+    @State private var showBreadCrumbPath: Bool = false
+    
     // Confirmation dialog to end the run
     @State private var isShowingEndRunDialog: Bool = false
     
@@ -163,6 +179,9 @@ struct RunView: View {
         
     @State private var isCustomPinNewNameSaved: Bool = false
         
+    @AppStorage("displayBreadCrumbPath") var displayBreadCrumbPath: Bool = true
+    @AppStorage("breadCrumbAccuracy") var breadCrumbAccuracy: Int = BreadCrumbAccuracyOption.tenMeters.rawValue
+
     
     func saveNewCustomPinName() {
         isCustomPinNewNameSaved = false
@@ -182,12 +201,14 @@ struct RunView: View {
     func fetchRoute() async  {
         print("fetching route")
         
-        if disabledFetch {
+        if disabledFetch || runStatus == .startedRun {
             print("route fetch disabled")
             return
         }
         
-        if let userLocation = locationManager.userLocation, let selectedPlaceMark {
+        runManager.resetUserLocation()
+        
+        if let userLocation = runManager.userLocation, let selectedPlaceMark {
             let request = MKDirections.Request()
             let sourcePlacemark = MKPlacemark(coordinate: userLocation.coordinate)
             let routeSource = MKMapItem(placemark: sourcePlacemark)
@@ -205,11 +226,11 @@ struct RunView: View {
             routeDestination = selectedPlaceMark
             
             if let route {
-                locationManager.updateStepCoordinates(steps: route.steps)
+                runManager.updateRouteSteps(steps: route.steps)
                 travelInterval = route.expectedTravelTime
                 
                 let destinationLocation = CLLocation(latitude: routeDestination!.latitude, longitude: routeDestination!.longitude)
-                routeDistance =  Double(route.distance) / 1609.34 //locationManager.userLocation!.distance(from: destinationLocation)
+                routeDistance =  Double(route.distance) / 1609.34 //runManage.userLocation!.distance(from: destinationLocation)
 
                 print("routeDisplaying set to true")
                 routeDisplaying = true
@@ -218,12 +239,6 @@ struct RunView: View {
         }
     }
     
-    enum GeocodingError: Error {
-        case timeout
-        case failedToRetrieve
-        case noMatchingAddress
-    }
-
     
     func fetchCustomPinLocation(completionHandler: @escaping (Result<CLPlacemark, GeocodingError>) -> Void){
         
@@ -292,16 +307,19 @@ struct RunView: View {
         selectedPlaceMark = nil
         routeDestination = nil
         disabledFetch = false
-        
-        locationManager.stepCoordinates.removeAll()
-        locationManager.routeSteps.removeAll()
-        
     }
 
         
-    // Creates a map snapshot image of the user's initial route
-    func captureMapSnapshot(completion: @escaping (UIImage?) -> Void) {
+    // Creates at most two map snapshot images of the user's chosen route and any breadcrumb paths if they opted in
+    func captureRouteSnapshot(completion: @escaping (UIImage?) -> Void) {
+        guard route != nil else {
+            completion(nil)
+            return
+        }
         print("setting up map snapshot configs")
+
+        guard let startPlacemark = runManager.startPlacemark else {return}
+        guard let endPlacemark = runManager.endPlacemark else {return}
 
         let snapshotOptions = MKMapSnapshotter.Options()
         let region = MKCoordinateRegion(route!.polyline.boundingMapRect)
@@ -315,7 +333,7 @@ struct RunView: View {
             )
         )
 
-        snapshotOptions.size =  CGSize(width: 500, height: 500)
+        snapshotOptions.size =  CGSize(width: 600, height: 600)
         snapshotOptions.scale = UIScreen.main.scale
         snapshotOptions.region = paddedRegion
         snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: isDarkMode ? .dark : .light)
@@ -353,14 +371,14 @@ struct RunView: View {
             }
 
             // draw the route polyline on the map
-            context.setLineWidth(10)
+            context.setLineWidth(8)
             context.setLineCap(.round)
-            context.setStrokeColor(UIColor.systemBlue.withAlphaComponent(0.8).cgColor)
+            context.setStrokeColor(UIColor.systemBlue.cgColor)
             context.strokePath()
             print("added mk route polyline")
 
             // Set up the start placemark annotation image
-            let startPoint = snapshot!.point(for: locationManager.startPlacemark!.getLocation())
+            let startPoint = snapshot!.point(for: startPlacemark.getLocation())
             let startAnnotationTintColor = UIColor.systemBlue
             let startAnnotationImage = UIImage(systemName: "location.circle.fill")!.resize(32,32).withTintColor(startAnnotationTintColor).withRenderingMode(.alwaysOriginal)
             
@@ -374,8 +392,8 @@ struct RunView: View {
             startAnnotationImage.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
 
             // Set up the end placemark annotation image
-            let endPoint = snapshot!.point(for: locationManager.endPlacemark!.getLocation())
-            let endAnnotationTintColor = locationManager.endPlacemark!.isCustomLocation ? UIColor.systemYellow : UIColor.systemRed
+            let endPoint = snapshot!.point(for: endPlacemark.getLocation())
+            let endAnnotationTintColor = endPlacemark.isCustomLocation ? UIColor.systemYellow : UIColor.systemRed
             let endAnnotationImage = UIImage(systemName: "mappin.circle.fill")!.resize(32,32).withTintColor(endAnnotationTintColor).withRenderingMode(.alwaysOriginal)
 
             // Draw a circle behind the end annotation
@@ -396,45 +414,125 @@ struct RunView: View {
     }
     
     
-    func lookUpLocation(location: CLLocation, completionHandler: @escaping (MTPlacemark?) -> Void ) {
-        let geocoder = CLGeocoder()
+
+    func captureBreadCrumbSnapshot(completion: @escaping (UIImage?) -> Void) {
         
-        // Look up the location and pass it to the completion handler
-        geocoder.reverseGeocodeLocation(
-        CLLocation(
-            latitude: location.coordinate.latitude,
-            longitude: location.coordinate.longitude),
-            completionHandler: { (placemarks, error) in
-                if error == nil {
-                    
-                    if let firstLocation = placemarks?[0] {
-                        let placemark = MTPlacemark(
-                            name: firstLocation.name ?? "",
-                            thoroughfare: firstLocation.thoroughfare ?? "",
-                            subThoroughfare: firstLocation.subThoroughfare ?? "",
-                            locality: firstLocation.locality ?? "",
-                            subLocality: firstLocation.subLocality ?? "",
-                            administrativeArea: firstLocation.administrativeArea ?? "",
-                            subAdministrativeArea: firstLocation.subAdministrativeArea ?? "",
-                            postalCode: firstLocation.postalCode ?? "",
-                            country: firstLocation.country ?? "",
-                            isoCountryCode: firstLocation.isoCountryCode ?? "",
-                            longitude: firstLocation.location!.coordinate.longitude,
-                            latitude: firstLocation.location!.coordinate.latitude,
-                            isCustomLocation: false,
-                            timestamp: Date(),
-                            nameEditDate: nil
-                        )
-                        completionHandler(placemark)
-                    }
-                }
-                else {
-                    completionHandler(nil)
+        guard runManager.locations.count >= 2 else {
+            print("no breadcrumb path")
+            completion(nil)
+            return
+        }
+        guard runManager.startPlacemark != nil else {
+            print("no start")
+            completion(nil)
+            return
+        }
+        guard runManager.endPlacemark != nil else {
+            print("no end")
+            completion(nil)
+            return
+        }
+
+        print("setting up breadcrumb snapshot configs")
+
+        let snapshotOptions = MKMapSnapshotter.Options()
+        let region = MKCoordinateRegion(runManager.pathBounds)
+        print("path bounds region: \(region)")
+        
+        let paddingPercentage: CLLocationDegrees = 0.05 // Adjust percentage for padding
+        let paddedRegion = MKCoordinateRegion(
+            center: region.center,
+            span: MKCoordinateSpan(
+                latitudeDelta: region.span.latitudeDelta * (1 + paddingPercentage),
+                longitudeDelta: region.span.longitudeDelta * (1 + paddingPercentage)
+            )
+        )
+
+        snapshotOptions.size =  CGSize(width: 600, height: 600)
+        snapshotOptions.scale = UIScreen.main.scale
+        snapshotOptions.region = paddedRegion
+        snapshotOptions.traitCollection = UITraitCollection(userInterfaceStyle: isDarkMode ? .dark : .light)
+
+        let snapshotter = MKMapSnapshotter(options: snapshotOptions)
+
+        // Start request to create the snapshot image
+        snapshotter.start { snapshot, error in
+
+            if let error = error {
+                print("Error capturing snapshot: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+
+            // Draw initial map
+            let image = snapshot!.image
+            UIGraphicsBeginImageContextWithOptions(image.size, true, image.scale)
+            image.draw(at: .zero)
+
+            let context = UIGraphicsGetCurrentContext()!
+            context.beginPath()
+            
+            // Convert route's polyline to the snapshot coordinates
+            let points = runManager.locations.map { MKMapPoint($0.coordinate) }
+
+            for i in 0..<runManager.locations.count{
+                let point = points[i]
+                let coordinate = point.coordinate
+                let pointInSnapshot = snapshot!.point(for: coordinate)
+
+                if i == 0 {
+                    context.move(to: pointInSnapshot)
+                } else {
+                    context.addLine(to: pointInSnapshot)
                 }
             }
-        )
+
+            // draw the route polyline on the map
+            context.setLineWidth(8)
+            context.setLineCap(.round)
+            context.setStrokeColor(UIColor(BLUE).cgColor)
+            context.strokePath()
+            print("added breadcrumb polyline")
+            
+            
+            if route == nil {
+            
+                // Set up the start placemark annotation image
+                let startPoint = snapshot!.point(for: runManager.startPlacemark!.getLocation())
+                let startAnnotationTintColor = UIColor.systemBlue
+                let startAnnotationImage = UIImage(systemName: "location.circle.fill")!.resize(32,32).withTintColor(startAnnotationTintColor).withRenderingMode(.alwaysOriginal)
+                
+                // Draw a circle behind the start annotation
+                let startBackgroundRect = CGRect(origin: CGPoint(x: startPoint.x + 2.5, y: startPoint.y + 2), size: CGSize(width: 24, height: 24))
+                let startBackgroundPath = UIBezierPath(ovalIn: startBackgroundRect)
+                UIColor.white.setFill()
+                startBackgroundPath.fill()
+                
+                // Draw the start placemark image
+                startAnnotationImage.draw(at: CGPoint(x: startPoint.x, y: startPoint.y))
+                
+                // Set up the end placemark annotation image
+                let endPoint = snapshot!.point(for: runManager.endPlacemark!.getLocation())
+                let endAnnotationTintColor = UIColor.systemRed
+                let endAnnotationImage = UIImage(systemName: "mappin.circle.fill")!.resize(32,32).withTintColor(endAnnotationTintColor).withRenderingMode(.alwaysOriginal)
+                
+                // Draw a circle behind the end annotation
+                let endBackgroundRect = CGRect(origin: CGPoint(x: endPoint.x + 2.5 , y: endPoint.y + 2), size: CGSize(width: 24, height: 24))
+                let endBackgroundPath = UIBezierPath(ovalIn: endBackgroundRect)
+                UIColor.white.setFill()
+                endBackgroundPath.fill()
+                
+                // Draw the end placemark image
+                endAnnotationImage.draw(at: CGPoint(x: endPoint.x, y: endPoint.y))
+            }
+            
+            let finalImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+
+            print("returning final image")
+            completion(finalImage)
+        }
     }
-    
     
  
     // When deleting a custom location, delete all runs that reference the location
@@ -532,49 +630,92 @@ struct RunView: View {
     // Saves the run data to swift data
     func saveRunData(completion: @escaping (Result<Bool, Error>) -> Void) {
 
-        captureMapSnapshot { image in
+        guard runManager.endPlacemark != nil else {
+            completion(.success(false))
+            return
+        }
+        
+        guard runManager.startPlacemark != nil else {
+            completion(.success(false))
+            return
+        }
+        
+        var routePNG: Data?
+        var breadCrumbPNG: Data?
+        
+        let dispatchGroup = DispatchGroup()
 
-            if let image = image {
-                // convert map image to data
-                let data = image.pngData()
+        if !runManager.isFreeRunning && route != nil {
+            dispatchGroup.enter() // Enter DispatchGroup before starting the task
 
-                if data == nil {
-                    let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not convert image to data"])
-                    completion(.failure(error))
+            captureRouteSnapshot { image in
+                if let routeImage = image {
+                    // convert map image to data
+                    let png = routeImage.pngData()
+                    if png == nil {
+                        let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not convert route image to data"])
+                        completion(.failure(error))
+                    }
+                    
+                    routePNG = png
                 }
+                dispatchGroup.leave()
 
-                
-                let newRun = Run(
-                    isDarkMode: isDarkMode,
-                    postedDate: Date.now,
-                    startTime: activityManager.runStartTime!,
-                    endTime: activityManager.runEndTime!,
-                    elapsedTime: activityManager.secondsElapsed,
-                    distanceTraveled: activityManager.distanceTraveled,
-                    routeDistance: locationManager.routeDistance,
-                    steps: activityManager.steps,
-                    startPlacemark: locationManager.startPlacemark!,
-                    endPlacemark: locationManager.endPlacemark!,
-                    avgSpeed: activityManager.averageSpeed,
-                    avgPace: activityManager.averagePace,
-                    routeImage: data!,
-                    paceArray: activityManager.activePaceArray
-                )
+            }
+        }
+            
+        if runManager.isFreeRunning || runManager.didOptForBreadCrumbTracking {
+            dispatchGroup.enter() // Enter DispatchGroup before starting the task
 
-                // Save the data
-                modelContext.insert(newRun)
-                do {
-                    try modelContext.save()
-                    completion(.success(true))
-                } catch {
-                     completion(.failure(error))
+            captureBreadCrumbSnapshot { image in
+                if let breadCrumbImage = image {
+                    
+                    // convert map image to data
+                    let png = breadCrumbImage.pngData()
+                    if png == nil {
+                        let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not convert breadcrumb image to data"])
+                        completion(.failure(error))
+                    }
+                    
+                    breadCrumbPNG = png
                 }
-              
-            } else {
-                let error = NSError(domain: "TaskErrorDomain", code: 0, userInfo: [NSLocalizedDescriptionKey: "Map image wasn't created properly"])
+                dispatchGroup.leave()
+            }
+        }
+        
+        
+        
+        dispatchGroup.notify(queue: .main) {
+            
+            let newRun = Run(
+                isDarkMode: isDarkMode,
+                postedDate: Date.now,
+                startTime: runManager.runStartTime,
+                endTime: runManager.runEndTime,
+                elapsedTime: runManager.secondsElapsed,
+                distanceTraveled: runManager.distanceTraveled,
+                routeDistance: runManager.routeDistance,
+                steps: runManager.steps,
+                startPlacemark: runManager.startPlacemark!,
+                endPlacemark: runManager.endPlacemark!,
+                avgSpeed: runManager.averageSpeed,
+                avgPace: runManager.averagePace,
+                routeImage: routePNG,
+                breadCrumbImage: breadCrumbPNG,
+                notes: "",
+                paceArray: runManager.activePaceArray
+            )
+            
+            // Save the data
+            modelContext.insert(newRun)
+            do {
+                try modelContext.save()
+                completion(.success(true))
+            } catch {
                 completion(.failure(error))
             }
         }
+                
     }
    
     
@@ -608,12 +749,19 @@ struct RunView: View {
                                 
                                 MapPolyline(route.polyline)
                                     .mapOverlayLevel(level: .aboveRoads)
-                                    .stroke(Color.blue.opacity(0.8), style: StrokeStyle(lineWidth: 12, lineCap: .round)) // Light blue border
+                                    .stroke(Color.blue.opacity(0.8), style: StrokeStyle(lineWidth: 8, lineCap: .round)) // Light blue border
                                                
                                MapPolyline(route.polyline)
                                     .mapOverlayLevel(level: .aboveRoads)
-                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                                
+                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                               
+                            }
+                            
+                            // Show the breadcrumb path
+                            if runStatus == .startedRun && displayBreadCrumbPath  {
+                                let points = runManager.locations.map { MKMapPoint($0.coordinate) }
+                                MapPolyline(coordinates: points.map { $0.coordinate })
+                                    .stroke( runManager.isFreeRunning ? BLUE : LIGHT_BLUE, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                             }
                             
                             // The routeDestination is used to persist the marker even when the user taps elsewhere on the screen
@@ -624,7 +772,7 @@ struct RunView: View {
                             }
                             
                             // Show all search results if user hasn't selected a place yet
-                            if let places = locationManager.fetchedPlaces, !places.isEmpty {
+                            if let places = runManager.fetchedPlaces, !places.isEmpty {
                                 ForEach(places, id: \.self) { place in
                                     Group {
                                         // Show search results on map if user hasn't selected a destination yet
@@ -649,9 +797,15 @@ struct RunView: View {
                                 if !disabledFetch {
                                     isTextFieldFocused = false
                                     withAnimation {
-                                        searchPlaceSheetVisible = false
                                         routeSheetVisible = true
                                         routeSheetSelectedDetent = SheetPosition.peek.detent
+                                    }
+                                    
+                                    withAnimation {
+                                        cameraPosition = .region(MKCoordinateRegion(
+                                            center: selectedPlaceMark!.getLocation(),
+                                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                        ))
                                     }
                                 }
                                
@@ -676,7 +830,7 @@ struct RunView: View {
                             }
                         }
                         .ignoresSafeArea(edges: [.leading, .trailing])
-                        .mapStyle(.standard(elevation: .realistic, showsTraffic: true))
+                        .mapStyle(.standard(elevation: .realistic, showsTraffic: false))
                         .mapControls {
                             MapCompass()
                             MapUserLocationButton()
@@ -686,443 +840,584 @@ struct RunView: View {
                     
                     // Bottom sheet to enable location search and select a destination
                     .sheet(isPresented: $searchPlaceSheetVisible) {
-                        VStack(alignment: .leading) {
-                            
-                            HStack {
-                                Text("Plan your run!")
-                                    .foregroundStyle(.white)
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                
-                                Spacer()
-                                
-                                Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
-                                    .tint(.yellow)
-                                    .toggleStyle(.button)
-                                    .labelStyle(.iconOnly)
-                                    .font(.title)
-                                
-                                if(usePin) {
-                                    let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
-                                    Button {
-                                        if hasAccess {
-                                            addCustomLocation()
-                                        } else {
-                                            // show pro access dialog
-                                            showProAccessPinsDialog = true
-                                            
-                                        }
-                                    } label: {
-                                        Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
-                                            .frame(width: 48, height: 48)
-                                            .foregroundStyle(.white)
-                                    }
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .leading).combined(with: .opacity),
-                                        removal: .move(edge: .leading).combined(with: .opacity))
-                                    )
-                                    .animation(.easeOut(duration: 0.2), value: usePin)
-                                }
-                                
-                            }
-                            .padding(.leading, 16)
-                            .padding(.trailing, 8)
-                            
-                            
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .padding(.leading, 8)
-                                    .foregroundStyle(.white)
-                                
-                                TextField("", text: Binding(get: { locationManager.searchText }, set: { locationManager.searchText = $0 }), prompt: Text("Set your destination").foregroundColor(.white))
-                                    .foregroundStyle(.white)
-                                    .autocapitalization(.none)
-                                    .frame(height: 48)
-                                    .cornerRadius(12)
-                                    .padding(.trailing, 8)
-                                    .focused($isTextFieldFocused)
-                                
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
-                            )
-                            .padding(.horizontal, 16)
- 
-                            
-                            // Show list of location search results
-                            if let places = locationManager.fetchedPlaces, !places.isEmpty {
-                                List {
-                                    ForEach(places, id: \.self) { place in
-                                        
-                                        VStack(alignment: .leading) {
-                                            Text(place.name)
-                                                .font(.title3.bold())
-                                                .foregroundStyle(.white)
-                                            
-                                            HStack(spacing: 3) {
-                                                
-                                                // Street
-                                                Text(place.thoroughfare)
-                                                    .foregroundStyle(.gray)
-                                                
-                                                // City
-                                                Text(place.locality)
-                                                    .foregroundStyle(.gray)
-                                                
-                                                // State
-                                                Text(place.administrativeArea)
-                                                    .foregroundStyle(.gray)
-                                            }
-                                        }
-                                        // When user taps on a suggested place in the list view, the route details sheet should show up
-                                        .onTapGesture {
-                                            selectedPlaceMark = place
-                                            
-                                            // Show the route for the selected destination
-                                            showRoute = true
-                                            isTextFieldFocused = false // hide the keyboard
-                                            
-                                            withAnimation(.easeOut) {
-                                                searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
-                                                routeSheetSelectedDetent = SheetPosition.peek.detent
-                                            }
-                                            
-                                            // Animate camera movement to selected placemark
-                                            withAnimation {
-                                                cameraPosition = .region(MKCoordinateRegion(
-                                                    center: place.getLocation(),
-                                                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                                                ))
-                                            }
-                                        }
-                                        .listRowInsets(EdgeInsets(top: place == places.first ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
-                                    }
-                                    .listRowBackground(Color.clear)
-                                    .listStyle(.plain)
-                                    .padding(.leading, 8)
-                                    .padding(.trailing, 16)
-                                }
-                                .scrollContentBackground(.hidden)
-                            }
-                        }
-                        .padding(.top, 16)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                        .presentationDetents(searchPlaceSheetDetents, selection: $searchPlaceSheetSelectedDetent)
-                        .presentationBackground(.black)
-                        .interactiveDismissDisabled()
-                        .presentationBackgroundInteraction(
-                            .enabled(upThrough: SheetPosition.full.detent)
-                        )
-                    }
-                    
-                    
-                    // Route details sheet
-                    .sheet(isPresented: $routeSheetVisible, onDismiss: {
-                        removeRoute()
-                        disabledFetch = false
-                    }) {
-                                          
-                        ScrollView(showsIndicators: false) {
+                        ScrollView {
                             VStack(alignment: .leading) {
                                 
                                 HStack {
-                                    Text("Route Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+
+                                    VStack(alignment: .center) {
+                                        
+                                        // Button to run freely while automatically tracking breadcrumbs
+                                        Button {
+                                           
+                                            let hasAccess = (subscriptionManager.hasSubscriptionExpired() && runsThisMonth.count < RUN_LIMIT) ||
+                                                (!subscriptionManager.hasSubscriptionExpired())
+                                            
+                                            if hasAccess {
+                                                Task {
+                                                    isStartRunLoading = true
+                                                    runManager.isFreeRunning = true
+                                                    runManager.didOptForBreadCrumbTracking = true
+                                                    
+                                                    // Save the start location. The end location will depend where the user ends their run
+                                                    if let userLocation = runManager.userLocation {
+                                                        runManager.lookUpLocation(location: userLocation) { startPlacemark in
+                                                            if startPlacemark == nil {
+                                                                print("could not reverse geo code user's location")
+                                                                return
+                                                            }
+                                                            runManager.storeRouteDetails(start: startPlacemark!, end: nil, distance: nil)
+                                                        }
+                                                    }
+                                                    
+                                                    await runManager.beginRunSession()
+                                                    runStatus = .startedRun
+                                                    isStartRunLoading = false
+                                                    searchPlaceSheetVisible = false
+                                                    routeSheetVisible = false
+                                                    runSheetVisible = true
+                                                }
+                                            } else {
+                                                showProAccessRunsDialog = true
+                                            }
+                                        } label: {
+                                            HStack {
+                                                if isStartRunLoading {
+                                                    ProgressView()
+                                                        .tint(TEXT_LIGHT_GREEN)
+                                                } else {
+                                                    Text("Quick start")
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                        .font(.subheadline)
+                                                }
+                                            }
+                                            .padding(8)
+                                            .frame(width: 108)
+                                            .background(LIGHT_GREEN)
+                                            .cornerRadius(8)
+                                        }
+                                    }
+                                    
                                     Spacer()
                                     
-                                    // Custom dismiss button
-                                    Button {
-                                        routeSheetVisible = false
-                                        searchPlaceSheetVisible = true
-                                        removeRoute()
-                                        disabledFetch = false
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundStyle(.gray)
-                                            .font(.title)
-                                    }
-                                }
-                                
-                                
-                                if routeDestination != nil {
+                                    Toggle("Pin", systemImage: usePin ? "mappin.circle.fill" : "mappin.slash.circle.fill", isOn: $usePin)
+                                        .tint(.yellow)
+                                        .toggleStyle(.button)
+                                        .labelStyle(.iconOnly)
+                                        .font(.title)
                                     
-                                    Text(routeDestination!.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-                                    
-                                    HStack(spacing: 16) {
-                                        
-                                        CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
-                                        CapsuleView(background: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
-                                        
-                                        if routeDestination!.isCustomLocation {
-                                            Menu {
-                                                Button("Delete custom pin") {
-                                                    isShowingDeleteCustomPinDialog = true
-                                                }
+                                    if(usePin) {
+                                        let hasAccess = (allCustomPinLocations.count < PIN_LIMIT && subscriptionManager.hasSubscriptionExpired()) ||  (!subscriptionManager.hasSubscriptionExpired())
+                                        Button {
+                                            if hasAccess {
+                                                addCustomLocation()
+                                            } else {
+                                                // show pro access dialog
+                                                showProAccessPinsDialog = true
                                                 
-                                                Button("Edit name") { editCustomPinNameSheetVisible = true}
-                                                
-                                                Button("Past runs") { viewPinAssociatedRunsSheetVisible = true }
-
-                                            } label: {
-                                                Image(systemName: "ellipsis.circle.fill")
-                                                    .font(.largeTitle)
-                                                    .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
-                                                    .rotationEffect(Angle(degrees: 90))
-                                                    .padding(2)
                                             }
-                                            .alert("Deleting this pin will delete any runs that reference it", isPresented: $isShowingDeleteCustomPinDialog) {
-                                                Button("Delete", role: .destructive) {
-                                                    deleteCustomPin()
-                                                }
-                                                
-                                                Button("Cancel", role: .cancel) {}
-                                            }
+                                        } label: {
+                                            Image(systemName: hasAccess ? "plus.circle.fill" : "lock")
+                                                .frame(width: 48, height: 48)
+                                                .foregroundStyle(.white)
                                         }
-                                      
-                                        Spacer()
+                                        .transition(.asymmetric(
+                                            insertion: .move(edge: .leading).combined(with: .opacity),
+                                            removal: .move(edge: .leading).combined(with: .opacity))
+                                        )
+                                        .animation(.easeOut(duration: 0.2), value: usePin)
                                     }
-                                    .padding(.vertical, 8)
                                     
-                                    Button {
-                                        let hasAccess = (subscriptionManager.hasSubscriptionExpired() && runsThisMonth.count < RUN_LIMIT) ||
-                                            (!subscriptionManager.hasSubscriptionExpired())
-                                        
-                                        if hasAccess {
-                                            Task{
-                                                isStartRunLoading = true
-                                                // LocationManager will save the start and end locations
-                                                if let userLocation = locationManager.userLocation {
-                                                    lookUpLocation(location: userLocation) { startPlacemark in
-                                                        if startPlacemark == nil {
-                                                            print("could not reverse geo code user's location")
-                                                            return
+                                }
+                                .frame(height: 54)
+                                .padding(.leading, 16)
+                                .padding(.trailing, 8)
+                                .padding(.bottom, 8)
+                                
+                                
+                                HStack(spacing: 8) {
+                                    Image(systemName: "magnifyingglass")
+                                        .padding(.leading, 8)
+                                        .foregroundStyle(.white)
+                                    
+                                    TextField("", text: Binding(get: { runManager.searchText }, set: { runManager.searchText = $0 }), prompt: Text("Or choose a destination").foregroundColor(.white))
+                                        .foregroundStyle(.white)
+                                        .autocapitalization(.none)
+                                        .frame(height: 48)
+                                        .cornerRadius(12)
+                                        .padding(.trailing, 8)
+                                        .focused($isTextFieldFocused)
+                                        .onAppear { UITextField.appearance().clearButtonMode = .always }
+                                    
+                                }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                                )
+                                .padding(.horizontal, 16)
+                                
+                                
+                                // Show list of location search results
+                                if !runManager.searchText.isEmpty {
+                                    
+                                    if let places = runManager.fetchedPlaces {
+                                        List {
+                                            ForEach(places, id: \.self) { place in
+                                                
+                                                HStack {
+                                                    VStack(alignment: .leading) {
+                                                        Text(place.name)
+                                                            .font(.title3.bold())
+                                                            .foregroundStyle(.white)
+                                                        
+                                                        HStack(spacing: 3) {
+                                                            
+                                                            // Street
+                                                            Text(place.thoroughfare)
+                                                                .foregroundStyle(.gray)
+                                                            
+                                                            // City
+                                                            Text(place.locality)
+                                                                .foregroundStyle(.gray)
+                                                            
+                                                            // State
+                                                            Text(place.administrativeArea)
+                                                                .foregroundStyle(.gray)
                                                         }
-                                                        locationManager.storeRouteDetails(start: startPlacemark!, end: routeDestination!, distance: routeDistance)
+                                                    }
+                                                    Spacer()
+                                                }
+                                                .padding(.vertical, 8)
+                                                .padding(.horizontal, 16)
+                                                // When user taps on a suggested place in the list view, the route details sheet should show up
+                                                .onTapGesture {
+                                                    selectedPlaceMark = place
+                                                    
+                                                    // Show the route for the selected destination
+                                                    showRoute = true
+                                                    isTextFieldFocused = false // hide the keyboard
+                                                    
+                                                    withAnimation(.easeOut) {
+//                                                        searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
+                                                        routeSheetSelectedDetent = SheetPosition.peek.detent
+                                                    }
+                                                    
+                                                    // Animate camera movement to selected placemark
+                                                    withAnimation {
+                                                        cameraPosition = .region(MKCoordinateRegion(
+                                                            center: place.getLocation(),
+                                                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                                                        ))
                                                     }
                                                 }
-                                                
-                                                // Make the app stay awake during run session
-                                                UIApplication.shared.isIdleTimerDisabled = true
-                                                await activityManager.beginRunSession()
-                                                locationManager.beginTracking()
-                                                
-                                                runStatus = .startedRun
-                                                isStartRunLoading = false
-                                                routeSheetVisible = false
-                                                runSheetVisible = true
-                                                
+                                                .listRowInsets(EdgeInsets(top: place == places.first ? 0 : 8, leading: 0, bottom: 8, trailing: 0))
                                             }
-                                        } else {
-                                            showProAccessRunsDialog = true
+                                            .listRowBackground(Color.clear)
+                                            .listStyle(.plain)
                                         }
-                                        
-                                    } label: {
-                                        HStack {
-                                            if isStartRunLoading {
-                                                ProgressView()
-                                                    .tint(TEXT_LIGHT_GREEN)
-                                                
-                                            } else {
-                                                Text("Start Run")
-                                                    .fontWeight(.semibold)
-                                                    .foregroundStyle(TEXT_LIGHT_GREEN)
-                                            }
-                                        }
-                                        .padding()
-                                        .frame(maxWidth: .infinity)
-                                        .background(LIGHT_GREEN)
-                                        .cornerRadius(12)
+                                        .frame(height: 600)
+                                        .scrollContentBackground(.hidden)
+                                        .contentMargins(.top, 0)
+                                        .padding(.top, 8)
                                     }
+                                } else {
+                                    // show list of past run suggestions
+                                    HStack {
+                                        Text("Recent runs")
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                        Spacer()
+                                    }
+                                    .padding(.top, 16)
+                                    .padding(.horizontal, 20)
                                     
-                                    VStack(alignment: .center) {
-                                        Image(systemName: "lightbulb.max")
-                                            .padding(.vertical, 8)
-                                        Text("To track your stats, keep your phone awake while running.").foregroundStyle(TEXT_LIGHT_GREY)
-                                            .multilineTextAlignment(.center)
+                                    if recentRuns.isEmpty {
+                                        VStack(alignment: .center) {
+                                            Text("No recent runs")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                .padding()
+                                        }
+                                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
+                                        .frame(height: 80)
                                     }
-                                    .padding(.top, 48)
+                                    else {
+                                        let uniqueRuns = Dictionary(grouping: recentRuns, by: { $0.endPlacemark!.name })
+                                            .compactMap { $0.value.first }
+                                            .sorted(by: { $0.endTime > $1.endTime } )
+                                        
+                                        List {
+                                            ForEach(uniqueRuns, id: \.id) { run in
+                                                
+                                                HStack(alignment: .center) {
+                                                    
+                                                    let isCustom =  run.endPlacemark!.isCustomLocation
+                                                    Image(systemName: "mappin.circle.fill")
+                                                        .foregroundStyle(.white, isCustom ?  .yellow : .red )
+                                                    
+                                                    Text(run.endPlacemark!.name)
+                                                        .foregroundStyle(.white)
+                                                    
+                                                    Spacer()
+                                                    
+                                                }
+                                                .onTapGesture {
+                                                    runManager.searchText = run.endPlacemark!.name
+                                                    selectedPlaceMark = run.endPlacemark!
+                                                    
+                                                    // Show the route for the selected destination
+                                                    showRoute = true
+                                                    isTextFieldFocused = false // hide the keyboard
+                                                    
+                                                    withAnimation(.easeOut) {
+                                                        searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
+                                                        routeSheetSelectedDetent = SheetPosition.peek.detent
+                                                    }
+                                                    
+                                                    // Animate camera movement to selected placemark
+                                                    withAnimation {
+                                                        cameraPosition = .region(MKCoordinateRegion(
+                                                            center: run.endPlacemark!.getLocation(),
+                                                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                                                        ))
+                                                    }
+                                                }
+                                                .listRowInsets(EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
+                                                
+                                            }
+                                            .listRowBackground(Color.clear)
+                                            .listStyle(.plain)
+                                            .padding(.leading, 8)
+                                            .padding(.trailing, 16)
+                                        }
+                                        .frame(height: 300)
+                                        .contentMargins(.top, 0) // removes that annoying top padding above first list item
+                                        .scrollContentBackground(.hidden)
+                                    }
                                 }
+                                                                                            
+                                Spacer()
+                                
                             }
-                            .onAppear {
-                                // Prevents behavior where tapping on a different route destination marker fetches a different route
-                                disabledFetch = true
-                            }
-                            .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .frame(maxHeight: .infinity, alignment: .top)
-                            .presentationDetents(routeSheetDetents, selection: $routeSheetSelectedDetent)
+                            .presentationDetents(searchPlaceSheetDetents, selection: $searchPlaceSheetSelectedDetent)
                             .presentationBackground(.black)
-                            .presentationDragIndicator(.visible)
-                            .interactiveDismissDisabled(true)
+                            .interactiveDismissDisabled()
                             .presentationBackgroundInteraction(
                                 .enabled(upThrough: SheetPosition.full.detent)
                             )
-                            
-                            // Past runs for pin sheet
-                            .sheet(isPresented: $viewPinAssociatedRunsSheetVisible) {
-                                VStack {
+                        }
+                        .frame(maxHeight: .infinity)
+                        
+                        
+                        // Route details sheet
+                        .sheet(isPresented: $routeSheetVisible, onDismiss: {
+                            if runStatus == .planningRoute {
+                                removeRoute()
+                                disabledFetch = false
+                            }
+                        }) {
+                                              
+                            ScrollView(showsIndicators: false) {
+                                VStack(alignment: .leading) {
+                                    
                                     HStack {
-                                        Text("Past Runs").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                        Text("Route Details").font(.title3).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
                                         Spacer()
                                         
                                         // Custom dismiss button
                                         Button {
-                                            viewPinAssociatedRunsSheetVisible = false
+                                            routeSheetVisible = false
+                                            removeRoute()
+                                            disabledFetch = false
                                         } label: {
                                             Image(systemName: "xmark.circle.fill")
                                                 .foregroundStyle(.gray)
                                                 .font(.title)
                                         }
                                     }
-                                    .padding(.horizontal, 16)
                                     
-                                    if associatedRuns.count == 0 {
-                                        Spacer()
-                                        Text("You have not logged any runs for this location.")
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                            .multilineTextAlignment(.center)
-                                            .padding(.horizontal, 32)
-                                        Spacer()
-                                    } else {
-                                        
-                                        // Timeline View of associated runs
-                                        ScrollView(showsIndicators: false) {
-                                            ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
-                                                
-                                                HStack(alignment: .top, spacing: 12) {
-                                                    Circle()
-                                                        .fill(BLUE)
-                                                        .frame(width: 8, height: 8)
-                                                        .overlay(alignment: .top) {
-                                                            if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
-                                                                Rectangle()
-                                                                    .fill(BLUE.opacity(0.5))
-                                                                    .frame(width: 2, height: 56)
-                                                            }
-                                                            else {
-                                                                Rectangle()
-                                                                    .fill(Color.clear)
-                                                            }
-                                                        }
-                                                    
-                                                    VStack(alignment: .leading) {
-                                                        
-                                                        Text(run.startTime.formatted(
-                                                            .dateTime
-                                                                .weekday(.abbreviated)
-                                                                .month(.abbreviated)
-                                                                .day()
-                                                                .hour()
-                                                                .minute()
-                                                                .hour(.defaultDigits(amPM: .abbreviated))
-                                                        ))
-                                                        .font(.subheadline)
-                                                        
-                                                        
-                                                        Text("\(run.steps) steps")
-                                                            .font(.caption)
-                                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                                    }
-                                                    .offset(y: -4)
-                                                    
-                                                    Spacer()
-                                                }
-                                                .frame(height: 48)
-                                            }
-                                            .listRowBackground(Color.clear)
-                                            .listStyle(.plain)
-                                        }
-                                        .padding(.horizontal, 16)
-                                        .scrollContentBackground(.hidden)
-                                    }
-                                }
-                                .frame(maxHeight: .infinity, alignment: .top)
-                                .padding(.top, 16)
-                                .presentationDetents(viewPinAssociatedRunsSheetDetents)
-                                .presentationBackground(.black)
-                                .presentationDragIndicator(.visible)
-                                .presentationBackgroundInteraction(.disabled)
-                            }
-                            .onAppear {
-                                if routeDestination != nil {
-                                    Task {
-                                        await fetchAssociatedRunsForPin(pin: routeDestination!)
-                                    }
-                                }
-                            }
-                            
-                            
-                            // Edit custom pin name sheet
-                            .sheet(isPresented: $editCustomPinNameSheetVisible, onDismiss: {
-                                newCustomPinName = ""
-                            }) {
-                                ScrollView(showsIndicators: false) {
-
-                                    let oldName = String(routeDestination!.getName())
                                     
-                                    VStack(alignment: .leading, spacing: 24) {
+                                    if routeDestination != nil {
                                         
-                                        HStack {
-                                            Text("Change pin name").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
-                                            Spacer()
+                                        Text(routeDestination!.name).font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                        
+                                        HStack(spacing: 16) {
                                             
-                                            // Custom dismiss button
-                                            Button {
-                                                editCustomPinNameSheetVisible = false
-                                            } label: {
-                                                Image(systemName: "xmark.circle.fill")
-                                                    .foregroundStyle(.gray)
-                                                    .font(.title)
-                                            }
-                                        }                                        
-                                       
-                                        TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
-                                            .foregroundColor(.white)
-                                            .autocapitalization(.none)
-                                            .frame(height: 48)
-                                            .cornerRadius(12)
-                                            .padding(.leading)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
-                                            )
-                                    
+                                            CapsuleView(background: DARK_GREY, iconName: "timer", iconColor: .white, text: travelTimeString ?? "")
+                                            CapsuleView(background: DARK_GREY, iconName: "figure.run", iconColor: .white, text: String(format: "%.1fmi", routeDistance))
+                                            
+                                                Menu {
+                                                    
+                                                    if routeDestination!.isCustomLocation {
+                                                        Button("Delete custom pin") {
+                                                            isShowingDeleteCustomPinDialog = true
+                                                        }
+                                                        Button("Edit name") { editCustomPinNameSheetVisible = true}
+                                                        Button("Past runs") { viewPinAssociatedRunsSheetVisible = true }
+                                                    }
+                                                    
+                                                    Toggle("Trace path for this run", isOn: $runManager.didOptForBreadCrumbTracking )
+                                                    Toggle("Best location accuracy", isOn: $runManager.bestLocationAccuracy )
+
+
+                                                } label: {
+                                                    Image(systemName: "ellipsis.circle.fill")
+                                                        .font(.largeTitle)
+                                                        .foregroundStyle(.white, DARK_GREY) // color the dots white and underlying circle grey
+                                                        .rotationEffect(Angle(degrees: 90))
+                                                        .padding(2)
+                                                }
+                                                .alert("Deleting this pin will delete any runs that reference it", isPresented: $isShowingDeleteCustomPinDialog) {
+                                                    Button("Delete", role: .destructive) {
+                                                        deleteCustomPin()
+                                                    }
+                                                    
+                                                    Button("Cancel", role: .cancel) {}
+                                                }
+                                            
+                                            
+                                          
+                                            Spacer()
+                                        }
+                                        .padding(.vertical, 8)
                                         
                                         Button {
-                                           saveNewCustomPinName()
+                                            let hasAccess = (subscriptionManager.hasSubscriptionExpired() && runsThisMonth.count < RUN_LIMIT) ||
+                                                (!subscriptionManager.hasSubscriptionExpired())
+                                            
+                                            if hasAccess {
+                                                Task{
+                                                    isStartRunLoading = true
+                                                    // runManager will save the start and end locations
+                                                    if let userLocation = runManager.userLocation {
+                                                        runManager.lookUpLocation(location: userLocation) { startPlacemark in
+                                                            guard let startPlacemark else {
+                                                                print("could not reverse geo code user's location")
+                                                                return
+                                                            }
+                                                            runManager.storeRouteDetails(start: startPlacemark, end: routeDestination!, distance: routeDistance)
+                                                        }
+                                                    }
+                                                    
+                                                    await runManager.beginRunSession()
+                                                    
+                                                    runStatus = .startedRun
+                                                    isStartRunLoading = false
+                                                    routeSheetVisible = false
+                                                    searchPlaceSheetVisible = false
+                                                    runSheetVisible = true
+                                                }
+                                            } else {
+                                                showProAccessRunsDialog = true
+                                            }
+                                            
                                         } label: {
                                             HStack {
-                                                Text("Save")
-                                                    .fontWeight(.semibold)
-                                                    .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                if isStartRunLoading {
+                                                    ProgressView()
+                                                        .tint(TEXT_LIGHT_GREEN)
+                                                    
+                                                } else {
+                                                    Text("Start Run")
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                }
                                             }
                                             .padding()
                                             .frame(maxWidth: .infinity)
                                             .background(LIGHT_GREEN)
                                             .cornerRadius(12)
                                         }
-                                        .sensoryFeedback(.success, trigger: isCustomPinNewNameSaved)
+                                        
+                                        VStack(alignment: .center) {
+                                            Image(systemName: "lightbulb.max")
+                                                .padding(.vertical, 8)
+                                            Text("Your run stats are automatically tracked in the background.").foregroundStyle(TEXT_LIGHT_GREY)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                        .padding(.top, 48)
                                     }
-                                    .padding(.horizontal, 16)
                                 }
-                                .frame(maxHeight: .infinity, alignment: .top)
+                                .onAppear {
+                                    // Prevents behavior where tapping on a different route destination marker fetches a different route
+                                    disabledFetch = true
+                                }
+                                .padding(.horizontal, 16)
                                 .padding(.top, 16)
-                                .presentationDetents(editCustomPinNameSheetDetents)
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .presentationDetents(routeSheetDetents, selection: $routeSheetSelectedDetent)
                                 .presentationBackground(.black)
                                 .presentationDragIndicator(.visible)
-                                .presentationBackgroundInteraction(.disabled)
+                                .interactiveDismissDisabled(true)
+                                .presentationBackgroundInteraction(
+                                    .enabled(upThrough: SheetPosition.full.detent)
+                                )
                                 
+                                // Past runs for pin sheet
+                                .sheet(isPresented: $viewPinAssociatedRunsSheetVisible) {
+                                    VStack {
+                                        HStack {
+                                            Text("Past Runs").font(.title2).fontWeight(.semibold).foregroundStyle(TEXT_LIGHT_GREY)
+                                            Spacer()
+                                            
+                                            // Custom dismiss button
+                                            Button {
+                                                viewPinAssociatedRunsSheetVisible = false
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.title)
+                                            }
+                                        }
+                                        .padding(.horizontal, 16)
+                                        
+                                        if associatedRuns.count == 0 {
+                                            Spacer()
+                                            Text("You have not logged any runs for this location.")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                .multilineTextAlignment(.center)
+                                                .padding(.horizontal, 32)
+                                            Spacer()
+                                        } else {
+                                            
+                                            // Timeline View of associated runs
+                                            ScrollView(showsIndicators: false) {
+                                                ForEach(Array(associatedRuns.enumerated()), id: \.element.id) { index, run  in
+                                                    
+                                                    HStack(alignment: .top, spacing: 12) {
+                                                        Circle()
+                                                            .fill(BLUE)
+                                                            .frame(width: 8, height: 8)
+                                                            .overlay(alignment: .top) {
+                                                                if associatedRuns.count > 1 && index < associatedRuns.count - 1 {
+                                                                    Rectangle()
+                                                                        .fill(BLUE.opacity(0.5))
+                                                                        .frame(width: 2, height: 56)
+                                                                }
+                                                                else {
+                                                                    Rectangle()
+                                                                        .fill(Color.clear)
+                                                                }
+                                                            }
+                                                        
+                                                        VStack(alignment: .leading) {
+                                                            
+                                                            Text(run.startTime.formatted(
+                                                                .dateTime
+                                                                    .weekday(.abbreviated)
+                                                                    .month(.abbreviated)
+                                                                    .day()
+                                                                    .hour()
+                                                                    .minute()
+                                                                    .hour(.defaultDigits(amPM: .abbreviated))
+                                                            ))
+                                                            .font(.subheadline)
+                                                            
+                                                            
+                                                            Text("\(run.steps) steps")
+                                                                .font(.caption)
+                                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                                                        }
+                                                        .offset(y: -4)
+                                                        
+                                                        Spacer()
+                                                    }
+                                                    .frame(height: 48)
+                                                }
+                                                .listRowBackground(Color.clear)
+                                                .listStyle(.plain)
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .scrollContentBackground(.hidden)
+                                        }
+                                    }
+                                    .frame(maxHeight: .infinity, alignment: .top)
+                                    .padding(.top, 16)
+                                    .presentationDetents(viewPinAssociatedRunsSheetDetents)
+                                    .presentationBackground(.black)
+                                    .presentationDragIndicator(.visible)
+                                    .presentationBackgroundInteraction(.disabled)
+                                }
+                                .onAppear {
+                                    if routeDestination != nil {
+                                        Task {
+                                            await fetchAssociatedRunsForPin(pin: routeDestination!)
+                                        }
+                                    }
+                                }
+                                
+                                
+                                // Edit custom pin name sheet
+                                .sheet(isPresented: $editCustomPinNameSheetVisible, onDismiss: {
+                                    newCustomPinName = ""
+                                }) {
+                                    ScrollView(showsIndicators: false) {
+
+                                        let oldName = String(routeDestination!.getName())
+                                        
+                                        VStack(alignment: .leading, spacing: 24) {
+                                            
+                                            HStack {
+                                                Text("Change pin name").font(.title2).fontWeight(.semibold).foregroundStyle(.white)
+                                                Spacer()
+                                                
+                                                // Custom dismiss button
+                                                Button {
+                                                    editCustomPinNameSheetVisible = false
+                                                } label: {
+                                                    Image(systemName: "xmark.circle.fill")
+                                                        .foregroundStyle(.gray)
+                                                        .font(.title)
+                                                }
+                                            }
+                                           
+                                            TextField("", text: $newCustomPinName, prompt: Text("Enter a new name for \(oldName)").foregroundColor(.white))
+                                                .foregroundColor(.white)
+                                                .autocapitalization(.none)
+                                                .frame(height: 48)
+                                                .cornerRadius(12)
+                                                .padding(.leading)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 12).fill(DARK_GREY)
+                                                )
+                                        
+                                            
+                                            Button {
+                                               saveNewCustomPinName()
+                                            } label: {
+                                                HStack {
+                                                    Text("Save")
+                                                        .fontWeight(.semibold)
+                                                        .foregroundStyle(TEXT_LIGHT_GREEN)
+                                                }
+                                                .padding()
+                                                .frame(maxWidth: .infinity)
+                                                .background(LIGHT_GREEN)
+                                                .cornerRadius(12)
+                                            }
+                                            .sensoryFeedback(.success, trigger: isCustomPinNewNameSaved)
+                                        }
+                                        .padding(.horizontal, 16)
+                                    }
+                                    .frame(maxHeight: .infinity, alignment: .top)
+                                    .padding(.top, 16)
+                                    .presentationDetents(editCustomPinNameSheetDetents)
+                                    .presentationBackground(.black)
+                                    .presentationDragIndicator(.visible)
+                                    .presentationBackgroundInteraction(.disabled)
+                                    
+                                }
                             }
-        
                         }
                     }
-
-                                    
                     
-                    
+                            
                     // Run sheet
-                    .sheet(isPresented: $runSheetVisible){
+                    .sheet(isPresented: $runSheetVisible) {
                         ScrollView(showsIndicators: false) {
                             
-                            if routeDestination != nil {
+                            if routeDestination != nil && !runManager.isFreeRunning {
                                 VStack(alignment: .leading) {
                                     
                                     // Header content
@@ -1133,23 +1428,7 @@ struct RunView: View {
                                             .foregroundStyle(.white)
                                         
                                         Spacer()
-                                        
-                                        // Play and pause button for timer
-                                        Toggle("", systemImage: !activityManager.isTimerPaused() ? "pause.fill" : "play.fill", isOn: $isPaused)
-                                            .transaction { transaction in
-                                                transaction.animation = nil
-                                            }
-                                            .tint(.white)
-                                            .toggleStyle(.button)
-                                            .labelStyle(.iconOnly)
-                                            .font(.title)
-                                            .onChange(of: isPaused) { old, new in
-                                                if new {
-                                                    activityManager.pauseTimer()
-                                                } else {
-                                                    activityManager.resumeTimer()
-                                                }
-                                            }
+
                                     }
                                     
                                     // Display timer and step count
@@ -1157,20 +1436,20 @@ struct RunView: View {
                                         HStack{
                                             Image(systemName: "timer")
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
-                                            
-                                            Text("\(activityManager.formattedDuration)")
-                                                .foregroundStyle(TEXT_LIGHT_GREY)
-                                                .monospacedDigit()
-                                                .transaction { transaction in
-                                                    transaction.animation = nil
-                                                }
+                             
+                                            if let maxEndTime = runManager.maxEndTime {
+                                                Text(timerInterval: runManager.runStartTime...maxEndTime, countsDown: false, showsHours: true)
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    .monospacedDigit()
+                                            }
+                                          
                                         }
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
                                         .background(DARK_GREY)
                                         .clipShape(Capsule())
                                         
-                                        Text("\(activityManager.steps) steps")
+                                        Text("\(runManager.steps) steps")
                                             .foregroundStyle(TEXT_LIGHT_GREY)
                                             .padding(.horizontal, 12)
                                             .padding(.vertical, 6)
@@ -1213,8 +1492,7 @@ struct RunView: View {
                                         routeSheetVisible: $routeSheetVisible,
                                         runSheetVisible: $runSheetVisible,
                                         showRunView: $showRunView,
-                                        locationManager: locationManager,
-                                        activityManager: activityManager,
+                                        runManager: runManager,
                                         saveRunData: saveRunData
                                     )
                                     
@@ -1233,6 +1511,76 @@ struct RunView: View {
                                 )
 
                             }
+                            
+                             if runManager.isFreeRunning {
+                                VStack {
+                                    // Header content
+                                    HStack {
+                                        Text("Running")
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(.white)
+                                        
+                                        Spacer()
+                                        
+                                    }
+                                    .padding(.bottom, 8)
+                                    
+                                    HStack {
+                                        HStack{
+                                            Image(systemName: "timer")
+                                                .foregroundStyle(TEXT_LIGHT_GREY)
+                             
+                                            if let maxEndTime = runManager.maxEndTime {
+                                                Text(timerInterval: runManager.runStartTime...maxEndTime, countsDown: false, showsHours: true)
+                                                    .foregroundStyle(TEXT_LIGHT_GREY)
+                                                    .monospacedDigit()
+                                            }
+                                          
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(DARK_GREY)
+                                        .clipShape(Capsule())
+                                        
+                                        Text("\(runManager.steps) steps")
+                                            .foregroundStyle(TEXT_LIGHT_GREY)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Capsule().fill(DARK_GREY))
+                                            .foregroundColor(.white)
+                                        
+                                        Spacer()
+                                    }
+                                    
+                                    Spacer().frame(height: 16)
+                                    
+                                    // End run button
+                                    EndRunButton(
+                                        isFinishRunLoading: $isFinishRunLoading,
+                                        isShowingEndRunDialog: $isShowingEndRunDialog,
+                                        searchPlaceSheetVisible: $searchPlaceSheetVisible,
+                                        stepsSheetVisible: $stepsSheetVisible,
+                                        routeSheetVisible: $routeSheetVisible,
+                                        runSheetVisible: $runSheetVisible,
+                                        showRunView: $showRunView,
+                                        runManager: runManager,
+                                        saveRunData: saveRunData
+                                    )
+
+                                }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                                .presentationDetents(runSheetDetents)
+                                .presentationBackground(.black)
+                                .presentationDragIndicator(.visible)
+                                .interactiveDismissDisabled(true)
+                                .presentationBackgroundInteraction(
+                                    .enabled(upThrough: .large)
+                                )
+                            }
+                             
                         }
                         
                         
@@ -1255,7 +1603,7 @@ struct RunView: View {
                                 .padding(.horizontal, 16)
                                 
                                 List {
-                                    let steps = locationManager.routeSteps
+                                    let steps = runManager.routeSteps
                                     // The first route step using autombile transporation type is empty so we skip it
                                     ForEach(1..<steps.count, id: \.self) { idx in
                                         
@@ -1285,7 +1633,7 @@ struct RunView: View {
                                     .listRowBackground(Color.clear)
                                     .listStyle(.plain)
                                 }
-                                .padding(0)
+                                .contentMargins(.top, 0) // removes that annoying top padding above first list item
                                 .scrollContentBackground(.hidden)
                             }
                             .frame(maxHeight: .infinity, alignment: .top)
@@ -1322,6 +1670,51 @@ struct RunView: View {
                         .padding(.horizontal, 12)
                     }
 
+                    else if (runStatus != .planningRoute && runManager.didOptForBreadCrumbTracking) {
+                        HStack {
+                            Menu {
+                                
+                                Section("Breadcrumb Visibility") {
+                                    Button { displayBreadCrumbPath.toggle() } label: {
+                                        Label("Display Path", systemImage: "checkmark")
+                                            .labelStyle(MyLabelStyle(isSelected: displayBreadCrumbPath == true))
+                                    }
+                                }
+                                
+                                Section("Breadcrumb Resolution") {
+                                    Button { breadCrumbAccuracy = 10 } label: {
+                                        Label("10 meters", systemImage: "checkmark")
+                                            .labelStyle(MyLabelStyle(isSelected: breadCrumbAccuracy == 10))
+                                    }
+                                    
+                                    Button { breadCrumbAccuracy = 50 } label: {
+                                        Label("50 meters", systemImage: "checkmark")
+                                            .labelStyle(MyLabelStyle(isSelected: breadCrumbAccuracy == 50))
+                                    }
+                                    Button { breadCrumbAccuracy = 100 } label: {
+                                        Label("100 meters", systemImage: "checkmark")
+                                            .labelStyle(MyLabelStyle(isSelected: breadCrumbAccuracy == 100))
+                                    }
+                                    Button { breadCrumbAccuracy = 500 } label: {
+                                        Label("500 meters", systemImage: "checkmark")
+                                            .labelStyle(MyLabelStyle(isSelected: breadCrumbAccuracy == 500))
+                                    }
+                                }
+                                                                
+                                                               
+                            } label: {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(isDarkMode ? .white : .black) // color the dots white and underlying circle grey
+                                    .padding(4)
+                            }
+                            
+                            Spacer()
+                            
+                        }
+                        .padding(.horizontal, 12)
+                    }
+
                 }
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar(.hidden, for: .navigationBar)
@@ -1337,21 +1730,22 @@ struct RunView: View {
             .preferredColorScheme(isDarkMode ? .dark : .light)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
+                runManager.resetUserLocation()
+                
                 runsThisMonth = recentRuns.filter { run in
-                   let calendar = Calendar.current
-                   let currentDate = Date()
-                   let currentYear = calendar.component(.year, from: currentDate)
-                   let currentMonth = calendar.component(.month, from: currentDate)
-                   
-                   let runYear = calendar.component(.year, from: run.startTime)
-                   let runMonth = calendar.component(.month, from: run.startTime)
-                   return runYear == currentYear && runMonth == currentMonth
-               }
+                    let calendar = Calendar.current
+                    let currentDate = Date()
+                    let currentYear = calendar.component(.year, from: currentDate)
+                    let currentMonth = calendar.component(.month, from: currentDate)
+                    
+                    let runYear = calendar.component(.year, from: run.startTime)
+                    let runMonth = calendar.component(.month, from: run.startTime)
+                    return runYear == currentYear && runMonth == currentMonth
+                }
             }
         }
     }
 }
-
 
 /**
  A custom button to end a run session. When triggered, the user is presented with a confirmation dialog to proceed.
@@ -1367,8 +1761,7 @@ struct EndRunButton: View {
     @Binding var showRunView: Bool
 
     // Managers
-    var locationManager: LocationManager
-    var activityManager: ActivityManager
+    var runManager: RunManager
     var saveRunData: (@escaping (Result<Bool, Error>) -> Void) -> Void
     
     var body: some View {
@@ -1396,30 +1789,35 @@ struct EndRunButton: View {
             Button("Yes", role: .destructive) {
                 Task {
                     isFinishRunLoading = true
-                    // let system settings take over wakefulness of phone
-                    UIApplication.shared.isIdleTimerDisabled = false
                     
-                    await activityManager.endRunSession()
-                    saveRunData { result in
+                    await runManager.endRunSession() { success in
                         
-                        switch result {
-                        case .success(_):
+                        if !success {
+                            print("couldn't end run session at the moment")
+                            return
+                        }
+                        
+                        saveRunData { result in
                             
-                            searchPlaceSheetVisible = false
-                            stepsSheetVisible = false
-                            routeSheetVisible = false
-                            runSheetVisible = false
-                            
-                            locationManager.clearData()
-                            locationManager.terminateTracking()
-                            
-                            activityManager.clearData()
-                            
-                            isFinishRunLoading = true
-                            showRunView = false
-                            
-                        case .failure(let error):
-                            print("Error saving run data: \(error.localizedDescription)")
+                            switch result {
+                            case .success(let status):
+                                
+                                if !status {
+                                    print("didn't find run or start placemarks")
+                                    return
+                                }
+                                searchPlaceSheetVisible = false
+                                stepsSheetVisible = false
+                                routeSheetVisible = false
+                                runSheetVisible = false
+                                
+                                runManager.clearData()
+                                isFinishRunLoading = true
+                                showRunView = false
+                                
+                            case .failure(let error):
+                                print("Error saving run data: \(error.localizedDescription)")
+                            }
                         }
                     }
                 }

@@ -43,7 +43,7 @@
 		E4C509192CC3762900B23CFE /* SoloLiveWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C509182CC3762900B23CFE /* SoloLiveWidget.swift */; };
 		E4C5091B2CC3762C00B23CFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E4C5091A2CC3762C00B23CFE /* Assets.xcassets */; };
 		E4C5091F2CC3762C00B23CFE /* SoloLiveWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */; };
+		E4C509262CC37A8D00B23CFE /* RunManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C508A62CC33F1A00B23CFE /* RunManager.swift */; };
 		E4D4694E2D7E176700223BD3 /* LoadDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D4694D2D7E176700223BD3 /* LoadDataView.swift */; };
 		E4D469502D7E800400223BD3 /* Tips.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D4694F2D7E800400223BD3 /* Tips.swift */; };
 		E4D469522D7E8EB500223BD3 /* StepsChartsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D469512D7E8EB500223BD3 /* StepsChartsView.swift */; };
@@ -129,7 +129,7 @@
 		E4A9C22C2D4AA11200C35CA6 /* SubscriptionEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionEditView.swift; sourceTree = "<group>"; };
 		E4AD21762D84005A004D1AB5 /* TimeChartsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeChartsView.swift; sourceTree = "<group>"; };
 		E4B7F43B2D606C61006AE328 /* Solo Running.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Solo Running.storekit"; path = "Solo/Utils/Solo Running.storekit"; sourceTree = "<group>"; };
-		E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityManager.swift; sourceTree = "<group>"; };
+		E4C508A62CC33F1A00B23CFE /* RunManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunManager.swift; sourceTree = "<group>"; };
 		E4C508B02CC372BD00B23CFE /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E4C508B22CC372BD00B23CFE /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		E4C509102CC3762900B23CFE /* SoloLiveWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SoloLiveWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -207,7 +207,7 @@
 			isa = PBXGroup;
 			children = (
 				E43AEBED2CBCD5E400C7A322 /* LaunchManager.swift */,
-				E4C508A62CC33F1A00B23CFE /* ActivityManager.swift */,
+				E4C508A62CC33F1A00B23CFE /* RunManager.swift */,
 				E493F03A2CBF950700D023AE /* LocationManager.swift */,
 				E47E67212CCE084A006941B1 /* Functions.swift */,
 				E4D7400A2CD0C718001461B7 /* Extensions.swift */,
@@ -560,7 +560,7 @@
 				E4D469522D7E8EB500223BD3 /* StepsChartsView.swift in Sources */,
 				E4922E682CC95D3B00C163EA /* LaunchView.swift in Sources */,
 				E4D469502D7E800400223BD3 /* Tips.swift in Sources */,
-				E4C509262CC37A8D00B23CFE /* ActivityManager.swift in Sources */,
+				E4C509262CC37A8D00B23CFE /* RunManager.swift in Sources */,
 				E4A9C22B2D4A917A00C35CA6 /* SubscriptionUpgradeView.swift in Sources */,
 				E4D7400B2CD0C718001461B7 /* Extensions.swift in Sources */,
 				E43AEBF72CBE1C4500C7A322 /* AppState.swift in Sources */,
@@ -764,12 +764,14 @@
 				INFOPLIST_FILE = Solo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "This app requires access to motion data to track your activities and provide personalized feedback.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -806,12 +808,14 @@
 				INFOPLIST_FILE = Solo/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Solo Running";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need to know your location to plan routes.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "This app requires access to motion data to track your activities and provide personalized feedback.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

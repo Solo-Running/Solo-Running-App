@@ -21,8 +21,7 @@ struct MainView: View {
     @Environment(AppState.self) var appState
     @Environment(\.modelContext) private var modelContext
 
-    @EnvironmentObject var locationManager: LocationManager
-    @EnvironmentObject var activityManager: ActivityManager
+    @EnvironmentObject var runManager: RunManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
 
     @State var selectedScreen: Screen = .Dashboard
@@ -33,6 +32,7 @@ struct MainView: View {
     @State var publisher = NotificationCenter.default.publisher(for: NSPersistentCloudKitContainer.eventChangedNotification)
     @State var importingData: Bool = false
     @State var showUserNullAlert: Bool = false
+    
     // Determines if the user needs to onboard
     @AppStorage("isFirstInApp") var isFirstInApp: Bool = true
 
@@ -103,9 +103,10 @@ struct MainView: View {
                     }
                     .fullScreenCover(isPresented: $showRunView, onDismiss: {
                         self.selectedScreen = self.oldSelectedScreen
+                        runManager.clearData()
                     }) {
                         
-                        if !activityManager.isMotionAuthorized || !locationManager.isAuthorized {
+                        if !runManager.isMotionAuthorized || !runManager.isAuthorized {
                             VStack(alignment: .leading) {
                                 
                                 Button {
