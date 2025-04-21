@@ -528,7 +528,7 @@ class RunManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 let request = MKLocalSearch.Request()
                 let region = MKCoordinateRegion(
                     center: userLocation!.coordinate,
-                    span: .init(
+                    span: MKCoordinateSpan(
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01
                     )
@@ -558,7 +558,13 @@ class RunManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                             timestamp: Date(),
                             nameEditDate: nil
                         )
-                    }).filter{$0.isoCountryCode == "US"}
+                    })
+                    .filter { placemark in
+                        let target = CLLocation(latitude: placemark.latitude, longitude:  placemark.longitude)
+                        let distanceMeters = userLocation?.distance(from: target)
+                        print(distanceMeters)
+                        return distanceMeters ?? 0 <= 160934.5 // 100 mile radius
+                    }
                 })
             } catch {
                 print(error.localizedDescription)

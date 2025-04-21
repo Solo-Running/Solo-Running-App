@@ -56,7 +56,8 @@ struct RunView: View {
     // Environment objects to handle music, location, and activity monitoring
     @EnvironmentObject var runManager: RunManager
     @EnvironmentObject var subscriptionManager: SubscriptionManager
-    
+    @State var lookAroundManager = LookAroundManager()
+
     @Environment(\.modelContext) private var modelContext
     
     @AppStorage("isDarkMode") var isDarkMode: Bool = true
@@ -285,7 +286,7 @@ struct RunView: View {
         let id = pin.id
         let fetchDescriptor = FetchDescriptor<Run>(
             predicate: #Predicate<Run> { $0.endPlacemark?.id == id },
-            sortBy:[SortDescriptor(\.startTime, order: .reverse)]
+            sortBy:[SortDescriptor(\.startTime)] //, order: .reverse
         )
         
         do {
@@ -307,6 +308,9 @@ struct RunView: View {
         selectedPlaceMark = nil
         routeDestination = nil
         disabledFetch = false
+        
+        // Also reset the look around scene
+        lookAroundManager.resetData()
     }
 
         
@@ -996,11 +1000,12 @@ struct RunView: View {
                                                     // Show the route for the selected destination
                                                     showRoute = true
                                                     isTextFieldFocused = false // hide the keyboard
-                                                    
+                                                   
                                                     withAnimation(.easeOut) {
 //                                                        searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
                                                         routeSheetSelectedDetent = SheetPosition.peek.detent
                                                     }
+                                                    
                                                     
                                                     // Animate camera movement to selected placemark
                                                     withAnimation {
@@ -1020,27 +1025,23 @@ struct RunView: View {
                                         .contentMargins(.top, 0)
                                         .padding(.top, 8)
                                     }
-                                } else {
-                                    // show list of past run suggestions
-                                    HStack {
-                                        Text("Recent runs")
-                                            .fontWeight(.semibold)
-                                            .foregroundStyle(TEXT_LIGHT_GREY)
-                                        Spacer()
-                                    }
-                                    .padding(.top, 16)
-                                    .padding(.horizontal, 20)
                                     
-                                    if recentRuns.isEmpty {
-                                        VStack(alignment: .center) {
-                                            Text("No recent runs")
+                                    
+                                    
+                                }
+                                    // show list of past run suggestions
+                                    else if !recentRuns.isEmpty {
+                                        
+                                        HStack {
+                                            Text("Recent runs")
+                                                .fontWeight(.semibold)
                                                 .foregroundStyle(TEXT_LIGHT_GREY)
-                                                .padding()
+                                            Spacer()
                                         }
-                                        .background(RoundedRectangle(cornerRadius: 12).fill(DARK_GREY))
-                                        .frame(height: 80)
-                                    }
-                                    else {
+                                        .padding(.top, 16)
+                                        .padding(.horizontal, 20)
+                                        
+                                    
                                         let uniqueRuns = Dictionary(grouping: recentRuns, by: { $0.endPlacemark!.name })
                                             .compactMap { $0.value.first }
                                             .sorted(by: { $0.endTime > $1.endTime } )
@@ -1067,7 +1068,7 @@ struct RunView: View {
                                                     // Show the route for the selected destination
                                                     showRoute = true
                                                     isTextFieldFocused = false // hide the keyboard
-                                                    
+                                                                                                        
                                                     withAnimation(.easeOut) {
                                                         searchPlaceSheetSelectedDetent = SheetPosition.peek.detent
                                                         routeSheetSelectedDetent = SheetPosition.peek.detent
@@ -1092,7 +1093,7 @@ struct RunView: View {
                                         .frame(height: 300)
                                         .contentMargins(.top, 0) // removes that annoying top padding above first list item
                                         .scrollContentBackground(.hidden)
-                                    }
+                                    
                                 }
                                                                                             
                                 Spacer()
@@ -1230,6 +1231,16 @@ struct RunView: View {
                                             .cornerRadius(12)
                                         }
                                         
+                                        
+                                        
+                                        if let lookAroundScene = lookAroundManager.lookAroundScene {
+                                           LookAroundPreview(initialScene: lookAroundScene)
+                                               .clipShape(RoundedRectangle(cornerRadius: 12))
+                                               .frame(height: 280)
+                                               .padding(.top, 16)
+                                        }
+                                        
+                                        
                                         VStack(alignment: .center) {
                                             Image(systemName: "lightbulb.max")
                                                 .padding(.vertical, 8)
@@ -1237,11 +1248,21 @@ struct RunView: View {
                                                 .multilineTextAlignment(.center)
                                         }
                                         .padding(.top, 48)
+                                    
                                     }
                                 }
                                 .onAppear {
                                     // Prevents behavior where tapping on a different route destination marker fetches a different route
                                     disabledFetch = true
+                                    
+                                    Task {
+                                        lookAroundManager.coordinate = CLLocationCoordinate2D(
+                                            latitude:  routeDestination!.latitude,
+                                            longitude: routeDestination!.longitude
+                                        )
+                                        
+                                        await lookAroundManager.loadPreview()
+                                    }
                                 }
                                 .padding(.horizontal, 16)
                                 .padding(.top, 16)
@@ -1476,9 +1497,9 @@ struct RunView: View {
                                             Spacer()
                                         }
                                         .padding()
-                                        .frame(maxWidth: .infinity) // Fills the entire width
+                                        .frame(maxWidth: .infinity)
                                         .background(DARK_GREY)
-                                        .cornerRadius(12) // Rounds the corners
+                                        .cornerRadius(12)
                                     }
                                     
                                     Spacer().frame(height: 16)
@@ -1496,6 +1517,14 @@ struct RunView: View {
                                         saveRunData: saveRunData
                                     )
                                     
+                                    
+                                    if let lookAroundScene = lookAroundManager.lookAroundScene {
+                                       LookAroundPreview(initialScene: lookAroundScene)
+                                           .clipShape(RoundedRectangle(cornerRadius: 12))
+                                           .frame(height: 280)
+                                           .padding(.top, 48)
+                                    }
+
                                     Spacer()
 
                                 }
@@ -1567,7 +1596,6 @@ struct RunView: View {
                                         runManager: runManager,
                                         saveRunData: saveRunData
                                     )
-
                                 }
                                 .frame(maxHeight: .infinity, alignment: .top)
                                 .padding(.horizontal, 16)
