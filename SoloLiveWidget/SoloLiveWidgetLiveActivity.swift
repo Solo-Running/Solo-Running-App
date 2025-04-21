@@ -135,19 +135,23 @@ struct SoloLiveWidgetLiveActivity: Widget {
                   
               } compactLeading: {
                   // Create the compact leading presentation.
-                  Image(systemName: "timer")
+                  Image(systemName: "figure.run")
                       .foregroundStyle(Color(hex: 0x868686))
               } compactTrailing: {
                   // Create the compact trailing presentation.
                   Text(timerInterval: context.attributes.startTime...context.attributes.endTime, countsDown: false, showsHours: true)
                       .foregroundStyle(Color(hex: 0x868686 ))
+                      .frame(width: 40)
                       .font(.largeTitle)
                       .fontWeight(.heavy)
                       .monospacedDigit()
+                  
               } minimal: {
                   Image(systemName: "timer")
                       .foregroundStyle(Color(hex: 0x868686))
               }
+              .contentMargins(.trailing, 8, for: .expanded)
+              .contentMargins(.all, 20, for: .expanded)
           }
     }
 }
