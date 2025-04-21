@@ -33,8 +33,8 @@ let TEXT_LIGHT_RED = Color(hex: 0xFAB2B2)
 
 
 let MAP_SNAPSHOT_ICON_SIZE = 16
-let RUN_LIMIT = 12
-let PIN_LIMIT = 8
+let RUN_LIMIT = 8
+let PIN_LIMIT = 5
 
 
 // Configures the gradient appearance underneath the average pace graph
