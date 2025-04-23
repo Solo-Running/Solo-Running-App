@@ -124,6 +124,7 @@ struct TimeChartsView: View {
         let last7Days = (0..<7).map { Calendar.current.date(byAdding: .day, value: -$0, to: Calendar.current.startOfDay(for: Date()))! }.reversed()
 
         // Calculate summary statistics for each day in this week using a dictionary
+        // Testing purposes: Int.random(in: 1...70)
         var dictionary: [Date: TimeData] = Dictionary(uniqueKeysWithValues: last7Days.map {
             ($0, TimeData(timeMinutes: 0, date: $0, contributedRuns: 0))
         })
@@ -239,10 +240,11 @@ struct TimeChartsView: View {
                             }()
                             
                             let totalWeeklyTime = weeklyTime.reduce( 0, {$0 + $1.timeMinutes})
-                            
+                            let displayAsHour = Int(Double(totalWeeklyTime) / 60.0) > 7
+
                             let maxTime = Double(weeklyTime.max { item1, item2 in
                                 return item2.timeMinutes > item1.timeMinutes
-                            }?.timeMinutes ?? 0) / 60.0
+                            }?.timeMinutes ?? 0)
                             
                             VStack(alignment: .leading) {
                                 Text("\(minutesToFormattedTime(minutes: totalWeeklyTime))").font(.largeTitle).bold()
@@ -273,22 +275,22 @@ struct TimeChartsView: View {
                                             .background(RoundedRectangle(cornerRadius: 8).fill(DARK_GREY))
                                         }
                                 }
-                                
+                                                                
                                 ForEach(weeklyTime) { timeForDay in
-                                    let hours = (Double(timeForDay.timeMinutes) / 60.0)
+                                    let hours = Double(timeForDay.timeMinutes) / 60.0
                                     
                                     if timeForDay.timeMinutes > 0 {
                                         if isTimeBarChartPresentation {
                                             BarMark (
                                                 x: .value("Day", timeForDay.date, unit: .day),
-                                                y: .value("Time", timeForDay.animate ? hours : 0)
+                                                y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                             )
                                             .clipShape(RoundedRectangle(cornerRadius: 6))
                                             .foregroundStyle(LIGHT_GREEN)
                                         } else {
                                             LineMark(
                                                 x: .value("Day", timeForDay.date, unit: .day),
-                                                y: .value("Time", timeForDay.animate ? hours : 0)
+                                                y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                             )
                                             .interpolationMethod(.catmullRom)
                                             .foregroundStyle(LIGHT_GREEN)
@@ -315,7 +317,7 @@ struct TimeChartsView: View {
                             .onAppear {
                                 animateWeeklyData()
                             }
-                            .chartYScale(domain: 0...(maxTime))
+                            .chartYScale(domain: 0...(displayAsHour ? (Double(maxTime) / 60) : maxTime))
                             .chartXSelection(value: $selectedWeekDay.animation(.spring))
                             .chartXAxis {
                                 AxisMarks { value in
@@ -329,24 +331,17 @@ struct TimeChartsView: View {
                                     }
                                 }
                             }
-                            .frame(height: 280)
-                            
-                            HStack(alignment: .center) {
-                                Image(systemName: "info.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                
-                                Text("Press and hold the chart for more details.")
-                                    .multilineTextAlignment(.leading)
-                                    .font(.caption)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                
-                                Spacer()
+                            .chartYAxis {
+                                AxisMarks { value in
+                                    AxisValueLabel() {
+                                        if let time = value.as(Double.self) {
+                                            Text(time.formatted(.number.notation(.compactName)))
+                                        }
+                                    }
+                                }
                             }
-                            .padding(.vertical, 8)
-                            
-                            Spacer()
-                            
+                            .frame(height: 280)
+                                                        
                         }
                     }
                     .frame(height: 420)
@@ -366,10 +361,11 @@ struct TimeChartsView: View {
                                 }()
                                 
                                 let totalWeeklyTime = weeklyTime.reduce( 0, {$0 + $1.timeMinutes})
-                                
+                                let displayAsHour = Int(Double(totalWeeklyTime) / 60.0) > 7
+
                                 let maxTime = Double(weeklyTime.max { item1, item2 in
                                     return item2.timeMinutes > item1.timeMinutes
-                                }?.timeMinutes ?? 0) / 60.0
+                                }?.timeMinutes ?? 0)
                                 
                                 VStack(alignment: .leading) {
                                     Text("\(minutesToFormattedTime(minutes: totalWeeklyTime))").font(.largeTitle).bold()
@@ -408,14 +404,14 @@ struct TimeChartsView: View {
                                             if isTimeBarChartPresentation {
                                                 BarMark (
                                                     x: .value("Day", timeForDay.date, unit: .day),
-                                                    y: .value("Time", timeForDay.animate ? hours : 0)
+                                                    y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                                 )
                                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                                                 .foregroundStyle(LIGHT_GREEN)
                                             } else {
                                                 LineMark(
                                                     x: .value("Day", timeForDay.date, unit: .day),
-                                                    y: .value("Time", timeForDay.animate ? hours : 0)
+                                                    y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                                 )
                                                 .interpolationMethod(.catmullRom)
                                                 .foregroundStyle(LIGHT_GREEN)
@@ -442,7 +438,7 @@ struct TimeChartsView: View {
                                 .onAppear {
                                     animateWeeklyData()
                                 }
-                                .chartYScale(domain: 0...(maxTime))
+                                .chartYScale(domain: 0...(displayAsHour ? (Double(maxTime) / 60) : maxTime))
                                 .chartXSelection(value: $selectedWeekDay.animation(.spring))
                                 .chartXAxis {
                                     AxisMarks { value in
@@ -456,24 +452,17 @@ struct TimeChartsView: View {
                                         }
                                     }
                                 }
-                                .frame(height: 280)
-                                
-                                HStack(alignment: .center) {
-                                    Image(systemName: "info.circle.fill")
-                                        .font(.caption)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Text("Granularity is measured in minutes")
-                                        .multilineTextAlignment(.leading)
-                                        .font(.caption)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Spacer()
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let time = value.as(Double.self) {
+                                                Text(time.formatted(.number.notation(.compactName)))
+                                            }
+                                        }
+                                    }
                                 }
-                                .padding(.vertical, 8)
-                                
-                                Spacer()
-                                
+                                .frame(height: 280)
+                                                            
                             }
                         }
                         .tag(TimePeriod.Week)
@@ -488,10 +477,11 @@ struct TimeChartsView: View {
                                 }()
                                 
                                 let totalMonthlyTime = monthlyTime.reduce( 0, {$0 + $1.timeMinutes})
-                                
+                                let displayAsHour = Int(Double(totalMonthlyTime) / 60.0) > 7
+
                                 let maxTime = Double(monthlyTime.max { item1, item2 in
                                     return item2.timeMinutes > item1.timeMinutes
-                                }?.timeMinutes ?? 0) / 60.0
+                                }?.timeMinutes ?? 0)
                                 
                                 
                                 VStack(alignment: .leading) {
@@ -531,14 +521,14 @@ struct TimeChartsView: View {
                                             if isTimeBarChartPresentation {
                                                 BarMark (
                                                     x: .value("Day", timeForDay.date, unit: .day),
-                                                    y: .value("Time", timeForDay.animate ? hours : 0 )
+                                                    y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                                 )
                                                 .clipShape(RoundedRectangle(cornerRadius: 1))
                                                 .foregroundStyle(LIGHT_GREEN)
                                             } else {
                                                 LineMark(
                                                     x: .value("Day", timeForDay.date, unit: .day),
-                                                    y: .value("Time", timeForDay.animate ? hours : 0)
+                                                    y: .value("Time", timeForDay.animate ? (displayAsHour ? hours : Double(timeForDay.timeMinutes)) : 0)
                                                 )
                                                 .interpolationMethod(.catmullRom)
                                                 .foregroundStyle(LIGHT_GREEN)
@@ -562,7 +552,7 @@ struct TimeChartsView: View {
                                     }
                                     
                                 }
-                                .chartYScale(domain: 0...(maxTime))
+                                .chartYScale(domain: 0...(displayAsHour ? (Double(maxTime) / 60) : maxTime))
                                 .onAppear {
                                     animateMonthlyData()
                                 }
@@ -574,6 +564,15 @@ struct TimeChartsView: View {
                                                 Text(dateFormatter.string(from: date))
                                                     .multilineTextAlignment(.center)
                                                     .padding(.top, 2)
+                                            }
+                                        }
+                                    }
+                                }
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let time = value.as(Double.self) {
+                                                Text(time.formatted(.number.notation(.compactName)))
                                             }
                                         }
                                     }
@@ -596,11 +595,11 @@ struct TimeChartsView: View {
                                 }()
                                 
                                 let totalYearlyTime = yearlyTime.reduce( 0, {$0 + $1.timeMinutes})
-                                
+                                let displayAsHour = Int(Double(totalYearlyTime) / 60.0) > 7
+
                                 let maxTime = Double(yearlyTime.max { item1, item2 in
                                     return item2.timeMinutes > item1.timeMinutes
-                                }?.timeMinutes ?? 0) / 60.0
-                                
+                                }?.timeMinutes ?? 0)
                                 
                                 VStack(alignment: .leading) {
                                     Text("\(minutesToFormattedTime(minutes: totalYearlyTime))").font(.largeTitle).bold()
@@ -633,19 +632,19 @@ struct TimeChartsView: View {
                                     
                                     ForEach(yearlyTime) { timeForMonth in
                                         let hours = Double(timeForMonth.timeMinutes) / 60.0
-                                        
+
                                         if timeForMonth.timeMinutes > 0{
                                             if isTimeBarChartPresentation {
                                                 BarMark (
                                                     x: .value("Month", timeForMonth.date, unit: .month),
-                                                    y: .value("Time", timeForMonth.animate ? hours : 0)
+                                                    y: .value("Time", timeForMonth.animate ? (displayAsHour ? hours : Double(timeForMonth.timeMinutes)) : 0)
                                                 )
                                                 .clipShape(RoundedRectangle(cornerRadius: 1))
                                                 .foregroundStyle(LIGHT_GREEN)
                                             } else {
                                                 LineMark(
                                                     x: .value("Day", timeForMonth.date, unit: .month),
-                                                    y: .value("Time", timeForMonth.animate ? hours : 0)
+                                                    y: .value("Time", timeForMonth.animate ? (displayAsHour ? hours : Double(timeForMonth.timeMinutes)) : 0)
                                                 )
                                                 .interpolationMethod(.catmullRom)
                                                 .foregroundStyle(LIGHT_GREEN)
@@ -671,7 +670,7 @@ struct TimeChartsView: View {
                                 .onAppear {
                                     animateYearlyData()
                                 }
-                                .chartYScale(domain: 0...(maxTime))
+                                .chartYScale(domain: 0...(displayAsHour ? (Double(maxTime) / 60) : maxTime))
                                 .chartXSelection(value: $selectedYearMonth.animation(.spring))
                                 .chartXAxis {
                                     AxisMarks { value in
@@ -680,6 +679,15 @@ struct TimeChartsView: View {
                                                 Text(dateFormatter.string(from: date))
                                                     .multilineTextAlignment(.center)
                                                     .padding(.top, 2)
+                                            }
+                                        }
+                                    }
+                                }
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let time = value.as(Double.self) {
+                                                Text(time.formatted(.number.notation(.compactName)))
                                             }
                                         }
                                     }
@@ -696,6 +704,20 @@ struct TimeChartsView: View {
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .frame(height: 420)
                 }
+                
+                HStack(alignment: .center) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    
+                    Text("Press and hold the chart for more details.")
+                        .multilineTextAlignment(.leading)
+                        .font(.caption)
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    
+                    Spacer()
+                }
+                
                 Spacer().frame(height: 24)
                 
                 // Summary statistics sections
