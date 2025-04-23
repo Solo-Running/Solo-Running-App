@@ -129,6 +129,7 @@ struct StepsChartsView: View {
         
         let last7Days = (0..<7).map { Calendar.current.date(byAdding: .day, value: -$0, to: Calendar.current.startOfDay(for: Date()))! }.reversed()
 
+        // Testing purposes: let randInt = Int.random(in: 100...300000)
         // Calculate summary statistics for each day in this week using a dictionary
         var dictionary: [Date: StepsData] = Dictionary(uniqueKeysWithValues: last7Days.map {
             ($0, StepsData(steps: 0, date: $0, contributedRuns: 0))
@@ -312,6 +313,7 @@ struct StepsChartsView: View {
                                 ForEach(weeklySteps) { stepsForDay in
                                     let miles = stepsForDay.distance / 1609.344
                                     
+                                    
                                     if stepsForDay.steps > 0 {
                                         if isStepsBarChartPresentation {
                                             BarMark (
@@ -343,9 +345,9 @@ struct StepsChartsView: View {
                                             .interpolationMethod(.catmullRom)
                                             .foregroundStyle(LIGHT_GREEN)
                                         }
+                                     
                                     }
                                 }
-                                
                             }
                             .onAppear {
                                 animateWeeklyData()
@@ -364,22 +366,16 @@ struct StepsChartsView: View {
                                     }
                                 }
                             }
-                            .frame(height: 280)
-                            
-                            HStack(alignment: .center) {
-                                Image(systemName: "info.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                
-                                Text("Press and hold the chart for more details.")
-                                    .font(.caption)
-                                    .foregroundStyle(TEXT_LIGHT_GREY)
-                                
-                                Spacer()
+                            .chartYAxis {
+                                AxisMarks { value in
+                                    AxisValueLabel() {
+                                        if let intValue = value.as(Int.self) {
+                                            Text(intValue.formatted(.number.notation(.compactName)))
+                                        }
+                                    }
+                                }
                             }
-                            .padding(.vertical, 8)
-                            
-                            Spacer()
+                            .frame(height: 280)
                             
                         }
                     }
@@ -508,23 +504,16 @@ struct StepsChartsView: View {
                                         }
                                     }
                                 }
-                                .frame(height: 280)
-                                
-                                HStack(alignment: .center) {
-                                    Image(systemName: "info.circle.fill")
-                                        .font(.caption)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Text("Press and hold the chart for more details.")
-                                        .font(.caption)
-                                        .foregroundStyle(TEXT_LIGHT_GREY)
-                                    
-                                    Spacer()
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let intValue = value.as(Int.self) {
+                                                Text(intValue.formatted(.number.notation(.compactName)))
+                                            }
+                                        }
+                                    }
                                 }
-                                .padding(.vertical, 8)
-                                
-                                Spacer()
-                                
+                                .frame(height: 280)
                             }
                         }
                         .tag(TimePeriod.Week)
@@ -642,6 +631,15 @@ struct StepsChartsView: View {
                                                 Text(dateFormatter.string(from: date))
                                                     .multilineTextAlignment(.center)
                                                     .padding(.top, 2)
+                                            }
+                                        }
+                                    }
+                                }
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let intValue = value.as(Int.self) {
+                                                Text(intValue.formatted(.number.notation(.compactName)))
                                             }
                                         }
                                     }
@@ -771,6 +769,15 @@ struct StepsChartsView: View {
                                         }
                                     }
                                 }
+                                .chartYAxis {
+                                    AxisMarks { value in
+                                        AxisValueLabel() {
+                                            if let intValue = value.as(Int.self) {
+                                                Text(intValue.formatted(.number.notation(.compactName)))
+                                            }
+                                        }
+                                    }
+                                }
                                 .frame(height: 280)
                                 
                                 Spacer()
@@ -782,6 +789,18 @@ struct StepsChartsView: View {
                     .transition(.slide.animation(.spring))
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .frame(height: 420)
+                }
+                
+                HStack(alignment: .center) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    
+                    Text("Press and hold the chart for more details.")
+                        .font(.caption)
+                        .foregroundStyle(TEXT_LIGHT_GREY)
+                    
+                    Spacer()
                 }
                 
                 Spacer().frame(height: 24)
