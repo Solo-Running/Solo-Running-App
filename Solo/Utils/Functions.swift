@@ -152,8 +152,9 @@ func secondsToFormattedTime(seconds: Int) -> String {
 
 func minutesToFormattedTime(minutes: Int) -> String {
     let hours = Int(Double(minutes) / 60)
+    let remainingMinutes = minutes % 60
     if hours > 0 {
-       return minutes > 0 ? "\(hours)hr \(minutes)min" : "\(hours)hr"
+       return minutes > 0 ? "\(hours)hr \(remainingMinutes)min" : "\(hours)hr"
     }
     else {
         return "\(minutes)min"
