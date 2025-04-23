@@ -173,6 +173,27 @@ struct RunDetailView: View {
         return Image(uiImage: renderer.uiImage!.withBackground(color: .clear))
     }
     
+    
+    func generateRandomPaceArray() -> Array<Pace> {
+        var paceArray: [Pace] = []
+        var currentTime = 0
+        let totalTime = 3600 // seconds
+
+        while currentTime < totalTime {
+            let randomInterval = 1 //rInt.random(in: 2...5)
+            currentTime += randomInterval
+            
+            if currentTime > totalTime { break }
+            
+            let paceInSecondsPerMeter = Int.random(in: 0...6) // Adjust as needed
+            let pace = Pace(pace: paceInSecondsPerMeter, timeSeconds: currentTime)
+            paceArray.append(pace)
+        }
+        
+        return paceArray
+    }
+    
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -363,9 +384,7 @@ struct RunDetailView: View {
                                     
                                     VStack(alignment: .leading) {
                                         
-                                        
                                         if let paceArray = runData.paceArray, !paceArray.isEmpty  {
-                                            
                                             let sortedPaceArray = paceArray.sorted { $0.timeSeconds < $1.timeSeconds }
                                             
                                             let slowestPace = sortedPaceArray.max { item1, item2 in
@@ -373,18 +392,29 @@ struct RunDetailView: View {
                                             }?.pace ?? 0
                                             
                                             
+                                            // Change the size of the rolling window
                                             let visibleDomain: Int = {
                                                 let minutes = secondsToMinutes(seconds: runData.elapsedTime)
                                                 
                                                 switch minutes {
                                                 case 0...10:
-                                                    return 90       // 1 minute
+                                                    return 60       // 1 minute
                                                 case 11...30:
-                                                    return 60 * 5   // 5 minutes
-                                                case 31...60:
-                                                    return 60 * 10  // 10 minutes
+                                                    return 60 * 2   // 2 minutes
                                                 default:
-                                                    return 60 * 20  // 20 minutes
+                                                    return 60 * 5   // 5 minutes
+                                                }
+                                            }()
+                                        
+                                            // stide in seconds
+                                            let stride: Float = {
+                                                let minutes = secondsToMinutes(seconds: runData.elapsedTime)
+                                                
+                                                switch minutes {
+                                                case 0...30:
+                                                    return 30   // 30 seconds
+                                                default:
+                                                    return 60   // 60 seconds
                                                 }
                                             }()
                                             
@@ -400,8 +430,7 @@ struct RunDetailView: View {
                                             .frame(height: 280)
                                             .chartXSelection(value: $selectedTime.animation(.spring))
                                             .chartXAxis {
-                                                // Add marks every 30 seconds
-                                                AxisMarks(values: .stride(by: 30)) { value in
+                                                AxisMarks(values: .stride(by: stride)) { value in
                                                     if let seconds = value.as(Int.self) {
                                                         AxisValueLabel {
                                                             // Presents the time as 1:20 or 01:20:30
