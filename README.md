@@ -1,4 +1,4 @@
-# Solo-Running-App v1.1.1.1
+# Solo-Running-App v1.1.1
 Solo Running is very much a passion project of mine after seeing the lack of simple and cheap applications targeted towards exercise. I wanted to help runners like myself track and record their acitivity over time with a focus on reliable user experience. With an elegant UI, users can easily create new runs by interacting with a custom map interface built on top of MapKit. Essential information such as estimated durations, distance, steps, and routes are provided to help you plan your exercise. When you're ready, simply confirm the route you like and the app will immediately start tracking your run data. To make run sessions more enjoyable, Solo comes with an integrated toolkit to interact with Spotify, which means you can play music within the app as well. I plan on releasing this app very soon under a extremely reasonable subscription plan of $0.99/month or $8.99/year
 
 
